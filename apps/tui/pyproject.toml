@@ -1,0 +1,21 @@
+[project]
+name = "tui"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "api-client-py",
+    "httpx>=0.28.1",
+    "pydantic>=2.13.4",
+    "textual>=8.2.7",
+]
+
+[tool.uv.sources]
+api-client-py = { path = "../../packages/client-py", editable = true }
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+]
