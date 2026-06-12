@@ -157,18 +157,20 @@ Use root commands:
 npm run lint
 npm run fix
 npm run format
-npm run test
 ```
 
 Python linting/formatting is centralized in the root `pyproject.toml` with Ruff.
 JS/TS/JSON linting and formatting is centralized in `biome.json`.
 
-Run app tests from their app directories:
+## Testing Philosophy
 
-```sh
-cd apps/api && uv run pytest
-cd apps/tui && uv run pytest
-```
+Do not chase 100% code coverage. Tests are optional and should only cover behavior that might realistically break, especially public contracts, meaningful edge cases, regressions, and failure modes that matter to users or generated clients.
+
+Prefer behavior tests that remain valid through internal refactors. Avoid tests that mirror implementation details, assert trivial hardcoded behavior, or mainly verify that framework plumbing such as FastAPI exception handler registration works.
+
+After implementing a change, agents may suggest specific tests that would be worth adding, but must not add tests autonomously without user confirmation.
+
+When the user confirms that tests should be added, every test function must have a short docstring explaining the behavior in human-readable language. The docstring should be clearer than the function name, but no longer than necessary.
 
 ## Development
 
