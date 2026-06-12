@@ -60,6 +60,32 @@ Do not edit generated client files directly:
 
 Do not hand-edit `packages/contracts/openapi.json`; regenerate it from the API app.
 
+## Database
+
+The API uses SQLAlchemy with Alembic migrations. By default, local development uses SQLite at `apps/api/logos.db`.
+
+To change the database URL, copy the API env template and edit `DATABASE_URL`:
+
+```sh
+cp apps/api/.env.example apps/api/.env
+```
+
+For PostgreSQL or another server database, add the matching SQLAlchemy driver first.
+
+Create a migration after changing ORM models:
+
+```sh
+npm run db:revision -- "create users"
+```
+
+When adding a new ORM model module, import it in `apps/api/src/api/db/models.py` so Alembic autogenerate can see its table metadata.
+
+Apply migrations:
+
+```sh
+npm run db:migrate
+```
+
 ## Checks
 
 Run repo-wide formatting and linting:

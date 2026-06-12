@@ -18,9 +18,10 @@ class AISettings(BaseModel):
 class Settings(BaseSettings):
     app_name: str = "Logos API"
     environment: str = "development"
+    database_url: str = "sqlite:///./logos.db"
     ai: AISettings = Field(default_factory=AISettings)
 
-    model_config = SettingsConfigDict(env_nested_delimiter="__")
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", env_nested_delimiter="__")
 
 
 @lru_cache
