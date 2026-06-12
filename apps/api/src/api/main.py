@@ -1,12 +1,15 @@
 from fastapi import FastAPI
 
-from api.routes.health import router as health_router
+from api.modules.health.router import router as health_router
 from api.settings import get_settings
+from api.shared.errors import AppError
+from api.shared.exception_handlers import app_error_handler
 
 
 def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(title=settings.app_name)
+    app.add_exception_handler(AppError, app_error_handler)
     app.include_router(health_router)
     return app
 

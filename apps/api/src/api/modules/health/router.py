@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from api.schemas.health import HealthCheckResponse
+from api.modules.health.schemas import HealthCheckResponse
 
 router = APIRouter(tags=["health"])
 

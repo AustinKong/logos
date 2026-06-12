@@ -19,7 +19,7 @@ The FastAPI app is the source of truth for API behavior and schemas.
 
 For API contract changes:
 
-1. Edit API routes/schemas under `apps/api/src/api/`.
+1. Edit API modules under `apps/api/src/api/modules/`.
 2. Run `npm run gen`.
 3. Update consumers in `apps/tui/` or `apps/web/` if generated names changed.
 
@@ -27,19 +27,47 @@ Do not hand-edit `packages/contracts/openapi.json`. It is committed for reviewab
 
 ## API Organization
 
-Use this split in `apps/api/src/api/`:
+Use colocated feature modules under `apps/api/src/api/modules/<module>/`.
 
-- `routes/`: FastAPI routers and endpoint functions.
-- `schemas/`: Pydantic request/response schemas used in route contracts.
-- `models/`: SQLAlchemy models or domain models. This package may be empty until needed.
-- `settings.py`: API settings.
+A module may contain:
+
+- `router.py`: FastAPI endpoints and HTTP boundary.
+- `schemas.py`: Pydantic request/response schemas for the API contract.
+- `models.py`: SQLAlchemy ORM models or internal persistence/domain models.
+- `service.py`: main application behavior and orchestration. It must not import FastAPI.
+- `repository.py`: optional database query wrapper for repeated or complex ORM access.
+- `deps.py`: optional FastAPI dependency wiring for this module, such as constructing services or repositories with `Depends`.
+- `errors.py`: optional module-specific application errors.
+
+Top-level API files and packages:
+
 - `main.py`: FastAPI app factory/module.
+- `settings.py`: API settings.
+- `deps.py`: shared/global FastAPI dependencies, such as settings, database sessions.
+- `shared/`: shared application types such as errors and exception handlers.
+- `db/`: database setup, sessions, and base model metadata.
 
 The API must not import generated clients from `packages/client-py/`. Generated clients consume the API contract, not the other way around.
 
+Keep `__init__.py` files empty unless there is a strong reason to expose a tiny public API. Do not use package `__init__.py` files as general export barrels.
+
+Preferred dependency direction:
+
+- `router.py` may import `schemas.py` and `deps.py`.
+- `deps.py` may import `service.py` and `repository.py`.
+- `service.py` may import `repository.py`, `models.py`, and `errors.py`.
+- `repository.py` may import `models.py`.
+- module `errors.py` may import `api/shared/errors.py`.
+
+Avoid these dependency directions:
+
+- `service.py` importing `fastapi`.
+- `repository.py` importing `fastapi`.
+- `models.py` importing `fastapi`.
+
 ## API Schema Naming
 
-FastAPI request/response schemas live under `apps/api/src/api/schemas/`.
+FastAPI request/response schemas live in each module's `schemas.py`.
 
 Use explicit suffixes that describe how the schema is used:
 
@@ -51,11 +79,23 @@ Use explicit suffixes that describe how the schema is used:
 
 For non-CRUD endpoints, prefer action-oriented names such as `HealthCheckResponse`.
 
+Avoid `model_config` on API request/response schemas unless it is required for runtime validation or serialization behavior. Do not use schema-level `json_schema_extra`, examples, or similar documentation-only config that pollutes generated OpenAPI response definitions. This restriction does not apply to non-contract settings models such as `BaseSettings` configuration.
+
 Set explicit `operation_id` values on routes that are consumed by generated clients. Operation IDs become generated client function names, so keep them stable and readable:
 
 ```python
 @router.get("/health", operation_id="getHealth", response_model=HealthCheckResponse)
 ```
+
+## API Dependencies And Errors
+
+FastAPI `Depends` is appropriate in `router.py` or module-local `deps.py`. Avoid using `Depends` inside `service.py`; services should be reusable from workers, tests, and non-HTTP entrypoints without FastAPI dependency injection.
+
+When a module needs application errors, define module-specific errors in `apps/api/src/api/modules/<module>/errors.py`. Services should raise application errors, not `HTTPException`.
+
+Module errors should inherit from the shared `AppError` classes in `apps/api/src/api/shared/errors.py`; `main.py` already registers the central handler.
+
+Routers should generally not catch module errors manually. Let the central exception handler translate known `AppError` subclasses into HTTP responses. Catch errors in routers only for route-specific translation or cleanup.
 
 ## Code Generation
 
