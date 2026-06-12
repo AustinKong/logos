@@ -18,7 +18,7 @@ Run the bootstrap command from the repo root:
 npm run bootstrap
 ```
 
-This installs root tooling, syncs the Python apps, generates the OpenAPI contract and clients, then installs the web app.
+This installs root tooling, installs Git hooks, syncs the Python apps, generates the OpenAPI contract and clients, then installs the web app.
 
 ## Running The Apps
 
@@ -36,7 +36,7 @@ This starts:
 Run the TUI in a separate terminal because Textual needs full terminal control:
 
 ```sh
-npm run tui:dev
+npm run dev:tui
 ```
 
 ## Code Generation
@@ -56,22 +56,15 @@ Do not hand-edit `packages/contracts/openapi.json`; regenerate it from the API a
 
 ## Checks
 
-Run repo-wide formatting, linting, and web build checks:
+Run repo-wide formatting and linting:
 
 ```sh
 npm run format
 npm run lint
-npm run web:build
 ```
 
-Run Python tests from each app directory:
+Run tests:
 
 ```sh
-cd apps/api
-uv run pytest
-cd ../..
-
-cd apps/tui
-uv run pytest
-cd ../..
+npm run test
 ```

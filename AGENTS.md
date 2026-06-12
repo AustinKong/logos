@@ -107,13 +107,15 @@ npm run bootstrap
 
 The repo intentionally does not use npm workspaces. Root npm dependencies are for repo tooling, while `apps/web/` manages its own npm install after the generated TypeScript client exists.
 
+Git hooks are managed with `pre-commit` and installed by `npm run bootstrap`. Hooks regenerate the OpenAPI contract, run format/fix tooling, then run lint. Tests are intentionally not part of the pre-commit hook.
+
 Use root commands:
 
 ```sh
 npm run lint
 npm run fix
 npm run format
-npm run web:build
+npm run test
 ```
 
 Python linting/formatting is centralized in the root `pyproject.toml` with Ruff.
@@ -137,7 +139,7 @@ npm run dev
 Run the TUI in a separate terminal because Textual needs full terminal control:
 
 ```sh
-npm run tui:dev
+npm run dev:tui
 ```
 
 The web app proxies `/api/*` to the FastAPI dev server and strips the `/api` prefix before forwarding.
