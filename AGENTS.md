@@ -107,6 +107,8 @@ npm run bootstrap
 
 The repo intentionally does not use npm workspaces. Root npm dependencies are for repo tooling, while `apps/web/` manages its own npm install after the generated TypeScript client exists.
 
+Use `code logos.code-workspace` as the canonical VS Code entrypoint. It keeps root, API, and TUI Python interpreters separate so the root Python environment remains tooling-only.
+
 Git hooks are managed with `pre-commit` and installed by `npm run bootstrap`. Hooks regenerate the OpenAPI contract, run format/fix tooling, then run lint. Tests are intentionally not part of the pre-commit hook.
 
 Use root commands:

@@ -20,6 +20,12 @@ npm run bootstrap
 
 This installs root tooling, installs Git hooks, syncs the Python apps, generates the OpenAPI contract and clients, then installs the web app.
 
+For VS Code, open the multi-root workspace so each Python app uses its own virtual environment:
+
+```sh
+code logos.code-workspace
+```
+
 ## Running The Apps
 
 Run the API and web app together:

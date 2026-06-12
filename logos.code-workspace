@@ -1,0 +1,73 @@
+{
+  "folders": [
+    {
+      "name": "root",
+      "path": "."
+    },
+    {
+      "name": "api",
+      "path": "apps/api"
+    },
+    {
+      "name": "tui",
+      "path": "apps/tui"
+    },
+    {
+      "name": "web",
+      "path": "apps/web"
+    }
+  ],
+  "settings": {
+    "explorer.fileNesting.enabled": true,
+    "explorer.fileNesting.expand": false,
+    "explorer.fileNesting.patterns": {
+      "pyproject.toml": "uv.lock",
+      ".env.example": ".env, .env.*",
+      "README.md": "LICENSE, CHANGELOG.md"
+    },
+    "files.exclude": {
+      "**/.vscode": true,
+      "**/__pycache__": true,
+      "**/*.pyc": true,
+      "**/.pytest_cache": true,
+      "**/.ruff_cache": true,
+      "**/.mypy_cache": true,
+      "**/.venv": true,
+      "**/*.egg-info": true,
+      "**/dist": true,
+      "**/node_modules": true,
+      "**/uv.lock": true,
+      ".pre-commit-config.yaml": true,
+      ".openapi-python-client.yaml": true,
+      "biome.json": true,
+      "orval.config.ts": true,
+      "**/tsconfig*.json": true,
+      "**/vite.config.*": true
+    },
+    "search.exclude": {
+      "**/.vscode": true,
+      "**/__pycache__": true,
+      "**/.pytest_cache": true,
+      "**/.ruff_cache": true,
+      "**/.mypy_cache": true,
+      "**/.venv": true,
+      "**/*.egg-info": true,
+      "**/dist": true,
+      "**/node_modules": true,
+      "**/uv.lock": true,
+      ".pre-commit-config.yaml": true,
+      ".openapi-python-client.yaml": true,
+      "biome.json": true,
+      "orval.config.ts": true,
+      "**/tsconfig*.json": true,
+      "**/vite.config.*": true
+    },
+    "python.analysis.extraPaths": [
+      "${workspaceFolder:api}/src",
+      "${workspaceFolder:tui}/src",
+      "${workspaceFolder:root}/packages/client-py"
+    ],
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": ["tests"]
+  }
+}
