@@ -99,6 +99,14 @@ Do not bypass package imports by directly importing generated files with relativ
 
 ## Tooling
 
+Use the root bootstrap command for fresh setup:
+
+```sh
+npm run bootstrap
+```
+
+The repo intentionally does not use npm workspaces. Root npm dependencies are for repo tooling, while `apps/web/` manages its own npm install after the generated TypeScript client exists.
+
 Use root commands:
 
 ```sh

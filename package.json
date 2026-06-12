@@ -2,11 +2,12 @@
   "name": "logos",
   "private": true,
   "scripts": {
+    "bootstrap": "npm install && uv sync && cd apps/api && uv sync && cd ../.. && npm run gen && cd apps/web && npm install && cd ../tui && uv sync",
     "dev": "concurrently -n api,web -c blue,green \"npm:api:dev\" \"npm:web:dev\"",
     "api:dev": "cd apps/api && uv run uvicorn api.main:app --app-dir src --host 127.0.0.1 --port 8000 --reload",
     "tui:dev": "cd apps/tui && TUI_API_BASE_URL=http://127.0.0.1:8000 PYTHONPATH=src uv run python -m tui.main",
-    "web:dev": "npm run dev -w web -- --host 127.0.0.1 --port 5173",
-    "web:build": "npm run build -w web",
+    "web:dev": "cd apps/web && npm run dev -- --host 127.0.0.1 --port 5173",
+    "web:build": "cd apps/web && npm run build",
     "gen": "npm run gen:openapi && npm run gen:py && npm run gen:ts",
     "gen:openapi": "cd apps/api && PYTHONPATH=src uv run python scripts/export_openapi.py ../../packages/contracts/openapi.json && cd ../.. && npx biome format --write packages/contracts/openapi.json",
     "gen:ts": "orval --config orval.config.ts",
@@ -15,10 +16,6 @@
     "lint": "biome check . && uv run ruff check apps packages",
     "fix": "biome check --write . && uv run ruff format apps packages && uv run ruff check apps packages --fix"
   },
-  "workspaces": [
-    "apps/web",
-    "packages/client-ts"
-  ],
   "devDependencies": {
     "@biomejs/biome": "^2.3.8",
     "concurrently": "^9.2.1",
