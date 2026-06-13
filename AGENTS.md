@@ -13,6 +13,8 @@ This repo is a small monorepo with three apps and generated API clients:
 
 Generated clients are build artifacts. Do not edit generated client files directly.
 
+Committed client extensions live in `packages/client-overrides/`. The generation flow copies these files into ignored generated client packages after OpenAPI generation. Use this for maintained behavior that OpenAPI generators do not model well, such as SSE helpers.
+
 ## Source Of Truth
 
 The FastAPI app is the source of truth for API behavior and schemas.
@@ -164,6 +166,10 @@ Generator config lives in:
 
 The generated Python import package is `api_client`.
 The generated TypeScript package name is `api-client`.
+
+For TypeScript clients, Orval writes generated code to `packages/client-ts/src/client/generated.ts`. The public package entrypoint is overlaid from `packages/client-overrides/ts/src/client/index.ts`, which re-exports generated client code and explicitly replaces maintained overrides such as `streamSessionEvents`.
+
+The TypeScript generated client is configured with Orval `fetch.forceSuccessResponse` so non-OK HTTP responses throw and successful calls return the success response shape. Keep TypeScript client overrides, such as SSE helpers, aligned with that behavior so TanStack Query can use thrown errors consistently.
 
 ## Consumer Rules
 
