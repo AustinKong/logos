@@ -65,9 +65,13 @@ Avoid these dependency directions:
 - `repository.py` importing `fastapi`.
 - `models.py` importing `fastapi`.
 
+Constructor-injected dependencies stored on classes should use private attribute names with an underscore prefix, such as `self._repository` or `self._provider_resolver`.
+
 ## API Schema Naming
 
 FastAPI request/response schemas live in each module's `schemas.py`.
+
+Keep API schemas focused on contract shape. Put ORM-to-API-schema conversion in a module-local `adapters.py` rather than `from_*` class methods when conversion crosses ORM inheritance or union response types; class methods do not play well with subtype-specific parameters, inherited schema classes, and discriminated unions.
 
 Use explicit suffixes that describe how the schema is used:
 
@@ -90,6 +94,8 @@ Set explicit `operation_id` values on routes that are consumed by generated clie
 ## API Dependencies And Errors
 
 FastAPI `Depends` is appropriate in `router.py` or module-local `deps.py`. Avoid using `Depends` inside `service.py`; services should be reusable from workers, tests, and non-HTTP entrypoints without FastAPI dependency injection.
+
+Use `Annotated[..., Depends(...)]` directly at feature-level injection sites instead of creating module-local `XDep` type aliases such as `SessionServiceDep`. Shared dependencies that are reused across multiple modules may have aliases in top-level `api/deps.py`, such as the database session dependency.
 
 When a module needs application errors, define module-specific errors in `apps/api/src/api/modules/<module>/errors.py`. Services should raise application errors, not `HTTPException`.
 
