@@ -10,9 +10,14 @@ from api.modules.ai.providers.base import GeneratedObject
 
 
 class LiteLLMProvider:
+    def __init__(self, api_key: str) -> None:
+        self._api_key = api_key
+
     async def generate_text(self, *, messages: Sequence[AIMessage], options: GenerationOptions) -> str:
         try:
-            response = await acompletion(**_completion_kwargs(messages=messages, options=options))
+            response = await acompletion(
+                **_completion_kwargs(api_key=self._api_key, messages=messages, options=options)
+            )
         except Exception as exc:
             raise AIProviderError() from exc
 
@@ -21,7 +26,7 @@ class LiteLLMProvider:
     async def stream_text(self, *, messages: Sequence[AIMessage], options: GenerationOptions) -> AsyncIterable[str]:
         try:
             response = await acompletion(
-                **_completion_kwargs(messages=messages, options=options),
+                **_completion_kwargs(api_key=self._api_key, messages=messages, options=options),
                 stream=True,
             )
 
@@ -47,7 +52,7 @@ class LiteLLMProvider:
     ) -> GeneratedObject:
         try:
             response = await acompletion(
-                **_completion_kwargs(messages=messages, options=options),
+                **_completion_kwargs(api_key=self._api_key, messages=messages, options=options),
                 response_format=response_model,
             )
         except Exception as exc:
@@ -60,11 +65,12 @@ class LiteLLMProvider:
             raise AIProviderError("AI provider returned invalid structured output") from exc
 
 
-def _completion_kwargs(*, messages: Sequence[AIMessage], options: GenerationOptions) -> dict[str, Any]:
+def _completion_kwargs(*, api_key: str, messages: Sequence[AIMessage], options: GenerationOptions) -> dict[str, Any]:
     litellm_messages = [{"role": message.role.value, "content": message.content} for message in messages]
     kwargs: dict[str, Any] = {
         "model": options.model,
         "messages": litellm_messages,
+        "api_key": api_key,
     }
     if options.temperature is not None:
         kwargs["temperature"] = options.temperature

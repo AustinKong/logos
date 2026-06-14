@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from api.modules.ai.models import AIMessage, GenerationOptions
 
+# TODO: Don't bind to BaseModel so it's not tied to pydantic.
 GeneratedObject = TypeVar("GeneratedObject", bound=BaseModel)
 
 

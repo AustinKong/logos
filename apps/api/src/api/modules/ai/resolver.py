@@ -1,12 +1,12 @@
 from api.modules.ai.errors import AIProviderMismatchError
 from api.modules.ai.models import AIProviderPrefix
 from api.modules.ai.providers.base import AIProvider
+from api.modules.ai.providers.litellm import LiteLLMProvider
 from api.settings import Settings
 
 
 class AIProviderResolver:
-    def __init__(self, *, litellm_provider: AIProvider, settings: Settings) -> None:
-        self._litellm_provider = litellm_provider
+    def __init__(self, *, settings: Settings) -> None:
         self._settings = settings
 
     def resolve(self, model: str) -> AIProvider:
@@ -15,17 +15,13 @@ class AIProviderResolver:
         # In future (if/when we drop LiteLLM), route to different providers based on prefix here.
         match prefix:
             case AIProviderPrefix.OPENAI:
-                _require_api_key(prefix=prefix, api_key=api_keys.openai)
-                return self._litellm_provider
+                return LiteLLMProvider(_get_api_key(prefix=prefix, api_key=api_keys.openai))
             case AIProviderPrefix.ANTHROPIC:
-                _require_api_key(prefix=prefix, api_key=api_keys.anthropic)
-                return self._litellm_provider
+                return LiteLLMProvider(_get_api_key(prefix=prefix, api_key=api_keys.anthropic))
             case AIProviderPrefix.GEMINI:
-                _require_api_key(prefix=prefix, api_key=api_keys.gemini)
-                return self._litellm_provider
+                return LiteLLMProvider(_get_api_key(prefix=prefix, api_key=api_keys.gemini))
             case AIProviderPrefix.DEEPSEEK:
-                _require_api_key(prefix=prefix, api_key=api_keys.deepseek)
-                return self._litellm_provider
+                return LiteLLMProvider(_get_api_key(prefix=prefix, api_key=api_keys.deepseek))
 
 
 def _parse_model_prefix(model: str) -> AIProviderPrefix:
@@ -36,6 +32,7 @@ def _parse_model_prefix(model: str) -> AIProviderPrefix:
         raise AIProviderMismatchError(f"AI model provider prefix is not supported: {prefix}") from exc
 
 
-def _require_api_key(*, prefix: AIProviderPrefix, api_key: str | None) -> None:
+def _get_api_key(*, prefix: AIProviderPrefix, api_key: str | None) -> str:
     if not api_key:
         raise AIProviderMismatchError(f"AI provider API key is not configured for model prefix: {prefix.value}")
+    return api_key
