@@ -37,7 +37,7 @@ A module may contain:
 - `schemas.py`: Pydantic request/response schemas for the API contract.
 - `models.py` or `models/`: SQLAlchemy ORM models or internal persistence/domain models.
 - `service.py`: main application behavior and orchestration. It must not import FastAPI.
-- `repository.py`: optional database query wrapper for repeated or complex ORM access.
+- `repository.py`: optional database query wrapper for repeated, lengthy, or complex ORM access.
 - `deps.py`: optional FastAPI dependency wiring for this module, such as constructing services or repositories with `Depends`.
 - `errors.py`: optional module-specific application errors.
 
@@ -55,11 +55,21 @@ Keep `__init__.py` files empty unless there is a strong reason to expose a tiny 
 
 Preferred dependency direction:
 
-- `router.py` may import `schemas.py` and `deps.py`.
+- `router.py` may import its own module's `schemas.py`, `adapters.py`, and `deps.py`.
+- `router.py` should call services for behavior. A module's router should normally call its own module's service; cross-module behavior should be exposed through the owning module's service rather than importing another module's repository or internals.
 - `deps.py` may import `service.py` and `repository.py`.
+- `service.py` is the application boundary for its module. Other modules may call it, but should not reach through it to that module's repositories, ORM query details, or internal helpers.
+- `service.py` may use SQLAlchemy ORM directly for simple persistence operations and straightforward queries. Do not create a repository only to wrap a one-line `select`, `get`, `add`, or `delete`.
 - `service.py` may import `repository.py`, `models.py`, and `errors.py`.
 - `repository.py` may import `models.py`.
 - module `errors.py` may import `api/shared/errors.py`.
+
+Repository guidance:
+
+- Use repositories pragmatically, not by default. A repository should exist when it wraps repeated, lengthy, or complex query logic, or when naming the query clarifies behavior at call sites.
+- Avoid one repository per domain object unless each repository removes real complexity. Small applications may be cleaner when services use the ORM directly for simple work.
+- Repositories should not become a second application boundary. Services own module behavior and should enforce module-level invariants.
+- Prefer clear service methods over exposing repository methods across module boundaries.
 
 Avoid these dependency directions:
 

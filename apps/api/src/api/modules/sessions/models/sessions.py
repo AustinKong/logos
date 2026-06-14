@@ -17,8 +17,10 @@ class Session(UUIDMixin, TimestampMixin, Base):
     participants: Mapped[list[Participant]] = relationship(
         cascade="all, delete-orphan",
         order_by=lambda: Participant.created_at,
+        lazy="raise",
     )
     events: Mapped[list[Event]] = relationship(
         cascade="all, delete-orphan",
         order_by=lambda: Event.created_at,
+        lazy="raise",
     )

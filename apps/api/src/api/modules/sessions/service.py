@@ -1,21 +1,34 @@
 from datetime import datetime
 from uuid import UUID
 
+from sqlalchemy import select
+from sqlalchemy.orm import Session as SqlAlchemyDb
+from sqlalchemy.orm import selectinload
+
 from api.modules.sessions.errors import SessionNotFoundError
-from api.modules.sessions.models.events import Event
+from api.modules.sessions.models.events import Event, SessionStartedEvent
 from api.modules.sessions.models.sessions import Session
 from api.modules.sessions.repository import SessionRepository
 
 
 class SessionService:
-    def __init__(self, repository: SessionRepository) -> None:
+    def __init__(self, db: SqlAlchemyDb, repository: SessionRepository) -> None:
+        self._db = db
         self._repository = repository
 
     def create_session(self, prompt: str) -> Session:
-        return self._repository.create(prompt=prompt)
+        session = Session(prompt=prompt)
+        self._db.add(session)
+        self._db.flush()
+
+        self._db.add(SessionStartedEvent(session_id=session.id))
+        self._db.commit()
+
+        return session
 
     def get_session(self, session_id: UUID) -> Session:
-        session = self._repository.get(session_id)
+        statement = select(Session).where(Session.id == session_id).options(selectinload(Session.participants))
+        session = self._db.execute(statement).scalar_one_or_none()
         if session is None:
             raise SessionNotFoundError()
 

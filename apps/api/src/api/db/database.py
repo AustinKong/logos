@@ -1,7 +1,7 @@
 from collections.abc import Iterator
 
 from sqlalchemy import Engine, create_engine
-from sqlalchemy.orm import Session as SQLAlchemySession
+from sqlalchemy.orm import Session as SqlAlchemyDb
 from sqlalchemy.orm import sessionmaker as sqlalchemy_sessionmaker
 
 from api.settings import get_settings
@@ -16,6 +16,6 @@ engine = create_db_engine(get_settings().database_url)
 DBLocal = sqlalchemy_sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False)
 
 
-def get_db() -> Iterator[SQLAlchemySession]:
+def get_db() -> Iterator[SqlAlchemyDb]:
     with DBLocal() as db:
         yield db

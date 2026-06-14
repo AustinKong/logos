@@ -20,7 +20,8 @@ def create_session(
     payload: SessionCreate,
     service: Annotated[SessionService, Depends(get_session_service)],
 ) -> SessionRead:
-    return session_read_from_session(service.create_session(prompt=payload.prompt))
+    session = service.create_session(prompt=payload.prompt)
+    return session_read_from_session(session)
 
 
 @router.get("/{session_id}", operation_id="getSession", response_model=SessionRead)
@@ -28,7 +29,8 @@ def get_session(
     session_id: UUID,
     service: Annotated[SessionService, Depends(get_session_service)],
 ) -> SessionRead:
-    return session_read_from_session(service.get_session(session_id))
+    session = service.get_session(session_id)
+    return session_read_from_session(session)
 
 
 @router.get("/{session_id}/events", operation_id="listSessionEvents", response_model=list[EventRead])
