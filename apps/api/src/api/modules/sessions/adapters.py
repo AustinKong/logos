@@ -9,9 +9,10 @@ from api.modules.sessions.models.events import (
     SessionCompletedEvent,
     SessionStartedEvent,
 )
-from api.modules.sessions.models.participants import Participant
+from api.modules.sessions.models.participants import AgentParticipantConfig, Participant
 from api.modules.sessions.models.sessions import Session
 from api.modules.sessions.schemas import (
+    AgentParticipantCreate,
     EventRead,
     ParticipantMessageEventRead,
     ParticipantRead,
@@ -21,6 +22,14 @@ from api.modules.sessions.schemas import (
     SessionRead,
     SessionStartedEventRead,
 )
+
+
+def agent_participant_config_from_create(agent: AgentParticipantCreate) -> AgentParticipantConfig:
+    return AgentParticipantConfig(
+        name=agent.name,
+        model=agent.model,
+        system_prompt=agent.system_prompt,
+    )
 
 
 def participant_read_from_participant(participant: Participant) -> ParticipantRead:

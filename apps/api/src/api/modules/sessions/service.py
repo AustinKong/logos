@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from datetime import datetime
 from uuid import UUID
 
@@ -6,7 +7,8 @@ from sqlalchemy.orm import Session as SqlAlchemyDb
 from sqlalchemy.orm import selectinload
 
 from api.modules.sessions.errors import SessionNotFoundError
-from api.modules.sessions.models.events import Event, SessionStartedEvent
+from api.modules.sessions.models.events import Event
+from api.modules.sessions.models.participants import AgentParticipant, AgentParticipantConfig
 from api.modules.sessions.models.sessions import Session
 from api.modules.sessions.repository import SessionRepository
 
@@ -16,15 +18,24 @@ class SessionService:
         self._db = db
         self._repository = repository
 
-    def create_session(self, prompt: str) -> Session:
+    def create_session(self, prompt: str, agents: Sequence[AgentParticipantConfig] = ()) -> Session:
         session = Session(prompt=prompt)
         self._db.add(session)
         self._db.flush()
 
-        self._db.add(SessionStartedEvent(session_id=session.id))
+        for agent in agents:
+            self._db.add(
+                AgentParticipant(
+                    session_id=session.id,
+                    name=agent.name,
+                    model=agent.model,
+                    system_prompt=agent.system_prompt,
+                )
+            )
+
         self._db.commit()
 
-        return session
+        return self.get_session(session.id)
 
     def get_session(self, session_id: UUID) -> Session:
         statement = select(Session).where(Session.id == session_id).options(selectinload(Session.participants))
@@ -41,3 +52,13 @@ class SessionService:
     def list_events_after(self, session_id: UUID, created_at: datetime) -> list[Event]:
         self.get_session(session_id)  # Ensure session exists
         return self._repository.list_events_after(session_id, created_at)
+
+    def append_events(self, session_id: UUID, events: list[Event]) -> list[Event]:
+        self.get_session(session_id)  # Ensure session exists
+
+        for event in events:
+            event.session_id = session_id
+
+        self._db.add_all(events)
+        self._db.commit()
+        return events

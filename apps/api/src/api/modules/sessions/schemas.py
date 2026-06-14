@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from datetime import datetime
 from typing import Annotated, Literal
 from uuid import UUID
@@ -10,8 +8,15 @@ from api.modules.sessions.models.events import EventType
 from api.modules.sessions.models.participants import ParticipantType
 
 
+class AgentParticipantCreate(BaseModel):
+    name: str
+    model: str
+    system_prompt: str
+
+
 class SessionCreate(BaseModel):
     prompt: str
+    agents: list[AgentParticipantCreate] = Field(default_factory=list)
 
 
 class ParticipantRead(BaseModel):

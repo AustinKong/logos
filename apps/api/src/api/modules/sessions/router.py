@@ -5,7 +5,11 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Request
 from sse_starlette import EventSourceResponse
 
-from api.modules.sessions.adapters import event_read_from_event, session_read_from_session
+from api.modules.sessions.adapters import (
+    agent_participant_config_from_create,
+    event_read_from_event,
+    session_read_from_session,
+)
 from api.modules.sessions.deps import get_session_service
 from api.modules.sessions.schemas import EventRead, SessionCreate, SessionRead
 from api.modules.sessions.service import SessionService
@@ -20,7 +24,10 @@ def create_session(
     payload: SessionCreate,
     service: Annotated[SessionService, Depends(get_session_service)],
 ) -> SessionRead:
-    session = service.create_session(prompt=payload.prompt)
+    session = service.create_session(
+        prompt=payload.prompt,
+        agents=[agent_participant_config_from_create(agent) for agent in payload.agents],
+    )
     return session_read_from_session(session)
 
 

@@ -219,6 +219,25 @@
   },
   "components": {
     "schemas": {
+      "AgentParticipantCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "system_prompt": {
+            "type": "string",
+            "title": "System Prompt"
+          }
+        },
+        "type": "object",
+        "required": ["name", "model", "system_prompt"],
+        "title": "AgentParticipantCreate"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -462,6 +481,13 @@
           "prompt": {
             "type": "string",
             "title": "Prompt"
+          },
+          "agents": {
+            "items": {
+              "$ref": "#/components/schemas/AgentParticipantCreate"
+            },
+            "type": "array",
+            "title": "Agents"
           }
         },
         "type": "object",

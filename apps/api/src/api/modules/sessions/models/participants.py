@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from enum import StrEnum
 from uuid import UUID
 
@@ -10,6 +11,13 @@ from sqlalchemy.orm import Mapped, mapped_column
 from api.db.base import Base
 from api.db.mixins import TimestampMixin, UUIDMixin
 from api.db.types import ShortString
+
+
+@dataclass(frozen=True, slots=True)
+class AgentParticipantConfig:
+    name: str
+    model: str
+    system_prompt: str
 
 
 class ParticipantType(StrEnum):
