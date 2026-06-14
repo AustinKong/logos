@@ -6,10 +6,10 @@ from pydantic import ValidationError
 
 from api.modules.ai.errors import AIProviderError
 from api.modules.ai.models import AIMessage, GenerationOptions
-from api.modules.ai.providers.base import AIProvider, GeneratedObject
+from api.modules.ai.providers.base import GeneratedObject
 
 
-class LiteLLMProvider(AIProvider):
+class LiteLLMProvider:
     async def generate_text(self, *, messages: Sequence[AIMessage], options: GenerationOptions) -> str:
         try:
             response = await acompletion(**_completion_kwargs(messages=messages, options=options))
