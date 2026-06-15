@@ -144,6 +144,9 @@
                       },
                       {
                         "$ref": "#/components/schemas/ParticipantRemovedEventRead"
+                      },
+                      {
+                        "$ref": "#/components/schemas/ResolutionCreatedEventRead"
                       }
                     ],
                     "discriminator": {
@@ -153,7 +156,8 @@
                         "session.completed": "#/components/schemas/SessionCompletedEventRead",
                         "participant.message": "#/components/schemas/ParticipantMessageEventRead",
                         "participant.vote": "#/components/schemas/ParticipantVoteEventRead",
-                        "participant.removed": "#/components/schemas/ParticipantRemovedEventRead"
+                        "participant.removed": "#/components/schemas/ParticipantRemovedEventRead",
+                        "resolution.created": "#/components/schemas/ResolutionCreatedEventRead"
                       }
                     }
                   },
@@ -443,6 +447,49 @@
           "reason"
         ],
         "title": "ParticipantVoteEventRead"
+      },
+      "ResolutionCreatedEventRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "type": {
+            "type": "string",
+            "const": "resolution.created",
+            "title": "Type"
+          },
+          "resolution": {
+            "type": "string",
+            "title": "Resolution"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "session_id",
+          "created_at",
+          "updated_at",
+          "type",
+          "resolution"
+        ],
+        "title": "ResolutionCreatedEventRead"
       },
       "SessionCompletedEventRead": {
         "properties": {

@@ -68,11 +68,17 @@ class ParticipantRemovedEventRead(EventReadBase):
     removed_id: UUID
 
 
+class ResolutionCreatedEventRead(EventReadBase):
+    type: Literal[EventType.RESOLUTION_CREATED]
+    resolution: str
+
+
 EventRead = Annotated[
     SessionStartedEventRead
     | SessionCompletedEventRead
     | ParticipantMessageEventRead
     | ParticipantVoteEventRead
-    | ParticipantRemovedEventRead,
+    | ParticipantRemovedEventRead
+    | ResolutionCreatedEventRead,
     Field(discriminator="type"),
 ]

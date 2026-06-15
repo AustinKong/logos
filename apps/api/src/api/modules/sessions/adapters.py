@@ -6,6 +6,7 @@ from api.modules.sessions.models.events import (
     ParticipantMessageEvent,
     ParticipantRemovedEvent,
     ParticipantVoteEvent,
+    ResolutionCreatedEvent,
     SessionCompletedEvent,
     SessionStartedEvent,
 )
@@ -18,6 +19,7 @@ from api.modules.sessions.schemas import (
     ParticipantRead,
     ParticipantRemovedEventRead,
     ParticipantVoteEventRead,
+    ResolutionCreatedEventRead,
     SessionCompletedEventRead,
     SessionRead,
     SessionStartedEventRead,
@@ -76,6 +78,12 @@ def event_read_from_event(event: Event) -> EventRead:
                 **event_fields,
                 type=EventType.PARTICIPANT_REMOVED,
                 removed_id=event.removed_id,
+            )
+        case ResolutionCreatedEvent():
+            return ResolutionCreatedEventRead(
+                **event_fields,
+                type=EventType.RESOLUTION_CREATED,
+                resolution=event.resolution,
             )
         case SessionCompletedEvent():
             return SessionCompletedEventRead(

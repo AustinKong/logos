@@ -1,12 +1,12 @@
 from api.modules.ai.models import AIMessage, MessageRole
 from api.modules.engine.models import EngineContext
-from api.modules.sessions.models.events import ParticipantMessageEvent
 from api.modules.sessions.models.participants import AgentParticipant
+from api.modules.strategies.transcripts import format_participant_message_transcript
 
 
 class FullContextStrategy:
     def build_messages(self, ctx: EngineContext, agent: AgentParticipant) -> list[AIMessage]:
-        transcript = _format_transcript(ctx)
+        transcript = format_participant_message_transcript(ctx, empty_text="(none)")
         return [
             AIMessage(role=MessageRole.SYSTEM, content=agent.system_prompt),
             AIMessage(
@@ -18,13 +18,3 @@ class FullContextStrategy:
                 ),
             ),
         ]
-
-
-def _format_transcript(ctx: EngineContext) -> str:
-    participant_names = {participant.id: participant.name for participant in ctx.participants}
-    lines = [
-        f"{participant_names.get(event.sender_id, 'Unknown participant')}: {event.content}"
-        for event in ctx.events
-        if isinstance(event, ParticipantMessageEvent)
-    ]
-    return "\n".join(lines) if lines else "(none)"

@@ -17,9 +17,10 @@ class EventType(StrEnum):
     PARTICIPANT_MESSAGE = "participant.message"
     PARTICIPANT_VOTE = "participant.vote"
     PARTICIPANT_REMOVED = "participant.removed"
+    RESOLUTION_CREATED = "resolution.created"
 
 
-# Simple lifecycle events stay in the base events table to avoid unnecessary new tables.
+# Simple events stay in the base events table to avoid unnecessary new tables.
 # More complex events use joined tables because they have distinct fields.
 class Event(UUIDMixin, TimestampMixin, Base):
     __tablename__ = "events"
@@ -88,4 +89,15 @@ class ParticipantRemovedEvent(Event):
 
     __mapper_args__ = {
         "polymorphic_identity": EventType.PARTICIPANT_REMOVED,
+    }
+
+
+class ResolutionCreatedEvent(Event):
+    __tablename__ = "resolution_events"
+
+    id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), primary_key=True)
+    resolution: Mapped[str] = mapped_column(Text)
+
+    __mapper_args__ = {
+        "polymorphic_identity": EventType.RESOLUTION_CREATED,
     }
