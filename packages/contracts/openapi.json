@@ -129,42 +129,46 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "oneOf": [
-                      {
-                        "$ref": "#/components/schemas/SessionStartedEventRead"
-                      },
-                      {
-                        "$ref": "#/components/schemas/SessionCompletedEventRead"
-                      },
-                      {
-                        "$ref": "#/components/schemas/ParticipantMessageEventRead"
-                      },
-                      {
-                        "$ref": "#/components/schemas/ParticipantVoteEventRead"
-                      },
-                      {
-                        "$ref": "#/components/schemas/ParticipantRemovedEventRead"
-                      },
-                      {
-                        "$ref": "#/components/schemas/ResolutionCreatedEventRead"
-                      }
-                    ],
-                    "discriminator": {
-                      "propertyName": "type",
-                      "mapping": {
-                        "session.started": "#/components/schemas/SessionStartedEventRead",
-                        "session.completed": "#/components/schemas/SessionCompletedEventRead",
-                        "participant.message": "#/components/schemas/ParticipantMessageEventRead",
-                        "participant.vote": "#/components/schemas/ParticipantVoteEventRead",
-                        "participant.removed": "#/components/schemas/ParticipantRemovedEventRead",
-                        "resolution.created": "#/components/schemas/ResolutionCreatedEventRead"
-                      }
-                    }
+                    "$ref": "#/components/schemas/EventRead"
                   },
                   "title": "Response Listsessionevents"
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sessions/{session_id}/run-until-blocked": {
+      "post": {
+        "tags": ["sessions"],
+        "summary": "Run Session Until Blocked",
+        "operationId": "runSessionUntilBlocked",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response"
           },
           "422": {
             "description": "Validation Error",
@@ -242,6 +246,39 @@
         "required": ["name", "model", "system_prompt"],
         "title": "AgentParticipantCreate"
       },
+      "EventRead": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/SessionStartedEventRead"
+          },
+          {
+            "$ref": "#/components/schemas/SessionCompletedEventRead"
+          },
+          {
+            "$ref": "#/components/schemas/ParticipantMessageEventRead"
+          },
+          {
+            "$ref": "#/components/schemas/ParticipantVoteEventRead"
+          },
+          {
+            "$ref": "#/components/schemas/ParticipantRemovedEventRead"
+          },
+          {
+            "$ref": "#/components/schemas/ResolutionCreatedEventRead"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "participant.message": "#/components/schemas/ParticipantMessageEventRead",
+            "participant.removed": "#/components/schemas/ParticipantRemovedEventRead",
+            "participant.vote": "#/components/schemas/ParticipantVoteEventRead",
+            "resolution.created": "#/components/schemas/ResolutionCreatedEventRead",
+            "session.completed": "#/components/schemas/SessionCompletedEventRead",
+            "session.started": "#/components/schemas/SessionStartedEventRead"
+          }
+        }
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -293,10 +330,8 @@
             "const": "participant.message",
             "title": "Type"
           },
-          "sender_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Sender Id"
+          "sender": {
+            "$ref": "#/components/schemas/ParticipantRead"
           },
           "content": {
             "type": "string",
@@ -310,7 +345,7 @@
           "created_at",
           "updated_at",
           "type",
-          "sender_id",
+          "sender",
           "content"
         ],
         "title": "ParticipantMessageEventRead"
@@ -371,10 +406,8 @@
             "const": "participant.removed",
             "title": "Type"
           },
-          "removed_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Removed Id"
+          "removed": {
+            "$ref": "#/components/schemas/ParticipantRead"
           }
         },
         "type": "object",
@@ -384,7 +417,7 @@
           "created_at",
           "updated_at",
           "type",
-          "removed_id"
+          "removed"
         ],
         "title": "ParticipantRemovedEventRead"
       },
@@ -420,15 +453,11 @@
             "const": "participant.vote",
             "title": "Type"
           },
-          "voter_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Voter Id"
+          "voter": {
+            "$ref": "#/components/schemas/ParticipantRead"
           },
-          "target_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Target Id"
+          "target": {
+            "$ref": "#/components/schemas/ParticipantRead"
           },
           "reason": {
             "type": "string",
@@ -442,8 +471,8 @@
           "created_at",
           "updated_at",
           "type",
-          "voter_id",
-          "target_id",
+          "voter",
+          "target",
           "reason"
         ],
         "title": "ParticipantVoteEventRead"

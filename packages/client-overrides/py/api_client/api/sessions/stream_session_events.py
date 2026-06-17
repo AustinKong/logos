@@ -7,19 +7,13 @@ from uuid import UUID
 from httpx_sse import aconnect_sse, connect_sse
 
 from ...client import AuthenticatedClient, Client
+from ...models.event_read import EventRead
 from ...models.participant_message_event_read import ParticipantMessageEventRead
 from ...models.participant_removed_event_read import ParticipantRemovedEventRead
 from ...models.participant_vote_event_read import ParticipantVoteEventRead
+from ...models.resolution_created_event_read import ResolutionCreatedEventRead
 from ...models.session_completed_event_read import SessionCompletedEventRead
 from ...models.session_started_event_read import SessionStartedEventRead
-
-EventRead = (
-    SessionStartedEventRead
-    | SessionCompletedEventRead
-    | ParticipantMessageEventRead
-    | ParticipantVoteEventRead
-    | ParticipantRemovedEventRead
-)
 
 
 def _get_kwargs(session_id: UUID) -> dict[str, Any]:
@@ -49,6 +43,8 @@ def _event_from_data(data: str) -> EventRead:
             return ParticipantVoteEventRead.from_dict(event_data)
         case "participant.removed":
             return ParticipantRemovedEventRead.from_dict(event_data)
+        case "resolution.created":
+            return ResolutionCreatedEventRead.from_dict(event_data)
 
     raise ValueError(f"Unsupported event type: {event_type}")
 

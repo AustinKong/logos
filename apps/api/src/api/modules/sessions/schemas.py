@@ -52,20 +52,20 @@ class SessionCompletedEventRead(EventReadBase):
 
 class ParticipantMessageEventRead(EventReadBase):
     type: Literal[EventType.PARTICIPANT_MESSAGE]
-    sender_id: UUID
+    sender: ParticipantRead
     content: str
 
 
 class ParticipantVoteEventRead(EventReadBase):
     type: Literal[EventType.PARTICIPANT_VOTE]
-    voter_id: UUID
-    target_id: UUID
+    voter: ParticipantRead
+    target: ParticipantRead
     reason: str
 
 
 class ParticipantRemovedEventRead(EventReadBase):
     type: Literal[EventType.PARTICIPANT_REMOVED]
-    removed_id: UUID
+    removed: ParticipantRead
 
 
 class ResolutionCreatedEventRead(EventReadBase):
@@ -73,7 +73,7 @@ class ResolutionCreatedEventRead(EventReadBase):
     resolution: str
 
 
-EventRead = Annotated[
+type EventRead = Annotated[
     SessionStartedEventRead
     | SessionCompletedEventRead
     | ParticipantMessageEventRead

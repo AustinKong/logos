@@ -6,6 +6,7 @@ dependencies = []
 
 [dependency-groups]
 dev = [
+    "openapi-python-client>=0.29.0",
     "pre-commit>=4.5.0",
     "ruff>=0.15.16",
 ]

@@ -5,10 +5,12 @@ from uuid import UUID
 
 from sqlalchemy import Enum as SQLAlchemyEnum
 from sqlalchemy import ForeignKey, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from api.db.base import Base
 from api.db.mixins import TimestampMixin, UUIDMixin
+
+from .participants import Participant
 
 
 class EventType(StrEnum):
@@ -63,6 +65,8 @@ class ParticipantMessageEvent(Event):
     sender_id: Mapped[UUID] = mapped_column(ForeignKey("participants.id"), index=True)
     content: Mapped[str] = mapped_column(Text)
 
+    sender: Mapped[Participant] = relationship(Participant, foreign_keys=[sender_id], lazy="joined")
+
     __mapper_args__ = {
         "polymorphic_identity": EventType.PARTICIPANT_MESSAGE,
     }
@@ -76,6 +80,9 @@ class ParticipantVoteEvent(Event):
     target_id: Mapped[UUID] = mapped_column(ForeignKey("participants.id"), index=True)
     reason: Mapped[str] = mapped_column(Text)
 
+    voter: Mapped[Participant] = relationship(Participant, foreign_keys=[voter_id], lazy="joined")
+    target: Mapped[Participant] = relationship(Participant, foreign_keys=[target_id], lazy="joined")
+
     __mapper_args__ = {
         "polymorphic_identity": EventType.PARTICIPANT_VOTE,
     }
@@ -86,6 +93,8 @@ class ParticipantRemovedEvent(Event):
 
     id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), primary_key=True)
     removed_id: Mapped[UUID] = mapped_column(ForeignKey("participants.id"), index=True)
+
+    removed: Mapped[Participant] = relationship(Participant, foreign_keys=[removed_id], lazy="joined")
 
     __mapper_args__ = {
         "polymorphic_identity": EventType.PARTICIPANT_REMOVED,

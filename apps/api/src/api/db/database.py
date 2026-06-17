@@ -1,4 +1,5 @@
 from collections.abc import Iterator
+from contextlib import contextmanager
 
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session as SqlAlchemyDb
@@ -14,6 +15,13 @@ def create_db_engine(database_url: str) -> Engine:
 
 engine = create_db_engine(get_settings().database_url)
 DBLocal = sqlalchemy_sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False)
+
+
+# For non-Fast API contexts such as background tasks
+@contextmanager
+def db_context() -> Iterator[SqlAlchemyDb]:
+    with DBLocal() as db:
+        yield db
 
 
 def get_db() -> Iterator[SqlAlchemyDb]:

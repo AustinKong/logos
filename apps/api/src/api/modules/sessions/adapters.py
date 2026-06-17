@@ -62,22 +62,22 @@ def event_read_from_event(event: Event) -> EventRead:
             return ParticipantMessageEventRead(
                 **event_fields,
                 type=EventType.PARTICIPANT_MESSAGE,
-                sender_id=event.sender_id,
+                sender=participant_read_from_participant(event.sender),
                 content=event.content,
             )
         case ParticipantVoteEvent():
             return ParticipantVoteEventRead(
                 **event_fields,
                 type=EventType.PARTICIPANT_VOTE,
-                voter_id=event.voter_id,
-                target_id=event.target_id,
+                voter=participant_read_from_participant(event.voter),
+                target=participant_read_from_participant(event.target),
                 reason=event.reason,
             )
         case ParticipantRemovedEvent():
             return ParticipantRemovedEventRead(
                 **event_fields,
                 type=EventType.PARTICIPANT_REMOVED,
-                removed_id=event.removed_id,
+                removed=participant_read_from_participant(event.removed),
             )
         case ResolutionCreatedEvent():
             return ResolutionCreatedEventRead(

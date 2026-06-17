@@ -1,10 +1,10 @@
-import os
-
 from api_client import Client
-from api_client.api.health import get_health
-from textual.app import App, ComposeResult
-from textual.containers import Vertical
-from textual.widgets import Footer, Header, Static
+from textual.app import App
+
+from tui.screens.session.controllers import SessionController
+from tui.screens.session.loaders import SessionLoader
+from tui.screens.session.screen import SessionScreen
+from tui.settings import Settings, get_settings
 
 
 class TuiApp(App[None]):
@@ -12,35 +12,19 @@ class TuiApp(App[None]):
     SUB_TITLE = "Terminal workspace"
     BINDINGS = [("q", "quit", "Quit")]
 
-    def __init__(self, *, api_base_url: str | None = None, fetch_health: bool = True) -> None:
+    def __init__(self, *, settings: Settings | None = None) -> None:
         super().__init__()
-        self.api_base_url = api_base_url or os.getenv("TUI_API_BASE_URL", "http://127.0.0.1:8000")
-        self.fetch_health = fetch_health
-
-    def compose(self) -> ComposeResult:
-        yield Header()
-        yield Vertical(
-            Static("Logos", id="title"),
-            Static("Checking API health...", id="status"),
-            id="home",
-        )
-        yield Footer()
+        self._settings = settings or get_settings()
+        self._api_client = Client(base_url=self._settings.api_base_url, raise_on_unexpected_status=True)
 
     async def on_mount(self) -> None:
-        if not self.fetch_health:
-            return
+        await self._api_client.__aenter__()
+        self.push_screen(
+            SessionScreen(
+                controller=SessionController(client=self._api_client),
+                loader=SessionLoader(client=self._api_client),
+            )
+        )
 
-        status = self.query_one("#status", Static)
-        status.update(await self.load_health_status())
-
-    async def load_health_status(self) -> str:
-        try:
-            async with Client(base_url=self.api_base_url) as client:
-                response = await get_health.asyncio(client=client)
-        except Exception as exc:
-            return f"API health: error ({exc})"
-
-        if response is None:
-            return "API health: unexpected response"
-
-        return f"API health: {response.status}"
+    async def on_unmount(self) -> None:
+        await self._api_client.__aexit__(None, None, None)

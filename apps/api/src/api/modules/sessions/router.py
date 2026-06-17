@@ -2,15 +2,17 @@ import asyncio
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response, status
 from sse_starlette import EventSourceResponse
 
+from api.modules.engine.background import run_session_until_blocked_background
 from api.modules.sessions.adapters import (
-    agent_participant_config_from_create,
     event_read_from_event,
     session_read_from_session,
 )
 from api.modules.sessions.deps import get_session_service
+from api.modules.sessions.models.events import SessionCompletedEvent
+from api.modules.sessions.models.participants import AgentParticipantConfig
 from api.modules.sessions.schemas import EventRead, SessionCreate, SessionRead
 from api.modules.sessions.service import SessionService
 from api.shared.responses import ServerSentEventResponse
@@ -18,15 +20,30 @@ from api.shared.time import UTC_EPOCH
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
+TEMPORARY_TEST_MODEL = "openai/gpt-4o-mini"
+TEMPORARY_TEST_PROMPT = "How should engineering teams decide when to use AI agents in production workflows?"
+TEMPORARY_TEST_AGENTS = [
+    AgentParticipantConfig(
+        name="Pragmatist",
+        model=TEMPORARY_TEST_MODEL,
+        system_prompt="Argue for the simplest useful implementation that proves value quickly.",
+    ),
+    AgentParticipantConfig(
+        name="Skeptic",
+        model=TEMPORARY_TEST_MODEL,
+        system_prompt="Point out risks, failure modes, and missing safeguards in the implementation.",
+    ),
+]
+
 
 @router.post("", operation_id="createSession", response_model=SessionRead, status_code=201)
 def create_session(
-    payload: SessionCreate,
+    _payload: SessionCreate,
     service: Annotated[SessionService, Depends(get_session_service)],
 ) -> SessionRead:
     session = service.create_session(
-        prompt=payload.prompt,
-        agents=[agent_participant_config_from_create(agent) for agent in payload.agents],
+        prompt=TEMPORARY_TEST_PROMPT,
+        agents=TEMPORARY_TEST_AGENTS,
     )
     return session_read_from_session(session)
 
@@ -48,6 +65,20 @@ def list_session_events(
     return [event_read_from_event(event) for event in service.list_events(session_id)]
 
 
+@router.post(
+    "/{session_id}/run-until-blocked",
+    operation_id="runSessionUntilBlocked",
+    status_code=status.HTTP_202_ACCEPTED,
+    response_class=Response,
+)
+def run_session_until_blocked(
+    session_id: UUID,
+    background_tasks: BackgroundTasks,
+) -> Response:
+    background_tasks.add_task(run_session_until_blocked_background, session_id)
+    return Response(status_code=status.HTTP_202_ACCEPTED)
+
+
 @router.get("/{session_id}/stream", operation_id="streamSessionEvents", response_class=ServerSentEventResponse)
 async def stream_session_events(
     session_id: UUID,
@@ -64,6 +95,8 @@ async def stream_session_events(
                 yield {
                     "data": event_response.model_dump_json(),
                 }
+                if isinstance(event, SessionCompletedEvent):
+                    return
 
             if batch:
                 last_event_created_at = batch[-1].created_at
