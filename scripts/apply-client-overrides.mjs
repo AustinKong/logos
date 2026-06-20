@@ -16,6 +16,12 @@ const overrides = [
     target:
       "packages/client-py/api_client/api/sessions/stream_session_events.py",
   },
+  {
+    source:
+      "packages/client-overrides/py/api_client/api/sessions/stream_session_tokens.py",
+    target:
+      "packages/client-py/api_client/api/sessions/stream_session_tokens.py",
+  },
 ];
 
 for (const override of overrides) {

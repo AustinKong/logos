@@ -1,27 +1,53 @@
 import type { EventSourceMessage } from "eventsource-parser";
 import { createParser } from "eventsource-parser";
 import type {
+  EventRead,
   HTTPValidationError,
-  ParticipantMessageEventRead,
-  ParticipantRemovedEventRead,
-  ParticipantVoteEventRead,
-  SessionCompletedEventRead,
-  SessionStartedEventRead,
+  StreamSessionEventsParams,
+  StreamSessionTokensParams,
 } from "./generated";
-import { getStreamSessionEventsUrl } from "./generated";
+import {
+  getStreamSessionEventsUrl,
+  getStreamSessionTokensUrl,
+} from "./generated";
 
-export type EventRead =
-  | SessionStartedEventRead
-  | SessionCompletedEventRead
-  | ParticipantMessageEventRead
-  | ParticipantVoteEventRead
-  | ParticipantRemovedEventRead;
+export type { EventRead } from "./generated";
 
-export async function* streamSessionEvents(
+export interface TokenRead {
+  correlation_id: string;
+  content: string;
+}
+
+export function streamSessionEvents(
   sessionId: string,
+  params?: StreamSessionEventsParams,
   options?: RequestInit,
 ): AsyncGenerator<EventRead, void, void> {
-  const res = await fetch(getStreamSessionEventsUrl(sessionId), {
+  return streamSse<EventRead>(
+    getStreamSessionEventsUrl(sessionId, params),
+    options,
+    "Session event stream response did not include a readable body",
+  );
+}
+
+export function streamSessionTokens(
+  sessionId: string,
+  params: StreamSessionTokensParams,
+  options?: RequestInit,
+): AsyncGenerator<TokenRead, void, void> {
+  return streamSse<TokenRead>(
+    getStreamSessionTokensUrl(sessionId, params),
+    options,
+    "Session token stream response did not include a readable body",
+  );
+}
+
+async function* streamSse<T>(
+  url: string,
+  options: RequestInit | undefined,
+  missingBodyMessage: string,
+): AsyncGenerator<T, void, void> {
+  const res = await fetch(url, {
     ...options,
     method: "GET",
     headers: {
@@ -35,17 +61,15 @@ export async function* streamSessionEvents(
   }
 
   if (!res.body) {
-    throw new Error(
-      "Session event stream response did not include a readable body",
-    );
+    throw new Error(missingBodyMessage);
   }
 
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
-  const events: EventRead[] = [];
+  const items: T[] = [];
   const parser = createParser({
     onEvent(event: EventSourceMessage) {
-      events.push(JSON.parse(event.data) as EventRead);
+      items.push(JSON.parse(event.data) as T);
     },
   });
 
@@ -56,8 +80,8 @@ export async function* streamSessionEvents(
     }
 
     parser.feed(decoder.decode(value, { stream: true }));
-    while (events.length > 0) {
-      yield events.shift() as EventRead;
+    while (items.length > 0) {
+      yield items.shift() as T;
     }
   }
 }

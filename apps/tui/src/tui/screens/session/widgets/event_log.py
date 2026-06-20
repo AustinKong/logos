@@ -1,9 +1,14 @@
+from uuid import UUID
+
+from api_client.api.sessions.stream_session_tokens import TokenRead
 from api_client.models.event_read import EventRead
-from api_client.models.participant_message_event_read import ParticipantMessageEventRead
+from api_client.models.message_completed_event_read import MessageCompletedEventRead
+from api_client.models.message_started_event_read import MessageStartedEventRead
 from textual.containers import VerticalScroll
 from textual.widgets import Static
 
-from tui.screens.session.widgets.message import Message
+from tui.screens.session.widgets.streamable.base import StreamableWidget
+from tui.screens.session.widgets.streamable.message import Message
 
 
 class EventLog(VerticalScroll):
@@ -19,17 +24,35 @@ class EventLog(VerticalScroll):
 
     def __init__(
         self,
-        **kwargs,
     ) -> None:
-        super().__init__(**kwargs)
+        super().__init__()
+        self._streamable_widgets: dict[UUID, StreamableWidget] = {}
 
-    async def append(self, event: EventRead | Exception) -> None:
+    async def handle_event(self, event: EventRead | Exception) -> None:
         match event:
-            case ParticipantMessageEventRead():
-                await self.mount(Message(content=event.content, sender=event.sender, timestamp=event.created_at))
-            case Exception():
+            case MessageStartedEventRead():
+                message = Message(
+                    sender_id=event.sender.id,
+                    sender_name=event.sender.name,
+                    timestamp=event.created_at,
+                )
+                self._streamable_widgets[event.message_id] = message
+                await self.mount(message)
+            case MessageCompletedEventRead():
+                widget = self._streamable_widgets.get(event.message_id)
+                if widget:
+                    widget.set_content(event.content)
+            case Exception():  # TODO: Consider whether we want exceptions to be shown inline
                 await self.mount(Static(f"Error: {event}"))
             case _:
                 pass
 
+        self.scroll_end(animate=True)
+
+    def handle_token(self, token: TokenRead) -> None:
+        widget = self._streamable_widgets.get(token.correlation_id)
+        if widget is None:
+            return
+
+        widget.append_content(token.content)
         self.scroll_end(animate=True)

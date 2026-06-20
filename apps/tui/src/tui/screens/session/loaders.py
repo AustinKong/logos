@@ -2,22 +2,40 @@ from collections.abc import AsyncIterator
 from uuid import UUID
 
 from api_client import Client
+from api_client.api.sessions.list_session_events import asyncio as list_session_events
 from api_client.api.sessions.stream_session_events import asyncio as stream_session_events
-from api_client.models.participant_message_event_read import ParticipantMessageEventRead
-from api_client.models.resolution_created_event_read import ResolutionCreatedEventRead
-from api_client.models.session_completed_event_read import SessionCompletedEventRead
-
-type RenderableSessionEvent = ParticipantMessageEventRead | ResolutionCreatedEventRead | SessionCompletedEventRead
+from api_client.api.sessions.stream_session_tokens import TokenRead
+from api_client.api.sessions.stream_session_tokens import asyncio as stream_session_tokens
+from api_client.models.event_read import EventRead
 
 
 class SessionLoader:
     def __init__(self, *, client: Client) -> None:
         self._client = client
 
-    async def stream_events(self, *, session_id: UUID) -> AsyncIterator[RenderableSessionEvent]:
-        async for event in stream_session_events(session_id, client=self._client):
-            if isinstance(event, ParticipantMessageEventRead | ResolutionCreatedEventRead | SessionCompletedEventRead):
-                yield event
+    async def get_events(self, *, session_id: UUID) -> list[EventRead]:
+        events = await list_session_events(session_id, client=self._client)
+        if not isinstance(events, list):
+            raise RuntimeError("API returned an unexpected list session events response")
 
-            if isinstance(event, SessionCompletedEventRead):
-                break
+        return events
+
+    # TODO: Thin pass thru, maybe don't need this method at all
+    # But this does handle client injection
+    async def stream_events(
+        self,
+        *,
+        session_id: UUID,
+        after_event_id: UUID | None = None,
+    ) -> AsyncIterator[EventRead]:
+        async for event in stream_session_events(session_id, client=self._client, after_event_id=after_event_id):
+            yield event
+
+    async def stream_tokens(
+        self,
+        *,
+        session_id: UUID,
+        stream_id: UUID,
+    ) -> AsyncIterator[TokenRead]:
+        async for token in stream_session_tokens(session_id, client=self._client, stream_id=stream_id):
+            yield token
