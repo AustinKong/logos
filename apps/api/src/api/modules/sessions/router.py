@@ -1,4 +1,3 @@
-import asyncio
 from typing import Annotated
 from uuid import UUID
 
@@ -9,14 +8,16 @@ from api.modules.engine.background import run_session_until_blocked_background
 from api.modules.sessions.adapters import (
     event_read_from_event,
     session_read_from_session,
+    token_read_from_token,
 )
 from api.modules.sessions.deps import get_session_service
 from api.modules.sessions.models.events import SessionCompletedEvent
 from api.modules.sessions.models.participants import AgentParticipantConfig
 from api.modules.sessions.schemas import EventRead, SessionCreate, SessionRead
 from api.modules.sessions.service import SessionService
+from api.modules.streaming.deps import SESSION_EVENT_STREAM, TOKEN_STREAM, get_streaming_service
+from api.modules.streaming.service import StreamingService
 from api.shared.responses import ServerSentEventResponse
-from api.shared.time import UTC_EPOCH
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
@@ -79,28 +80,55 @@ def run_session_until_blocked(
     return Response(status_code=status.HTTP_202_ACCEPTED)
 
 
-@router.get("/{session_id}/stream", operation_id="streamSessionEvents", response_class=ServerSentEventResponse)
+@router.get("/{session_id}/events/stream", operation_id="streamSessionEvents", response_class=ServerSentEventResponse)
 async def stream_session_events(
     session_id: UUID,
     request: Request,
-    service: Annotated[SessionService, Depends(get_session_service)],
+    session_service: Annotated[SessionService, Depends(get_session_service)],
+    streaming_service: Annotated[StreamingService, Depends(get_streaming_service)],
+    after_event_id: UUID | None = None,
 ) -> EventSourceResponse:
-    async def events():
-        last_event_created_at = UTC_EPOCH
+    session_service.get_session(session_id)
+    event_stream = await streaming_service.subscribe(
+        SESSION_EVENT_STREAM,
+        session_id,
+        after=(lambda event: event.id == after_event_id) if after_event_id is not None else None,
+    )
 
-        while not await request.is_disconnected():
-            batch = service.list_events_after(session_id, last_event_created_at)
-            for event in batch:
-                event_response = event_read_from_event(event)
+    async def events():
+        async with event_stream:
+            async for event in event_stream:
+                if await request.is_disconnected():
+                    return
+
                 yield {
-                    "data": event_response.model_dump_json(),
+                    "data": event_read_from_event(event).model_dump_json(),
                 }
                 if isinstance(event, SessionCompletedEvent):
                     return
 
-            if batch:
-                last_event_created_at = batch[-1].created_at
-
-            await asyncio.sleep(1)
-
     return ServerSentEventResponse(events())
+
+
+@router.get("/{session_id}/tokens/stream", operation_id="streamSessionTokens", response_class=ServerSentEventResponse)
+async def stream_session_tokens(
+    session_id: UUID,
+    stream_id: UUID,
+    request: Request,
+    session_service: Annotated[SessionService, Depends(get_session_service)],
+    streaming_service: Annotated[StreamingService, Depends(get_streaming_service)],
+) -> EventSourceResponse:
+    session_service.get_session(session_id)
+    token_stream = await streaming_service.subscribe(TOKEN_STREAM, stream_id)
+
+    async def tokens():
+        async with token_stream:
+            async for token in token_stream:
+                if await request.is_disconnected():
+                    return
+
+                yield {
+                    "data": token_read_from_token(token).model_dump_json(),
+                }
+
+    return ServerSentEventResponse(tokens())

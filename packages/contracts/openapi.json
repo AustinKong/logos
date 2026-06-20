@@ -183,7 +183,7 @@
         }
       }
     },
-    "/sessions/{session_id}/stream": {
+    "/sessions/{session_id}/events/stream": {
       "get": {
         "tags": ["sessions"],
         "summary": "Stream Session Events",
@@ -197,6 +197,74 @@
               "type": "string",
               "format": "uuid",
               "title": "Session Id"
+            }
+          },
+          {
+            "name": "after_event_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "After Event Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sessions/{session_id}/tokens/stream": {
+      "get": {
+        "tags": ["sessions"],
+        "summary": "Stream Session Tokens",
+        "operationId": "streamSessionTokens",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "stream_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Stream Id"
             }
           }
         ],
@@ -255,7 +323,10 @@
             "$ref": "#/components/schemas/SessionCompletedEventRead"
           },
           {
-            "$ref": "#/components/schemas/ParticipantMessageEventRead"
+            "$ref": "#/components/schemas/MessageStartedEventRead"
+          },
+          {
+            "$ref": "#/components/schemas/MessageCompletedEventRead"
           },
           {
             "$ref": "#/components/schemas/ParticipantVoteEventRead"
@@ -270,7 +341,8 @@
         "discriminator": {
           "propertyName": "type",
           "mapping": {
-            "participant.message": "#/components/schemas/ParticipantMessageEventRead",
+            "message.completed": "#/components/schemas/MessageCompletedEventRead",
+            "message.started": "#/components/schemas/MessageStartedEventRead",
             "participant.removed": "#/components/schemas/ParticipantRemovedEventRead",
             "participant.vote": "#/components/schemas/ParticipantVoteEventRead",
             "resolution.created": "#/components/schemas/ResolutionCreatedEventRead",
@@ -303,7 +375,7 @@
         "required": ["status"],
         "title": "HealthCheckResponse"
       },
-      "ParticipantMessageEventRead": {
+      "MessageCompletedEventRead": {
         "properties": {
           "id": {
             "type": "string",
@@ -327,11 +399,13 @@
           },
           "type": {
             "type": "string",
-            "const": "participant.message",
+            "const": "message.completed",
             "title": "Type"
           },
-          "sender": {
-            "$ref": "#/components/schemas/ParticipantRead"
+          "message_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Message Id"
           },
           "content": {
             "type": "string",
@@ -345,10 +419,58 @@
           "created_at",
           "updated_at",
           "type",
-          "sender",
+          "message_id",
           "content"
         ],
-        "title": "ParticipantMessageEventRead"
+        "title": "MessageCompletedEventRead"
+      },
+      "MessageStartedEventRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "type": {
+            "type": "string",
+            "const": "message.started",
+            "title": "Type"
+          },
+          "message_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Message Id"
+          },
+          "sender": {
+            "$ref": "#/components/schemas/ParticipantRead"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "session_id",
+          "created_at",
+          "updated_at",
+          "type",
+          "message_id",
+          "sender"
+        ],
+        "title": "MessageStartedEventRead"
       },
       "ParticipantRead": {
         "properties": {

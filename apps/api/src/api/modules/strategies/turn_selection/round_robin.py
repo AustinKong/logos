@@ -1,12 +1,12 @@
 from api.modules.engine.models import EngineContext
-from api.modules.sessions.models.events import ParticipantMessageEvent, ParticipantVoteEvent
+from api.modules.sessions.models.events import MessageStartedEvent, ParticipantVoteEvent
 from api.modules.sessions.models.participants import Participant, ParticipantType
 
 # TODO: Make these constants configurable via constructor passing in.
 # ParticipantVoteEvent is here because voting might use turn selection strategy.
-COMPLETED_TURN_EVENT_TYPES = (ParticipantMessageEvent, ParticipantVoteEvent)
+COMPLETED_TURN_EVENT_TYPES = (MessageStartedEvent, ParticipantVoteEvent)
 COMPLETED_TURN_PARTICIPANT_ID_FIELDS = {
-    ParticipantMessageEvent: "sender_id",
+    MessageStartedEvent: "sender_id",
     ParticipantVoteEvent: "voter_id",
 }
 ELIGIBLE_PARTICIPANT_TYPES = (ParticipantType.AGENT,)

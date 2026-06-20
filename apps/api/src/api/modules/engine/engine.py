@@ -1,10 +1,10 @@
 from api.modules.ai.service import AIService
-from api.modules.engine.models import EngineContext
+from api.modules.engine.models import EngineContext, EngineOutputStream
 from api.modules.engine.stages.base import EngineStage
 from api.modules.engine.stages.debate import DebateStage
 from api.modules.engine.stages.resolution import ResolutionStage
 from api.modules.engine.stages.validation import ValidationStage
-from api.modules.sessions.models.events import Event, SessionCompletedEvent, SessionStartedEvent
+from api.modules.sessions.models.events import SessionCompletedEvent, SessionStartedEvent
 from api.modules.strategies.context.full import FullContextStrategy
 from api.modules.strategies.resolution.judge import JudgeResolutionStrategy
 from api.modules.strategies.turn_selection.round_robin import RoundRobinTurnSelectionStrategy
@@ -27,16 +27,20 @@ class Engine:
             ),
         ]
 
-    async def step(self, ctx: EngineContext) -> list[Event]:
+    async def step(self, ctx: EngineContext) -> EngineOutputStream:
         if not any(isinstance(event, SessionStartedEvent) for event in ctx.events):
-            return [SessionStartedEvent(session_id=ctx.session.id)]
+            yield SessionStartedEvent(session_id=ctx.session.id)
+            return
 
         if any(isinstance(event, SessionCompletedEvent) for event in ctx.events):
-            return []
+            return
 
         for stage in self._stages:
-            events = await stage.run(ctx)
-            if events:
-                return events
+            has_output = False
+            async for output in stage.run(ctx):
+                has_output = True
+                yield output
 
-        return []
+            # Only run one stage per step
+            if has_output:
+                return

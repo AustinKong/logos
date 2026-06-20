@@ -1,12 +1,11 @@
 from api.modules.ai.models import AIMessage, GenerationOptions, MessageRole
 from api.modules.ai.service import AIService
-from api.modules.engine.models import EngineContext
+from api.modules.engine.models import EngineContext, EngineOutputStream
 from api.modules.sessions.models.events import (
-    Event,
     ResolutionCreatedEvent,
     SessionCompletedEvent,
 )
-from api.modules.strategies.transcripts import format_participant_message_transcript
+from api.modules.strategies.transcripts import format_message_transcript
 
 # TODO: Make model configurable via constructor
 DEFAULT_JUDGE_MODEL = "openai/gpt-4o-mini"
@@ -21,10 +20,10 @@ class JudgeResolutionStrategy:
         self._ai_service = ai_service
         self._model = model
 
-    async def resolve(self, ctx: EngineContext) -> list[Event]:
-        transcript = format_participant_message_transcript(ctx)
+    async def resolve(self, ctx: EngineContext) -> EngineOutputStream:
+        transcript = format_message_transcript(ctx)
         if transcript is None:
-            return []
+            return
 
         resolution = await self._ai_service.generate_text(
             messages=[
@@ -39,13 +38,11 @@ class JudgeResolutionStrategy:
             ],
             options=GenerationOptions(model=self._model, temperature=0.2),
         )
-        return [
-            ResolutionCreatedEvent(
-                session_id=ctx.session.id,
-                resolution=resolution,
-            ),
-            SessionCompletedEvent(session_id=ctx.session.id),
-        ]
+        yield ResolutionCreatedEvent(
+            session_id=ctx.session.id,
+            resolution=resolution,
+        )
+        yield SessionCompletedEvent(session_id=ctx.session.id)
 
 
 def _build_judge_user_prompt(*, session_prompt: str, transcript: str) -> str:

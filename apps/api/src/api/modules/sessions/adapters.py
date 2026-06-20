@@ -1,9 +1,11 @@
 from typing import Any
 
+from api.modules.engine.models import Token
 from api.modules.sessions.models.events import (
     Event,
     EventType,
-    ParticipantMessageEvent,
+    MessageCompletedEvent,
+    MessageStartedEvent,
     ParticipantRemovedEvent,
     ParticipantVoteEvent,
     ResolutionCreatedEvent,
@@ -15,7 +17,8 @@ from api.modules.sessions.models.sessions import Session
 from api.modules.sessions.schemas import (
     AgentParticipantCreate,
     EventRead,
-    ParticipantMessageEventRead,
+    MessageCompletedEventRead,
+    MessageStartedEventRead,
     ParticipantRead,
     ParticipantRemovedEventRead,
     ParticipantVoteEventRead,
@@ -23,6 +26,7 @@ from api.modules.sessions.schemas import (
     SessionCompletedEventRead,
     SessionRead,
     SessionStartedEventRead,
+    TokenRead,
 )
 
 
@@ -58,11 +62,18 @@ def event_read_from_event(event: Event) -> EventRead:
     event_fields = _event_fields(event)
 
     match event:
-        case ParticipantMessageEvent():
-            return ParticipantMessageEventRead(
+        case MessageStartedEvent():
+            return MessageStartedEventRead(
                 **event_fields,
-                type=EventType.PARTICIPANT_MESSAGE,
+                type=EventType.MESSAGE_STARTED,
+                message_id=event.message_id,
                 sender=participant_read_from_participant(event.sender),
+            )
+        case MessageCompletedEvent():
+            return MessageCompletedEventRead(
+                **event_fields,
+                type=EventType.MESSAGE_COMPLETED,
+                message_id=event.message_id,
                 content=event.content,
             )
         case ParticipantVoteEvent():
@@ -106,3 +117,7 @@ def _event_fields(event: Event) -> dict[str, Any]:
         "created_at": event.created_at,
         "updated_at": event.updated_at,
     }
+
+
+def token_read_from_token(token: Token) -> TokenRead:
+    return TokenRead(correlation_id=token.correlation_id, content=token.content)

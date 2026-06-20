@@ -16,7 +16,8 @@ from .participants import Participant
 class EventType(StrEnum):
     SESSION_STARTED = "session.started"
     SESSION_COMPLETED = "session.completed"
-    PARTICIPANT_MESSAGE = "participant.message"
+    MESSAGE_STARTED = "message.started"
+    MESSAGE_COMPLETED = "message.completed"
     PARTICIPANT_VOTE = "participant.vote"
     PARTICIPANT_REMOVED = "participant.removed"
     RESOLUTION_CREATED = "resolution.created"
@@ -58,17 +59,29 @@ class SessionCompletedEvent(Event):
     }
 
 
-class ParticipantMessageEvent(Event):
-    __tablename__ = "participant_message_events"
+class MessageStartedEvent(Event):
+    __tablename__ = "message_started_events"
 
     id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), primary_key=True)
+    message_id: Mapped[UUID] = mapped_column(index=True, unique=True)
     sender_id: Mapped[UUID] = mapped_column(ForeignKey("participants.id"), index=True)
-    content: Mapped[str] = mapped_column(Text)
 
     sender: Mapped[Participant] = relationship(Participant, foreign_keys=[sender_id], lazy="joined")
 
     __mapper_args__ = {
-        "polymorphic_identity": EventType.PARTICIPANT_MESSAGE,
+        "polymorphic_identity": EventType.MESSAGE_STARTED,
+    }
+
+
+class MessageCompletedEvent(Event):
+    __tablename__ = "message_completed_events"
+
+    id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), primary_key=True)
+    message_id: Mapped[UUID] = mapped_column(index=True, unique=True)
+    content: Mapped[str] = mapped_column(Text)
+
+    __mapper_args__ = {
+        "polymorphic_identity": EventType.MESSAGE_COMPLETED,
     }
 
 

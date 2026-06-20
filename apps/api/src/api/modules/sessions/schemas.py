@@ -50,9 +50,15 @@ class SessionCompletedEventRead(EventReadBase):
     type: Literal[EventType.SESSION_COMPLETED]
 
 
-class ParticipantMessageEventRead(EventReadBase):
-    type: Literal[EventType.PARTICIPANT_MESSAGE]
+class MessageStartedEventRead(EventReadBase):
+    type: Literal[EventType.MESSAGE_STARTED]
+    message_id: UUID
     sender: ParticipantRead
+
+
+class MessageCompletedEventRead(EventReadBase):
+    type: Literal[EventType.MESSAGE_COMPLETED]
+    message_id: UUID
     content: str
 
 
@@ -76,9 +82,15 @@ class ResolutionCreatedEventRead(EventReadBase):
 type EventRead = Annotated[
     SessionStartedEventRead
     | SessionCompletedEventRead
-    | ParticipantMessageEventRead
+    | MessageStartedEventRead
+    | MessageCompletedEventRead
     | ParticipantVoteEventRead
     | ParticipantRemovedEventRead
     | ResolutionCreatedEventRead,
     Field(discriminator="type"),
 ]
+
+
+class TokenRead(BaseModel):
+    correlation_id: UUID
+    content: str

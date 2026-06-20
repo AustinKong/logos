@@ -1,7 +1,7 @@
-from api.modules.engine.models import EngineContext
-from api.modules.sessions.models.events import Event
+from api.modules.engine.models import EngineContext, EngineOutputStream
 
 
 class AllowAllValidationStrategy:
-    async def validate(self, ctx: EngineContext) -> list[Event]:
-        return []
+    async def validate(self, ctx: EngineContext) -> EngineOutputStream:
+        for output in ():
+            yield output

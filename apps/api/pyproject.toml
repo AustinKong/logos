@@ -4,6 +4,7 @@ version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
     "alembic>=1.17.0",
+    "anyio>=4.13.0",
     "fastapi>=0.136.3",
     "litellm>=1.88.1",
     "pydantic-settings>=2.14.1",

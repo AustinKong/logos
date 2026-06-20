@@ -8,6 +8,8 @@ from api.modules.engine.engine import Engine
 from api.modules.engine.service import EngineService
 from api.modules.sessions.deps import get_session_service
 from api.modules.sessions.service import SessionService
+from api.modules.streaming.deps import get_streaming_service
+from api.modules.streaming.service import StreamingService
 
 
 def get_engine(ai_service: Annotated[AIService, Depends(get_ai_service)]) -> Engine:
@@ -16,6 +18,7 @@ def get_engine(ai_service: Annotated[AIService, Depends(get_ai_service)]) -> Eng
 
 def get_engine_service(
     session_service: Annotated[SessionService, Depends(get_session_service)],
+    streaming_service: Annotated[StreamingService, Depends(get_streaming_service)],
     engine: Annotated[Engine, Depends(get_engine)],
 ) -> EngineService:
-    return EngineService(session_service, engine)
+    return EngineService(session_service, streaming_service, engine)
