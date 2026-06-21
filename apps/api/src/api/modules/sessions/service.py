@@ -10,6 +10,7 @@ from api.modules.sessions.errors import SessionNotFoundError
 from api.modules.sessions.models.events import Event
 from api.modules.sessions.models.participants import AgentParticipant, AgentParticipantConfig
 from api.modules.sessions.models.sessions import Session
+from api.modules.sessions.models.summaries import SessionSummary
 from api.modules.sessions.repository import SessionRepository
 
 
@@ -45,16 +46,19 @@ class SessionService:
 
         return session
 
+    def list_session_summaries(self) -> list[SessionSummary]:
+        return self._repository.list_session_summaries()
+
     def list_events(self, session_id: UUID) -> list[Event]:
         self.get_session(session_id)  # Ensure session exists
         return self._repository.list_events(session_id)
 
     def list_events_after(self, session_id: UUID, created_at: datetime) -> list[Event]:
-        self.get_session(session_id)  # Ensure session exists
+        self.get_session(session_id)
         return self._repository.list_events_after(session_id, created_at)
 
     def append_events(self, session_id: UUID, events: list[Event]) -> list[Event]:
-        self.get_session(session_id)  # Ensure session exists
+        self.get_session(session_id)
 
         for event in events:
             event.session_id = session_id

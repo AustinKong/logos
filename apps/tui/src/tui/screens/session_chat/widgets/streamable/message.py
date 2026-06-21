@@ -34,6 +34,7 @@ class Message(Vertical):
     }
     """
 
+    # TODO: TBD if it should take MessageStartEventRead for simplicity and to match expectations of other components
     def __init__(self, *, content: str = "", sender_id: UUID, sender_name: str, timestamp: datetime) -> None:
         super().__init__(classes="message")
         self._content = content

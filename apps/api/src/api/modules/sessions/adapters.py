@@ -14,6 +14,7 @@ from api.modules.sessions.models.events import (
 )
 from api.modules.sessions.models.participants import AgentParticipantConfig, Participant
 from api.modules.sessions.models.sessions import Session
+from api.modules.sessions.models.summaries import SessionSummary
 from api.modules.sessions.schemas import (
     AgentParticipantCreate,
     EventRead,
@@ -26,6 +27,7 @@ from api.modules.sessions.schemas import (
     SessionCompletedEventRead,
     SessionRead,
     SessionStartedEventRead,
+    SessionSummaryRead,
     TokenRead,
 )
 
@@ -55,6 +57,17 @@ def session_read_from_session(session: Session) -> SessionRead:
         created_at=session.created_at,
         updated_at=session.updated_at,
         participants=[participant_read_from_participant(participant) for participant in session.participants],
+    )
+
+
+def session_summary_read_from_summary(summary: SessionSummary) -> SessionSummaryRead:
+    return SessionSummaryRead(
+        id=summary.id,
+        prompt=summary.prompt,
+        created_at=summary.created_at,
+        updated_at=summary.updated_at,
+        participant_count=summary.participant_count,
+        status=summary.status,
     )
 
 

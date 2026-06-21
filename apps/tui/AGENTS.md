@@ -59,6 +59,18 @@ If a loader or controller becomes reused across multiple screens, move it to:
 
 Use one shared generated `api_client.Client` for the app lifetime. Create it in `app.py`, enter it when the app mounts, and close it when the app unmounts. Pass that client into loaders/controllers so polling and repeated requests reuse connections.
 
+## Navigation
+
+Keep cross-screen navigation centralized in `src/tui/navigation.py`.
+
+- `app.py` owns app-wide lifecycle only: settings, the shared generated API client, creating `Navigator`, and forwarding `Navigate` messages to it.
+- `navigation.py` owns route definitions, navigation parameter dataclasses, the `Navigate` message, and screen construction.
+- Screens should post navigation intent with `Navigate(Route.X, Params(...))` rather than importing or constructing other screens.
+- `Navigator.navigate()` should stay as a compact route match. Put screen construction in one private helper per route, such as `_push_sessions()` or `_push_session_chat()`.
+- Import screen classes and screen-local loaders/controllers inside those helper methods. This keeps imports lazy, avoids circular imports, and keeps `app.py` slim.
+- Store only shared infrastructure on `Navigator`, such as the generated API client. Construct screen-local loaders/controllers inside the helper method with readable local variables before calling `push_screen`.
+- Do not use Textual installed screens or `SCREENS` by default. Push fresh screen instances unless a screen explicitly needs preserved off-stack state.
+
 ## Screens And Widgets
 
 Screens may import screen-local loaders/controllers and simple screen-local data types from colocated `models.py` files.

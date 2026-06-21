@@ -92,6 +92,7 @@ Use explicit suffixes that describe how the schema is used:
 - `UserCreate` for create request bodies.
 - `UserUpdate` for update request bodies.
 - `UserRead` for returned resource responses.
+- `UserSummaryRead` for reduced response schemas used by list, picker, or overview screens.
 - `LoginRequest` for action request bodies.
 - `LoginResponse` for action responses.
 

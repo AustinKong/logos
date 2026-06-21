@@ -3,8 +3,8 @@ from abc import ABCMeta, abstractmethod
 from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual.screen import Screen
+from textual.widgets import Footer
 
-from tui.widgets.footer import Footer
 from tui.widgets.header import Header
 
 
@@ -28,7 +28,7 @@ class BaseScreen(Screen[None], metaclass=BaseScreenMeta):
         yield Header(version="0.0.1")
         with Vertical(classes="screen-content"):
             yield from self.compose_content()
-        yield Footer()
+        yield Footer(compact=True, show_command_palette=False)
 
     @abstractmethod
     def compose_content(self) -> ComposeResult:

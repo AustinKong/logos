@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 from api.modules.sessions.models.events import EventType
 from api.modules.sessions.models.participants import ParticipantType
+from api.modules.sessions.models.summaries import SessionStatus
 
 
 class AgentParticipantCreate(BaseModel):
@@ -33,6 +34,15 @@ class SessionRead(BaseModel):
     created_at: datetime
     updated_at: datetime
     participants: list[ParticipantRead]
+
+
+class SessionSummaryRead(BaseModel):
+    id: UUID
+    prompt: str
+    created_at: datetime
+    updated_at: datetime
+    participant_count: int
+    status: SessionStatus
 
 
 class EventReadBase(BaseModel):

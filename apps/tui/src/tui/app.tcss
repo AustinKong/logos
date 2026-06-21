@@ -1,0 +1,209 @@
+* {
+    scrollbar-size: 1 1;
+}
+
+Screen {
+    background: $background;
+    color: $foreground;
+}
+
+Input {
+    height: 1;
+    padding: 0 1;
+    border: none;
+}
+
+Input:focus {
+    border: none;
+    background-tint: transparent;
+}
+
+TextArea {
+    min-height: 5;
+    padding: 0 1;
+    border: none;
+}
+
+TextArea:focus {
+    border: none;
+    background-tint: transparent;
+}
+
+TextArea .text-area--cursor-line {
+    background: transparent;
+}
+
+Select {
+    height: 1;
+}
+
+Select > SelectCurrent {
+    height: 1;
+    padding: 0 1;
+    border: none;
+}
+
+Select:focus > SelectCurrent {
+    border: none;
+    background-tint: transparent;
+}
+
+Select:focus > SelectCurrent #label {
+    text-style: reverse;
+}
+
+Select > SelectCurrent .arrow {
+    padding: 0;
+}
+
+Select > SelectOverlay {
+    border: none;
+    border-left: wide $secondary;
+    padding: 0;
+    offset: 0 0;
+}
+
+Select > SelectOverlay:focus {
+    border: none;
+    border-left: wide $secondary;
+    background-tint: transparent;
+}
+
+Select > SelectOverlay > .option-list--option {
+    padding: 0;
+}
+
+OptionList {
+    border: none;
+}
+
+RadioSet {
+    height: auto;
+    padding: 0;
+    margin: 0;
+    border: none;
+}
+
+RadioSet:focus {
+    border: none;
+    background-tint: transparent;
+}
+
+RadioButton {
+    height: 1;
+    padding: 0;
+    margin: 0;
+    border: none;
+}
+
+RadioButton:focus {
+    border: none;
+    background-tint: transparent;
+}
+
+Checkbox {
+    height: 1;
+    padding: 0;
+    margin: 0;
+    border: none;
+}
+
+Checkbox:focus {
+    border: none;
+    background-tint: transparent;
+}
+
+Switch {
+    height: 1;
+    padding: 0;
+    margin: 0;
+    border: none;
+}
+
+Switch:focus {
+    border: none;
+    background-tint: transparent;
+}
+
+ToggleButton {
+    height: 1;
+    padding: 0;
+    margin: 0;
+    border: none;
+}
+
+ToggleButton:focus {
+    border: none;
+    background-tint: transparent;
+}
+
+Button {
+    height: 1;
+    min-width: 0;
+    padding: 0 1;
+    border: none;
+}
+
+DataTable {
+    background: transparent;
+}
+
+DataTable > .datatable--header {
+    background: transparent;
+}
+
+DataTable > .datatable--header-hover {
+    background: transparent;
+}
+
+Tabs {
+    height: 2;
+}
+
+Tab {
+    padding: 0 1;
+}
+
+Tree {
+    padding: 0 1;
+}
+
+Tree:focus {
+    background-tint: transparent;
+}
+
+ListView {
+    height: auto;
+}
+
+ListItem {
+    height: 1;
+    padding: 0 1;
+}
+
+Footer {
+    background: transparent;
+}
+
+Footer FooterKey {
+    background: transparent;
+}
+
+Footer FooterKey:hover {
+    background: $block-hover-background;
+}
+
+Footer FooterKey > .footer-key--key {
+    color: $text;
+    background: transparent;
+}
+
+Footer FooterKey > .footer-key--description {
+    color: $text-muted;
+    background: transparent;
+}
+
+Footer FooterLabel {
+    color: $text-muted;
+    background: transparent;
+}

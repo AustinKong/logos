@@ -8,12 +8,13 @@ from api.modules.engine.background import run_session_until_blocked_background
 from api.modules.sessions.adapters import (
     event_read_from_event,
     session_read_from_session,
+    session_summary_read_from_summary,
     token_read_from_token,
 )
 from api.modules.sessions.deps import get_session_service
 from api.modules.sessions.models.events import SessionCompletedEvent
 from api.modules.sessions.models.participants import AgentParticipantConfig
-from api.modules.sessions.schemas import EventRead, SessionCreate, SessionRead
+from api.modules.sessions.schemas import EventRead, SessionCreate, SessionRead, SessionSummaryRead
 from api.modules.sessions.service import SessionService
 from api.modules.streaming.deps import SESSION_EVENT_STREAM, TOKEN_STREAM, get_streaming_service
 from api.modules.streaming.service import StreamingService
@@ -47,6 +48,13 @@ def create_session(
         agents=TEMPORARY_TEST_AGENTS,
     )
     return session_read_from_session(session)
+
+
+@router.get("", operation_id="listSessions", response_model=list[SessionSummaryRead])
+def list_sessions(
+    service: Annotated[SessionService, Depends(get_session_service)],
+) -> list[SessionSummaryRead]:
+    return [session_summary_read_from_summary(summary) for summary in service.list_session_summaries()]
 
 
 @router.get("/{session_id}", operation_id="getSession", response_model=SessionRead)

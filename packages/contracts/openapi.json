@@ -25,6 +25,27 @@
       }
     },
     "/sessions": {
+      "get": {
+        "tags": ["sessions"],
+        "summary": "List Sessions",
+        "operationId": "listSessions",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SessionSummaryRead"
+                  },
+                  "type": "array",
+                  "title": "Response Listsessions"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": ["sessions"],
         "summary": "Create Session",
@@ -762,6 +783,51 @@
         "type": "object",
         "required": ["id", "session_id", "created_at", "updated_at", "type"],
         "title": "SessionStartedEventRead"
+      },
+      "SessionStatus": {
+        "type": "string",
+        "enum": ["draft", "running", "completed"],
+        "title": "SessionStatus"
+      },
+      "SessionSummaryRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "prompt": {
+            "type": "string",
+            "title": "Prompt"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "participant_count": {
+            "type": "integer",
+            "title": "Participant Count"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SessionStatus"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "prompt",
+          "created_at",
+          "updated_at",
+          "participant_count",
+          "status"
+        ],
+        "title": "SessionSummaryRead"
       },
       "ValidationError": {
         "properties": {
