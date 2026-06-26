@@ -1,6 +1,6 @@
 from api.modules.engine.models import EngineContext
+from api.modules.session_configs.models.participants import Participant, ParticipantType
 from api.modules.sessions.models.events import MessageStartedEvent, ParticipantVoteEvent
-from api.modules.sessions.models.participants import Participant, ParticipantType
 
 # TODO: Make these constants configurable via constructor passing in.
 # ParticipantVoteEvent is here because voting might use turn selection strategy.

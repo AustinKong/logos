@@ -8,11 +8,18 @@ class MessageRole(StrEnum):
     ASSISTANT = "assistant"
 
 
-class AIProviderPrefix(StrEnum):
+class AIProviderName(StrEnum):
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
     GEMINI = "gemini"
     DEEPSEEK = "deepseek"
+
+
+@dataclass(frozen=True, slots=True)
+class AIModel:
+    id: str
+    label: str
+    provider: AIProviderName
 
 
 @dataclass(frozen=True, slots=True)

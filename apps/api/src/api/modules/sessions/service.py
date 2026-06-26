@@ -5,47 +5,62 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session as SqlAlchemyDb
 from sqlalchemy.orm import selectinload
 
+from api.modules.session_configs.models.participants import ParticipantData
+from api.modules.session_configs.models.session_configs import SessionConfig
+from api.modules.session_configs.service import SessionConfigService
 from api.modules.sessions.errors import SessionNotFoundError
 from api.modules.sessions.models.events import Event
-from api.modules.sessions.models.participants import AgentParticipant
-from api.modules.sessions.models.session_configs import SessionConfig
 from api.modules.sessions.models.sessions import Session, SessionSummary
 from api.modules.sessions.repository import SessionRepository
+from api.modules.strategies.context.configs import ContextConfig
+from api.modules.strategies.resolution.configs import ResolutionConfig
+from api.modules.strategies.turn_selection.configs import TurnSelectionConfig
+from api.modules.strategies.validation.configs import ValidationConfig
 
 
 class SessionService:
-    def __init__(self, db: SqlAlchemyDb, repository: SessionRepository) -> None:
+    def __init__(
+        self,
+        db: SqlAlchemyDb,
+        repository: SessionRepository,
+        session_config_service: SessionConfigService,
+    ) -> None:
         self._db = db
         self._repository = repository
+        self._session_config_service = session_config_service
 
-    def create_session(self, config: SessionConfig) -> Session:
-        session = Session(
-            prompt=config.prompt,
-            turn_selection_config=config.turn_selection,
-            context_config=config.context,
-            validation_config=config.validation,
-            resolution_config=config.resolution,
+    def create_session(
+        self,
+        *,
+        prompt: str,
+        agents: list[ParticipantData],
+        turn_selection: TurnSelectionConfig,
+        context: ContextConfig,
+        validation: ValidationConfig,
+        resolution: ResolutionConfig,
+    ) -> Session:
+        config = self._session_config_service.create_config(
+            prompt=prompt,
+            participants=agents,
+            turn_selection=turn_selection,
+            context=context,
+            validation=validation,
+            resolution=resolution,
+            commit=False,
         )
 
+        session = Session(config_id=config.id)
         self._db.add(session)
-        self._db.flush()
-
-        for agent in config.agents:
-            self._db.add(
-                AgentParticipant(
-                    session_id=session.id,
-                    name=agent.name,
-                    model=agent.model,
-                    system_prompt=agent.system_prompt,
-                )
-            )
-
         self._db.commit()
 
         return self.get_session(session.id)
 
     def get_session(self, session_id: UUID) -> Session:
-        statement = select(Session).where(Session.id == session_id).options(selectinload(Session.participants))
+        statement = (
+            select(Session)
+            .where(Session.id == session_id)
+            .options(selectinload(Session.config).selectinload(SessionConfig.participants))
+        )
         session = self._db.execute(statement).scalar_one_or_none()
         if session is None:
             raise SessionNotFoundError()

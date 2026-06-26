@@ -2,7 +2,7 @@ from typing import Protocol
 
 from api.modules.ai.models import AIMessage
 from api.modules.engine.models import EngineContext
-from api.modules.sessions.models.participants import AgentParticipant
+from api.modules.session_configs.models.participants import AgentParticipant
 
 
 class ContextStrategy(Protocol):

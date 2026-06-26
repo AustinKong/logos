@@ -24,6 +24,29 @@ const overrides = [
   },
 ];
 
+const sourceEnumOverrides = [
+  {
+    name: "ParticipantType",
+    source: "apps/api/src/api/modules/session_configs/models/participants.py",
+  },
+  {
+    name: "ContextMode",
+    source: "apps/api/src/api/modules/strategies/context/configs.py",
+  },
+  {
+    name: "ResolutionMode",
+    source: "apps/api/src/api/modules/strategies/resolution/configs.py",
+  },
+  {
+    name: "TurnSelectionMode",
+    source: "apps/api/src/api/modules/strategies/turn_selection/configs.py",
+  },
+  {
+    name: "ValidationMode",
+    source: "apps/api/src/api/modules/strategies/validation/configs.py",
+  },
+];
+
 for (const override of overrides) {
   const target = resolve(override.target);
   await mkdir(dirname(target), { recursive: true });
@@ -31,6 +54,7 @@ for (const override of overrides) {
 }
 
 await generatePythonUnionAliasModels();
+await generateSourceEnumOverrides(sourceEnumOverrides);
 
 const packageJsonPath = resolve("packages/client-ts/package.json");
 const packagePatchPath = resolve(
@@ -113,6 +137,147 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+async function generateSourceEnumOverrides(enumOverrides) {
+  const enumDefinitions = [];
+
+  for (const enumOverride of enumOverrides) {
+    enumDefinitions.push(await readPythonEnumDefinition(enumOverride));
+  }
+
+  await generatePythonEnumOverrides(enumDefinitions);
+  await generateTypescriptEnumOverrides(enumDefinitions);
+}
+
+async function readPythonEnumDefinition(enumOverride) {
+  const source = await readFile(resolve(enumOverride.source), "utf8");
+  const lines = source.split("\n");
+  const classStart = lines.findIndex((line) =>
+    new RegExp(`^class\\s+${escapeRegExp(enumOverride.name)}\\(`).test(line),
+  );
+
+  if (classStart === -1) {
+    throw new Error(
+      `Unable to find enum ${enumOverride.name} in ${enumOverride.source}`,
+    );
+  }
+
+  const members = [];
+  for (const line of lines.slice(classStart + 1)) {
+    if (line.trim() === "") {
+      continue;
+    }
+    if (!line.startsWith("    ")) {
+      break;
+    }
+
+    const member = line.match(
+      /^\s{4}(?<name>[A-Z][A-Z0-9_]*)\s*=\s*["'](?<value>[^"']+)["']/,
+    );
+    if (member?.groups) {
+      members.push({
+        name: member.groups.name,
+        value: member.groups.value,
+      });
+    }
+  }
+
+  if (members.length === 0) {
+    throw new Error(
+      `Unable to find enum members for ${enumOverride.name} in ${enumOverride.source}`,
+    );
+  }
+
+  return {
+    name: enumOverride.name,
+    members,
+  };
+}
+
+async function generatePythonEnumOverrides(enumDefinitions) {
+  const modelsInitPath = resolve(
+    "packages/client-py/api_client/models/__init__.py",
+  );
+  const modelsInit = await readFile(modelsInitPath, "utf8");
+
+  for (const enumDefinition of enumDefinitions) {
+    if (pythonModelsInitExports(modelsInit, enumDefinition.name)) {
+      continue;
+    }
+
+    const enumPath = resolve(
+      `packages/client-py/api_client/models/${pythonModuleName(enumDefinition.name)}.py`,
+    );
+    await mkdir(dirname(enumPath), { recursive: true });
+    await writeFile(enumPath, renderPythonEnumOverride(enumDefinition));
+  }
+
+  await exportPythonModelSymbols(modelsInitPath, enumDefinitions);
+}
+
+function renderPythonEnumOverride(enumDefinition) {
+  const members = enumDefinition.members
+    .map((member) => `    ${member.name} = ${JSON.stringify(member.value)}`)
+    .join("\n");
+
+  return `from enum import Enum
+
+
+class ${enumDefinition.name}(str, Enum):
+${members}
+
+    def __str__(self) -> str:
+        return str(self.value)
+`;
+}
+
+async function generateTypescriptEnumOverrides(enumDefinitions) {
+  const generatedPath = resolve("packages/client-ts/src/client/generated.ts");
+  const overridesPath = resolve("packages/client-ts/src/client/overrides.ts");
+  const generatedContent = await readFile(generatedPath, "utf8");
+  let content = await readFile(overridesPath, "utf8");
+  const generated = enumDefinitions
+    .filter(
+      (enumDefinition) =>
+        !typescriptClientExports(generatedContent, enumDefinition.name),
+    )
+    .map((enumDefinition) => renderTypescriptEnumOverride(enumDefinition))
+    .join("\n");
+
+  if (generated === "") {
+    return;
+  }
+
+  content = `${content.trimEnd()}\n\n${generated}`;
+  await writeFile(overridesPath, `${content}\n`);
+}
+
+function renderTypescriptEnumOverride(enumDefinition) {
+  const members = enumDefinition.members
+    .map((member) => `  ${member.value}: ${JSON.stringify(member.value)},`)
+    .join("\n");
+
+  return `export type ${enumDefinition.name} = typeof ${enumDefinition.name}[keyof typeof ${enumDefinition.name}];
+
+export const ${enumDefinition.name} = {
+${members}
+} as const;
+`;
+}
+
+function pythonModelsInitExports(modelsInit, name) {
+  return new RegExp(
+    `^from \\.${pythonModuleName(name)} import ${name}$`,
+    "m",
+  ).test(modelsInit);
+}
+
+function typescriptClientExports(content, name) {
+  return new RegExp(
+    `^export (?:type|const) ${escapeRegExp(name)}\\b`,
+    "m",
+  ).test(content);
+}
+
 async function generatePythonUnionAliasModels() {
   const openapiPath = resolve("packages/contracts/openapi.json");
   const modelsInitPath = resolve(
@@ -129,7 +294,7 @@ async function generatePythonUnionAliasModels() {
     await writeFile(aliasPath, renderPythonUnionAliasModel(alias));
   }
 
-  await exportPythonUnionAliasModels(modelsInitPath, aliases);
+  await exportPythonModelSymbols(modelsInitPath, aliases);
 }
 
 function findUnionAliasSchemas(openapi) {
@@ -188,14 +353,14 @@ function pythonModuleName(name) {
     .toLowerCase();
 }
 
-async function exportPythonUnionAliasModels(modelsInitPath, aliases) {
+async function exportPythonModelSymbols(modelsInitPath, symbols) {
   let content = await readFile(modelsInitPath, "utf8");
-  content = addPythonModelImports(content, aliases);
-  content = addPythonModelAllEntries(content, aliases);
+  content = addPythonModelImports(content, symbols);
+  content = addPythonModelAllEntries(content, symbols);
   await writeFile(modelsInitPath, content);
 }
 
-function addPythonModelImports(content, aliases) {
+function addPythonModelImports(content, symbols) {
   const importBlock = content.match(
     /(?<header>"""Contains all the data models used in inputs\/outputs"""\n\n)(?<imports>[\s\S]*?)(?<footer>\n__all__ = \()/,
   );
@@ -212,8 +377,8 @@ function addPythonModelImports(content, aliases) {
       .filter(Boolean),
   );
 
-  for (const alias of aliases) {
-    imports.add(`from .${pythonModuleName(alias.name)} import ${alias.name}`);
+  for (const symbol of symbols) {
+    imports.add(`from .${pythonModuleName(symbol.name)} import ${symbol.name}`);
   }
 
   const sortedImports = [...imports].sort((left, right) =>
@@ -225,7 +390,7 @@ function addPythonModelImports(content, aliases) {
   );
 }
 
-function addPythonModelAllEntries(content, aliases) {
+function addPythonModelAllEntries(content, symbols) {
   const allBlock = content.match(
     /(?<header>__all__ = \(\n)(?<entries>[\s\S]*?)(?<footer>\)\n)/,
   );
@@ -242,8 +407,8 @@ function addPythonModelAllEntries(content, aliases) {
       .filter(Boolean),
   );
 
-  for (const alias of aliases) {
-    entries.add(`"${alias.name}",`);
+  for (const symbol of symbols) {
+    entries.add(`"${symbol.name}",`);
   }
 
   const sortedEntries = [...entries].sort((left, right) =>

@@ -81,6 +81,8 @@ Avoid these dependency directions:
 
 Constructor-injected dependencies stored on classes should use private attribute names with an underscore prefix, such as `self._repository` or `self._provider_resolver`.
 
+Use `XData` names for internal domain data containers that have no identity or lifecycle fields, such as no `id`, `created_at`, or `updated_at`. These are pure values passed between services or used to instantiate ORM/API objects, not domain objects themselves.
+
 Strategy configuration should live beside its strategy family in `apps/api/src/api/modules/strategies/<family>/configs.py`. When adding a new strategy mode, update the family `Mode` enum, add a concrete Pydantic config model for that mode, add it to the family config alias/union, and update the resolver mapping or match logic. Keep config modules lightweight and independent of runtime strategy implementation modules.
 
 ## API Schema Naming
@@ -103,6 +105,8 @@ For non-CRUD endpoints, prefer action-oriented names such as `HealthCheckRespons
 For discriminated union response schemas that need a reusable OpenAPI component, define the alias with the Python 3.12 `type` statement around the `Annotated[..., Field(discriminator=...)]` union. This creates a named `TypeAliasType`. A plain assignment such as `EventRead = Annotated[...]` may leave the union inline at each route instead of producing a named schema component.
 
 Avoid `model_config` on API request/response schemas unless it is required for runtime validation or serialization behavior. Do not use schema-level `json_schema_extra`, examples, or similar documentation-only config that pollutes generated OpenAPI response definitions. This restriction does not apply to non-contract settings models such as `BaseSettings` configuration.
+
+Do not set default values on API request/response schema fields. These schemas are DTO contracts, and defaults make fields optional in OpenAPI and generated clients. Use required fields for required contract data. The exception is discriminator fields on concrete discriminated-union members, where a `Literal[...] = ...` default is required to identify the branch.
 
 Set explicit `operation_id` values on routes that are consumed by generated clients. Operation IDs become generated client function names, so keep them stable and readable:
 
@@ -189,6 +193,8 @@ For TypeScript clients, Orval writes generated code to `packages/client-ts/src/c
 The TypeScript generated client is configured with Orval `fetch.forceSuccessResponse` so non-OK HTTP responses throw and successful calls return the success response shape. Keep TypeScript client overrides, such as SSE helpers, aligned with that behavior so TanStack Query can use thrown errors consistently.
 
 The Python OpenAPI generator does not currently emit named model/type-alias files for schemas that are only `oneOf`/`anyOf` unions, even when they are named OpenAPI components. Keep Python union aliases that generated consumers need in the client override generation flow rather than hand-editing `packages/client-py/`.
+
+Some backend enums are only used as discriminator literals and therefore do not appear as reusable enum components in OpenAPI, even though frontend code still needs the enum values. Keep frontend-used backend enums in the `sourceEnumOverrides` manifest in `scripts/apply-client-overrides.mjs`. Add an enum there when TUI or web code needs to import it from generated clients, and remove it when it is no longer used by frontend consumers. The script should skip enum symbols already produced by normal OpenAPI generation and generate only missing client exports. Do not duplicate those enum constants manually in TUI or web code.
 
 ## Consumer Rules
 

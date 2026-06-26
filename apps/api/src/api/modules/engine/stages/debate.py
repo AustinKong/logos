@@ -3,8 +3,8 @@ from uuid import uuid4
 from api.modules.ai.models import GenerationOptions
 from api.modules.ai.service import AIService
 from api.modules.engine.models import EngineContext, EngineOutputStream, Token
+from api.modules.session_configs.models.participants import AgentParticipant
 from api.modules.sessions.models.events import MessageCompletedEvent, MessageStartedEvent
-from api.modules.sessions.models.participants import AgentParticipant
 from api.modules.strategies.context.base import ContextStrategy
 from api.modules.strategies.turn_selection.base import TurnSelectionStrategy
 

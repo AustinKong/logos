@@ -23,7 +23,7 @@ class StrategyResolver:
         self._ai_service = ai_service
 
     def turn_selection(self, session: Session) -> TurnSelectionStrategy:
-        config = session.turn_selection_config
+        config = session.config.turn_selection_config
         match config.mode:
             case TurnSelectionMode.ROUND_ROBIN:
                 return RoundRobinTurnSelectionStrategy()
@@ -31,21 +31,21 @@ class StrategyResolver:
         raise ValueError(f"Unsupported turn selection mode: {config.mode}")
 
     def context(self, session: Session) -> ContextStrategy:
-        config = session.context_config
+        config = session.config.context_config
         match config.mode:
             case ContextMode.FULL:
                 return FullContextStrategy()
         raise ValueError(f"Unsupported context mode: {config.mode}")
 
     def validation(self, session: Session) -> ValidationStrategy:
-        config = session.validation_config
+        config = session.config.validation_config
         match config.mode:
             case ValidationMode.ALLOW_ALL:
                 return AllowAllValidationStrategy()
         raise ValueError(f"Unsupported validation mode: {config.mode}")
 
     def resolution(self, session: Session) -> ResolutionStrategy:
-        config = session.resolution_config
+        config = session.config.resolution_config
         match config:
             case JudgeResolutionConfig():
                 return JudgeResolutionStrategy(

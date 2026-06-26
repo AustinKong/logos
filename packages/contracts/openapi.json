@@ -5,6 +5,29 @@
     "version": "0.1.0"
   },
   "paths": {
+    "/ai/models": {
+      "get": {
+        "tags": ["ai"],
+        "summary": "List Ai Models",
+        "operationId": "listAIModels",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AIModelRead"
+                  },
+                  "type": "array",
+                  "title": "Response Listaimodels"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "tags": ["health"],
@@ -17,6 +40,66 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HealthCheckResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/session-configs/default": {
+      "get": {
+        "tags": ["session-configs"],
+        "summary": "Get Default Session Config",
+        "operationId": "getDefaultSessionConfig",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionConfigRead"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/session-configs/{config_id}": {
+      "get": {
+        "tags": ["session-configs"],
+        "summary": "Get Session Config",
+        "operationId": "getSessionConfig",
+        "parameters": [
+          {
+            "name": "config_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Config Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionConfigRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -316,11 +399,83 @@
   },
   "components": {
     "schemas": {
+      "AIModelRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/AIProviderName"
+          }
+        },
+        "type": "object",
+        "required": ["id", "label", "provider"],
+        "title": "AIModelRead"
+      },
+      "AIProviderName": {
+        "type": "string",
+        "enum": ["openai", "anthropic", "gemini", "deepseek"],
+        "title": "AIProviderName"
+      },
       "AgentParticipantCreate": {
         "properties": {
+          "type": {
+            "type": "string",
+            "const": "agent",
+            "title": "Type",
+            "default": "agent"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Name"
+          },
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Model"
+          },
+          "system_prompt": {
+            "type": "string",
+            "minLength": 1,
+            "title": "System Prompt"
+          }
+        },
+        "type": "object",
+        "required": ["name", "model", "system_prompt"],
+        "title": "AgentParticipantCreate"
+      },
+      "AgentParticipantRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "type": {
+            "type": "string",
+            "const": "agent",
+            "title": "Type",
+            "default": "agent"
+          },
           "name": {
             "type": "string",
             "title": "Name"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
           },
           "model": {
             "type": "string",
@@ -332,18 +487,35 @@
           }
         },
         "type": "object",
-        "required": ["name", "model", "system_prompt"],
-        "title": "AgentParticipantCreate"
+        "required": [
+          "id",
+          "name",
+          "created_at",
+          "updated_at",
+          "model",
+          "system_prompt"
+        ],
+        "title": "AgentParticipantRead"
       },
       "ContextConfigCreate": {
         "properties": {
           "mode": {
-            "$ref": "#/components/schemas/ContextMode",
-            "default": "full"
+            "$ref": "#/components/schemas/ContextMode"
           }
         },
         "type": "object",
+        "required": ["mode"],
         "title": "ContextConfigCreate"
+      },
+      "ContextConfigRead": {
+        "properties": {
+          "mode": {
+            "$ref": "#/components/schemas/ContextMode"
+          }
+        },
+        "type": "object",
+        "required": ["mode"],
+        "title": "ContextConfigRead"
       },
       "ContextMode": {
         "type": "string",
@@ -421,17 +593,39 @@
           },
           "judge_model": {
             "type": "string",
-            "title": "Judge Model",
-            "default": "openai/gpt-4o-mini"
+            "minLength": 1,
+            "title": "Judge Model"
           },
           "judge_temperature": {
             "type": "number",
-            "title": "Judge Temperature",
-            "default": 0.2
+            "title": "Judge Temperature"
           }
         },
         "type": "object",
+        "required": ["judge_model", "judge_temperature"],
         "title": "JudgeResolutionConfigCreate"
+      },
+      "JudgeResolutionConfigRead": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "const": "judge_llm",
+            "title": "Mode",
+            "default": "judge_llm"
+          },
+          "judge_model": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Judge Model"
+          },
+          "judge_temperature": {
+            "type": "number",
+            "title": "Judge Temperature"
+          }
+        },
+        "type": "object",
+        "required": ["judge_model", "judge_temperature"],
+        "title": "JudgeResolutionConfigRead"
       },
       "MessageCompletedEventRead": {
         "properties": {
@@ -542,34 +736,51 @@
         "type": "object",
         "title": "NoneResolutionConfigCreate"
       },
-      "ParticipantRead": {
+      "NoneResolutionConfigRead": {
         "properties": {
-          "id": {
+          "mode": {
             "type": "string",
-            "format": "uuid",
-            "title": "Id"
-          },
-          "type": {
-            "$ref": "#/components/schemas/ParticipantType"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated At"
+            "const": "none",
+            "title": "Mode",
+            "default": "none"
           }
         },
         "type": "object",
-        "required": ["id", "type", "name", "created_at", "updated_at"],
-        "title": "ParticipantRead"
+        "title": "NoneResolutionConfigRead"
+      },
+      "ParticipantCreate": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/AgentParticipantCreate"
+          },
+          {
+            "$ref": "#/components/schemas/UserParticipantCreate"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "agent": "#/components/schemas/AgentParticipantCreate",
+            "user": "#/components/schemas/UserParticipantCreate"
+          }
+        }
+      },
+      "ParticipantRead": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/AgentParticipantRead"
+          },
+          {
+            "$ref": "#/components/schemas/UserParticipantRead"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "agent": "#/components/schemas/AgentParticipantRead",
+            "user": "#/components/schemas/UserParticipantRead"
+          }
+        }
       },
       "ParticipantRemovedEventRead": {
         "properties": {
@@ -612,11 +823,6 @@
           "removed"
         ],
         "title": "ParticipantRemovedEventRead"
-      },
-      "ParticipantType": {
-        "type": "string",
-        "enum": ["agent", "user", "system"],
-        "title": "ParticipantType"
       },
       "ParticipantVoteEventRead": {
         "properties": {
@@ -683,6 +889,23 @@
           "mapping": {
             "judge_llm": "#/components/schemas/JudgeResolutionConfigCreate",
             "none": "#/components/schemas/NoneResolutionConfigCreate"
+          }
+        }
+      },
+      "ResolutionConfigRead": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/JudgeResolutionConfigRead"
+          },
+          {
+            "$ref": "#/components/schemas/NoneResolutionConfigRead"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "mode",
+          "mapping": {
+            "judge_llm": "#/components/schemas/JudgeResolutionConfigRead",
+            "none": "#/components/schemas/NoneResolutionConfigRead"
           }
         }
       },
@@ -761,19 +984,20 @@
         "required": ["id", "session_id", "created_at", "updated_at", "type"],
         "title": "SessionCompletedEventRead"
       },
-      "SessionCreate": {
+      "SessionConfigCreate": {
         "properties": {
           "prompt": {
             "type": "string",
+            "minLength": 1,
             "title": "Prompt"
           },
-          "agents": {
+          "participants": {
             "items": {
-              "$ref": "#/components/schemas/AgentParticipantCreate"
+              "$ref": "#/components/schemas/ParticipantCreate"
             },
             "type": "array",
             "minItems": 1,
-            "title": "Agents"
+            "title": "Participants"
           },
           "turn_selection": {
             "$ref": "#/components/schemas/TurnSelectionConfigCreate"
@@ -791,15 +1015,15 @@
         "type": "object",
         "required": [
           "prompt",
-          "agents",
+          "participants",
           "turn_selection",
           "context",
           "validation",
           "resolution"
         ],
-        "title": "SessionCreate"
+        "title": "SessionConfigCreate"
       },
-      "SessionRead": {
+      "SessionConfigRead": {
         "properties": {
           "id": {
             "type": "string",
@@ -826,6 +1050,18 @@
             },
             "type": "array",
             "title": "Participants"
+          },
+          "turn_selection": {
+            "$ref": "#/components/schemas/TurnSelectionConfigRead"
+          },
+          "context": {
+            "$ref": "#/components/schemas/ContextConfigRead"
+          },
+          "validation": {
+            "$ref": "#/components/schemas/ValidationConfigRead"
+          },
+          "resolution": {
+            "$ref": "#/components/schemas/ResolutionConfigRead"
           }
         },
         "type": "object",
@@ -834,8 +1070,47 @@
           "prompt",
           "created_at",
           "updated_at",
-          "participants"
+          "participants",
+          "turn_selection",
+          "context",
+          "validation",
+          "resolution"
         ],
+        "title": "SessionConfigRead"
+      },
+      "SessionCreate": {
+        "properties": {
+          "config": {
+            "$ref": "#/components/schemas/SessionConfigCreate"
+          }
+        },
+        "type": "object",
+        "required": ["config"],
+        "title": "SessionCreate"
+      },
+      "SessionRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "config": {
+            "$ref": "#/components/schemas/SessionConfigRead"
+          }
+        },
+        "type": "object",
+        "required": ["id", "created_at", "updated_at", "config"],
         "title": "SessionRead"
       },
       "SessionStartedEventRead": {
@@ -918,27 +1193,87 @@
       "TurnSelectionConfigCreate": {
         "properties": {
           "mode": {
-            "$ref": "#/components/schemas/TurnSelectionMode",
-            "default": "round_robin"
+            "$ref": "#/components/schemas/TurnSelectionMode"
           }
         },
         "type": "object",
+        "required": ["mode"],
         "title": "TurnSelectionConfigCreate"
+      },
+      "TurnSelectionConfigRead": {
+        "properties": {
+          "mode": {
+            "$ref": "#/components/schemas/TurnSelectionMode"
+          }
+        },
+        "type": "object",
+        "required": ["mode"],
+        "title": "TurnSelectionConfigRead"
       },
       "TurnSelectionMode": {
         "type": "string",
         "enum": ["round_robin"],
         "title": "TurnSelectionMode"
       },
-      "ValidationConfigCreate": {
+      "UserParticipantCreate": {
         "properties": {
-          "mode": {
-            "$ref": "#/components/schemas/ValidationMode",
-            "default": "allow_all"
+          "type": {
+            "type": "string",
+            "const": "user",
+            "title": "Type",
+            "default": "user"
           }
         },
         "type": "object",
+        "title": "UserParticipantCreate"
+      },
+      "UserParticipantRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "type": {
+            "type": "string",
+            "const": "user",
+            "title": "Type",
+            "default": "user"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": ["id", "created_at", "updated_at"],
+        "title": "UserParticipantRead"
+      },
+      "ValidationConfigCreate": {
+        "properties": {
+          "mode": {
+            "$ref": "#/components/schemas/ValidationMode"
+          }
+        },
+        "type": "object",
+        "required": ["mode"],
         "title": "ValidationConfigCreate"
+      },
+      "ValidationConfigRead": {
+        "properties": {
+          "mode": {
+            "$ref": "#/components/schemas/ValidationMode"
+          }
+        },
+        "type": "object",
+        "required": ["mode"],
+        "title": "ValidationConfigRead"
       },
       "ValidationError": {
         "properties": {

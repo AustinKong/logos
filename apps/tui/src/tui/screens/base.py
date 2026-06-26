@@ -1,5 +1,3 @@
-from abc import ABCMeta, abstractmethod
-
 from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual.screen import Screen
@@ -8,11 +6,7 @@ from textual.widgets import Footer
 from tui.widgets.header import Header
 
 
-class BaseScreenMeta(type(Screen), ABCMeta):
-    pass
-
-
-class BaseScreen(Screen[None], metaclass=BaseScreenMeta):
+class BaseScreen(Screen[None]):
     DEFAULT_CSS = """
     BaseScreen {
         padding: 1;
@@ -30,6 +24,5 @@ class BaseScreen(Screen[None], metaclass=BaseScreenMeta):
             yield from self.compose_content()
         yield Footer(compact=True, show_command_palette=False)
 
-    @abstractmethod
     def compose_content(self) -> ComposeResult:
-        pass
+        yield from ()

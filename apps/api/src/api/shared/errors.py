@@ -20,7 +20,7 @@ class ConflictError(AppError):
     message = "Conflict"
 
 
-class ValidationAppError(AppError):
+class ValidationError(AppError):
     status_code = 400
     code = "validation_error"
     message = "Invalid request"

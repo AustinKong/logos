@@ -5,17 +5,24 @@ from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response, stat
 from sse_starlette import EventSourceResponse
 
 from api.modules.engine.background import run_session_until_blocked_background
-from api.modules.sessions.adapters import (
-    event_read_from_event,
-    session_config_from_create,
-    session_read_from_session,
-    session_summary_read_from_summary,
-    token_read_from_token,
+from api.modules.session_configs.adapters.participants import participant_data_from_create
+from api.modules.sessions.adapters.configs import (
+    context_config_from_create,
+    resolution_config_from_create,
+    turn_selection_config_from_create,
+    validation_config_from_create,
 )
+from api.modules.sessions.adapters.events import event_read_from_event
+from api.modules.sessions.adapters.sessions import session_read_from_session, session_summary_read_from_summary
+from api.modules.sessions.adapters.tokens import token_read_from_token
 from api.modules.sessions.deps import get_session_service
 from api.modules.sessions.models.events import SessionCompletedEvent
 from api.modules.sessions.schemas.events import EventRead
-from api.modules.sessions.schemas.sessions import SessionCreate, SessionRead, SessionSummaryRead
+from api.modules.sessions.schemas.sessions import (
+    SessionCreate,
+    SessionRead,
+    SessionSummaryRead,
+)
 from api.modules.sessions.service import SessionService
 from api.modules.streaming.deps import SESSION_EVENT_STREAM, TOKEN_STREAM, get_streaming_service
 from api.modules.streaming.service import StreamingService
@@ -29,7 +36,15 @@ def create_session(
     payload: SessionCreate,
     service: Annotated[SessionService, Depends(get_session_service)],
 ) -> SessionRead:
-    session = service.create_session(session_config_from_create(payload))
+    config = payload.config
+    session = service.create_session(
+        prompt=config.prompt,
+        agents=[participant_data_from_create(participant) for participant in config.participants],
+        turn_selection=turn_selection_config_from_create(config.turn_selection),
+        context=context_config_from_create(config.context),
+        validation=validation_config_from_create(config.validation),
+        resolution=resolution_config_from_create(config.resolution),
+    )
     return session_read_from_session(session)
 
 

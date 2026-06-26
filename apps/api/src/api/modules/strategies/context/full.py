@@ -1,6 +1,6 @@
 from api.modules.ai.models import AIMessage, MessageRole
 from api.modules.engine.models import EngineContext
-from api.modules.sessions.models.participants import AgentParticipant
+from api.modules.session_configs.models.participants import AgentParticipant
 from api.modules.strategies.transcripts import format_message_transcript
 
 
@@ -12,7 +12,7 @@ class FullContextStrategy:
             AIMessage(
                 role=MessageRole.USER,
                 content=(
-                    f"Session prompt:\n{ctx.session.prompt}\n\n"
+                    f"Session prompt:\n{ctx.session.config.prompt}\n\n"
                     f"Transcript so far:\n{transcript}\n\n"
                     f"Respond as {agent.name}."
                 ),

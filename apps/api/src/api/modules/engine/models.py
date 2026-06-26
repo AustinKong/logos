@@ -2,8 +2,8 @@ from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from uuid import UUID
 
+from api.modules.session_configs.models.participants import Participant
 from api.modules.sessions.models.events import Event
-from api.modules.sessions.models.participants import Participant
 from api.modules.sessions.models.sessions import Session
 
 

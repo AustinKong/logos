@@ -30,7 +30,7 @@ class EngineService:
         events = self._session_service.list_events(session_id)
         ctx = EngineContext(
             session=session,
-            participants=session.participants,
+            participants=session.config.participants,
             events=events,
         )
 

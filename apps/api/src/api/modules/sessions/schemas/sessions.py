@@ -1,33 +1,21 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
+from api.modules.session_configs.schemas.session_configs import SessionConfigCreate, SessionConfigRead
 from api.modules.sessions.models.sessions import SessionStatus
-from api.modules.sessions.schemas.configs import (
-    ContextConfigCreate,
-    ResolutionConfigCreate,
-    TurnSelectionConfigCreate,
-    ValidationConfigCreate,
-)
-from api.modules.sessions.schemas.participants import AgentParticipantCreate, ParticipantRead
 
 
 class SessionCreate(BaseModel):
-    prompt: str
-    agents: list[AgentParticipantCreate] = Field(min_length=1)
-    turn_selection: TurnSelectionConfigCreate
-    context: ContextConfigCreate
-    validation: ValidationConfigCreate
-    resolution: ResolutionConfigCreate
+    config: SessionConfigCreate
 
 
 class SessionRead(BaseModel):
     id: UUID
-    prompt: str
     created_at: datetime
     updated_at: datetime
-    participants: list[ParticipantRead]
+    config: SessionConfigRead
 
 
 class SessionSummaryRead(BaseModel):

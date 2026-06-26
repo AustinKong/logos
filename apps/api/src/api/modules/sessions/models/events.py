@@ -9,8 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from api.db.base import Base
 from api.db.mixins import TimestampMixin, UUIDMixin
-
-from .participants import Participant
+from api.modules.session_configs.models.participants import Participant
 
 
 class EventType(StrEnum):

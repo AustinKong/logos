@@ -4,8 +4,9 @@ from uuid import UUID
 from sqlalchemy import case, distinct, func, select
 from sqlalchemy.orm import Session as SqlAlchemyDb
 
+from api.modules.session_configs.models.participants import Participant
+from api.modules.session_configs.models.session_configs import SessionConfig
 from api.modules.sessions.models.events import Event, EventType
-from api.modules.sessions.models.participants import Participant
 from api.modules.sessions.models.sessions import Session, SessionStatus, SessionSummary
 
 
@@ -19,16 +20,17 @@ class SessionRepository:
         statement = (
             select(
                 Session.id,
-                Session.prompt,
+                SessionConfig.prompt,
                 Session.created_at,
                 Session.updated_at,
                 func.count(distinct(Participant.id)),
                 has_started,
                 has_completed,
             )
-            .outerjoin(Participant, Participant.session_id == Session.id)
+            .join(SessionConfig, SessionConfig.id == Session.config_id)
+            .outerjoin(Participant, Participant.config_id == SessionConfig.id)
             .outerjoin(Event, Event.session_id == Session.id)
-            .group_by(Session.id)
+            .group_by(Session.id, SessionConfig.prompt)
             .order_by(Session.updated_at.desc(), Session.id.desc())
         )
         return [

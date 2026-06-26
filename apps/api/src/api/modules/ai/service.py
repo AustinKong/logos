@@ -3,7 +3,7 @@ from typing import TypeVar
 
 from pydantic import BaseModel
 
-from api.modules.ai.models import AIMessage, GenerationOptions
+from api.modules.ai.models import AIMessage, AIModel, GenerationOptions
 from api.modules.ai.resolver import AIProviderResolver
 
 GeneratedObject = TypeVar("GeneratedObject", bound=BaseModel)
@@ -40,3 +40,6 @@ class AIService:
     ) -> GeneratedObject:
         provider = self._provider_resolver.resolve(options.model)
         return await provider.generate_object(messages=messages, options=options, response_model=response_model)
+
+    def list_available_models(self) -> list[AIModel]:
+        return self._provider_resolver.list_available_models()

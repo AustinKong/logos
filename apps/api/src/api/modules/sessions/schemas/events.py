@@ -4,8 +4,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from api.modules.session_configs.schemas.participants import ParticipantRead
 from api.modules.sessions.models.events import EventType
-from api.modules.sessions.schemas.participants import ParticipantRead
 
 
 class EventReadBase(BaseModel):

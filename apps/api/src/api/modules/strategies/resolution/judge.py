@@ -35,7 +35,7 @@ class JudgeResolutionStrategy:
                 AIMessage(
                     role=MessageRole.USER,
                     content=_build_judge_user_prompt(
-                        session_prompt=ctx.session.prompt,
+                        session_prompt=ctx.session.config.prompt,
                         transcript=transcript,
                     ),
                 ),
