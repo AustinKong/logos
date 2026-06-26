@@ -6,8 +6,7 @@ from sqlalchemy.orm import Session as SqlAlchemyDb
 
 from api.modules.sessions.models.events import Event, EventType
 from api.modules.sessions.models.participants import Participant
-from api.modules.sessions.models.sessions import Session
-from api.modules.sessions.models.summaries import SessionStatus, SessionSummary
+from api.modules.sessions.models.sessions import Session, SessionStatus, SessionSummary
 
 
 class SessionRepository:

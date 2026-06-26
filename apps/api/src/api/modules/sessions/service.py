@@ -1,4 +1,3 @@
-from collections.abc import Sequence
 from datetime import datetime
 from uuid import UUID
 
@@ -8,9 +7,9 @@ from sqlalchemy.orm import selectinload
 
 from api.modules.sessions.errors import SessionNotFoundError
 from api.modules.sessions.models.events import Event
-from api.modules.sessions.models.participants import AgentParticipant, AgentParticipantConfig
-from api.modules.sessions.models.sessions import Session
-from api.modules.sessions.models.summaries import SessionSummary
+from api.modules.sessions.models.participants import AgentParticipant
+from api.modules.sessions.models.session_configs import SessionConfig
+from api.modules.sessions.models.sessions import Session, SessionSummary
 from api.modules.sessions.repository import SessionRepository
 
 
@@ -19,12 +18,19 @@ class SessionService:
         self._db = db
         self._repository = repository
 
-    def create_session(self, prompt: str, agents: Sequence[AgentParticipantConfig] = ()) -> Session:
-        session = Session(prompt=prompt)
+    def create_session(self, config: SessionConfig) -> Session:
+        session = Session(
+            prompt=config.prompt,
+            turn_selection_config=config.turn_selection,
+            context_config=config.context,
+            validation_config=config.validation,
+            resolution_config=config.resolution,
+        )
+
         self._db.add(session)
         self._db.flush()
 
-        for agent in agents:
+        for agent in config.agents:
             self._db.add(
                 AgentParticipant(
                     session_id=session.id,

@@ -5,44 +5,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 from api.modules.sessions.models.events import EventType
-from api.modules.sessions.models.participants import ParticipantType
-from api.modules.sessions.models.summaries import SessionStatus
-
-
-class AgentParticipantCreate(BaseModel):
-    name: str
-    model: str
-    system_prompt: str
-
-
-class SessionCreate(BaseModel):
-    prompt: str
-    agents: list[AgentParticipantCreate] = Field(default_factory=list)
-
-
-class ParticipantRead(BaseModel):
-    id: UUID
-    type: ParticipantType
-    name: str
-    created_at: datetime
-    updated_at: datetime
-
-
-class SessionRead(BaseModel):
-    id: UUID
-    prompt: str
-    created_at: datetime
-    updated_at: datetime
-    participants: list[ParticipantRead]
-
-
-class SessionSummaryRead(BaseModel):
-    id: UUID
-    prompt: str
-    created_at: datetime
-    updated_at: datetime
-    participant_count: int
-    status: SessionStatus
+from api.modules.sessions.schemas.participants import ParticipantRead
 
 
 class EventReadBase(BaseModel):

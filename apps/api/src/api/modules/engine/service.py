@@ -36,26 +36,32 @@ class EngineService:
 
         async for output in self._engine.step(ctx):
             if isinstance(output, Event):
-                match output:
-                    case SessionStartedEvent():
-                        await self._streaming_service.open(SESSION_EVENT_STREAM, output.session_id)
-                    case MessageStartedEvent():
-                        await self._streaming_service.open(TOKEN_STREAM, output.message_id)
-
-                # TODO: Is there a mismatch where writing sessions are done in EngineService -> SessionService
-                # but reading sessions are done directly with SessionService?
+                await self._open_streams_for_event(output)
                 self._session_service.append_events(session_id, [output])
                 await self._streaming_service.publish(SESSION_EVENT_STREAM, output.session_id, output)
-
-                match output:
-                    case SessionCompletedEvent():
-                        await self._streaming_service.close(SESSION_EVENT_STREAM, output.session_id)
-                    case MessageCompletedEvent():
-                        await self._streaming_service.close(TOKEN_STREAM, output.message_id)
+                await self._close_streams_for_event(output)
             else:
                 await self._streaming_service.publish(TOKEN_STREAM, output.correlation_id, output)
 
             yield output
+
+    async def _open_streams_for_event(self, event: Event) -> None:
+        match event:
+            case SessionStartedEvent():
+                await self._streaming_service.open(SESSION_EVENT_STREAM, event.session_id)
+            case MessageStartedEvent():
+                await self._streaming_service.open(TOKEN_STREAM, event.message_id)
+            case _:
+                return
+
+    async def _close_streams_for_event(self, event: Event) -> None:
+        match event:
+            case SessionCompletedEvent():
+                await self._streaming_service.close(SESSION_EVENT_STREAM, event.session_id)
+            case MessageCompletedEvent():
+                await self._streaming_service.close(TOKEN_STREAM, event.message_id)
+            case _:
+                return
 
     async def run_until_blocked(self, session_id: UUID) -> None:
         while True:

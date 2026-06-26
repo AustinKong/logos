@@ -5,25 +5,26 @@ from api.modules.engine.stages.debate import DebateStage
 from api.modules.engine.stages.resolution import ResolutionStage
 from api.modules.engine.stages.validation import ValidationStage
 from api.modules.sessions.models.events import SessionCompletedEvent, SessionStartedEvent
-from api.modules.strategies.context.full import FullContextStrategy
-from api.modules.strategies.resolution.judge import JudgeResolutionStrategy
-from api.modules.strategies.turn_selection.round_robin import RoundRobinTurnSelectionStrategy
-from api.modules.strategies.validation.allow_all import AllowAllValidationStrategy
+from api.modules.strategies.resolver import StrategyResolver
 
 
 class Engine:
-    def __init__(self, ai_service: AIService) -> None:
-        self._stages: list[EngineStage] = [
+    def __init__(self, *, ai_service: AIService, strategy_resolver: StrategyResolver) -> None:
+        self._ai_service = ai_service
+        self._strategy_resolver = strategy_resolver
+
+    def _build_stages(self, ctx: EngineContext) -> list[EngineStage]:
+        return [
             DebateStage(
-                turn_selection_strategy=RoundRobinTurnSelectionStrategy(),
-                context_strategy=FullContextStrategy(),
-                ai_service=ai_service,
+                turn_selection_strategy=self._strategy_resolver.turn_selection(ctx.session),
+                context_strategy=self._strategy_resolver.context(ctx.session),
+                ai_service=self._ai_service,
             ),
             ValidationStage(
-                validation_strategy=AllowAllValidationStrategy(),
+                validation_strategy=self._strategy_resolver.validation(ctx.session),
             ),
             ResolutionStage(
-                resolution_strategy=JudgeResolutionStrategy(ai_service=ai_service),
+                resolution_strategy=self._strategy_resolver.resolution(ctx.session),
             ),
         ]
 
@@ -35,7 +36,7 @@ class Engine:
         if any(isinstance(event, SessionCompletedEvent) for event in ctx.events):
             return
 
-        for stage in self._stages:
+        for stage in self._build_stages(ctx):
             has_output = False
             async for output in stage.run(ctx):
                 has_output = True

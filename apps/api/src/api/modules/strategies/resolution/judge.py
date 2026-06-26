@@ -5,10 +5,9 @@ from api.modules.sessions.models.events import (
     ResolutionCreatedEvent,
     SessionCompletedEvent,
 )
+from api.modules.strategies.resolution.configs import JudgeResolutionConfig
 from api.modules.strategies.transcripts import format_message_transcript
 
-# TODO: Make model configurable via constructor
-DEFAULT_JUDGE_MODEL = "openai/gpt-4o-mini"
 JUDGE_SYSTEM_PROMPT = (
     "You are a neutral judge resolving a structured debate. "
     "Decide the strongest answer to the session prompt using only the transcript."
@@ -16,9 +15,14 @@ JUDGE_SYSTEM_PROMPT = (
 
 
 class JudgeResolutionStrategy:
-    def __init__(self, *, ai_service: AIService, model: str = DEFAULT_JUDGE_MODEL) -> None:
+    def __init__(
+        self,
+        *,
+        ai_service: AIService,
+        config: JudgeResolutionConfig,
+    ) -> None:
         self._ai_service = ai_service
-        self._model = model
+        self._config = config
 
     async def resolve(self, ctx: EngineContext) -> EngineOutputStream:
         transcript = format_message_transcript(ctx)
@@ -36,7 +40,10 @@ class JudgeResolutionStrategy:
                     ),
                 ),
             ],
-            options=GenerationOptions(model=self._model, temperature=0.2),
+            options=GenerationOptions(
+                model=self._config.judge_model,
+                temperature=self._config.judge_temperature,
+            ),
         )
         yield ResolutionCreatedEvent(
             session_id=ctx.session.id,

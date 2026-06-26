@@ -81,6 +81,8 @@ Avoid these dependency directions:
 
 Constructor-injected dependencies stored on classes should use private attribute names with an underscore prefix, such as `self._repository` or `self._provider_resolver`.
 
+Strategy configuration should live beside its strategy family in `apps/api/src/api/modules/strategies/<family>/configs.py`. When adding a new strategy mode, update the family `Mode` enum, add a concrete Pydantic config model for that mode, add it to the family config alias/union, and update the resolver mapping or match logic. Keep config modules lightweight and independent of runtime strategy implementation modules.
+
 ## API Schema Naming
 
 FastAPI request/response schemas live in each module's `schemas.py`.

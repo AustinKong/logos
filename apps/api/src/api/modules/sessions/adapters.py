@@ -13,23 +13,42 @@ from api.modules.sessions.models.events import (
     SessionStartedEvent,
 )
 from api.modules.sessions.models.participants import AgentParticipantConfig, Participant
-from api.modules.sessions.models.sessions import Session
-from api.modules.sessions.models.summaries import SessionSummary
-from api.modules.sessions.schemas import (
-    AgentParticipantCreate,
+from api.modules.sessions.models.session_configs import SessionConfig
+from api.modules.sessions.models.sessions import Session, SessionSummary
+from api.modules.sessions.schemas.configs import (
+    ContextConfigCreate,
+    JudgeResolutionConfigCreate,
+    NoneResolutionConfigCreate,
+    ResolutionConfigCreate,
+    TurnSelectionConfigCreate,
+    ValidationConfigCreate,
+)
+from api.modules.sessions.schemas.events import (
     EventRead,
     MessageCompletedEventRead,
     MessageStartedEventRead,
-    ParticipantRead,
     ParticipantRemovedEventRead,
     ParticipantVoteEventRead,
     ResolutionCreatedEventRead,
     SessionCompletedEventRead,
-    SessionRead,
     SessionStartedEventRead,
-    SessionSummaryRead,
     TokenRead,
 )
+from api.modules.sessions.schemas.participants import AgentParticipantCreate, ParticipantRead
+from api.modules.sessions.schemas.sessions import (
+    SessionCreate,
+    SessionRead,
+    SessionSummaryRead,
+)
+from api.modules.strategies.context.configs import ContextConfig
+from api.modules.strategies.resolution.configs import (
+    JudgeResolutionConfig,
+    NoneResolutionConfig,
+)
+from api.modules.strategies.turn_selection.configs import TurnSelectionConfig
+from api.modules.strategies.validation.configs import ValidationConfig
+
+# TODO: Split this module into adapters/ once config, event, and session conversions grow larger.
 
 
 def agent_participant_config_from_create(agent: AgentParticipantCreate) -> AgentParticipantConfig:
@@ -38,6 +57,44 @@ def agent_participant_config_from_create(agent: AgentParticipantCreate) -> Agent
         model=agent.model,
         system_prompt=agent.system_prompt,
     )
+
+
+def session_config_from_create(session_create: SessionCreate) -> SessionConfig:
+    return SessionConfig(
+        prompt=session_create.prompt,
+        agents=[agent_participant_config_from_create(agent) for agent in session_create.agents],
+        turn_selection=turn_selection_config_from_create(session_create.turn_selection),
+        context=context_config_from_create(session_create.context),
+        validation=validation_config_from_create(session_create.validation),
+        resolution=resolution_config_from_create(session_create.resolution),
+    )
+
+
+def turn_selection_config_from_create(
+    turn_selection_create: TurnSelectionConfigCreate,
+) -> TurnSelectionConfig:
+    return TurnSelectionConfig(mode=turn_selection_create.mode)
+
+
+def context_config_from_create(context_create: ContextConfigCreate) -> ContextConfig:
+    return ContextConfig(mode=context_create.mode)
+
+
+def validation_config_from_create(validation_create: ValidationConfigCreate) -> ValidationConfig:
+    return ValidationConfig(mode=validation_create.mode)
+
+
+def resolution_config_from_create(
+    resolution_create: ResolutionConfigCreate,
+) -> JudgeResolutionConfig | NoneResolutionConfig:
+    match resolution_create:
+        case JudgeResolutionConfigCreate():
+            return JudgeResolutionConfig(
+                judge_model=resolution_create.judge_model,
+                judge_temperature=resolution_create.judge_temperature,
+            )
+        case NoneResolutionConfigCreate():
+            return NoneResolutionConfig()
 
 
 def participant_read_from_participant(participant: Participant) -> ParticipantRead:

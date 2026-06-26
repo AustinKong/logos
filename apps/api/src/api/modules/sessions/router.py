@@ -7,14 +7,15 @@ from sse_starlette import EventSourceResponse
 from api.modules.engine.background import run_session_until_blocked_background
 from api.modules.sessions.adapters import (
     event_read_from_event,
+    session_config_from_create,
     session_read_from_session,
     session_summary_read_from_summary,
     token_read_from_token,
 )
 from api.modules.sessions.deps import get_session_service
 from api.modules.sessions.models.events import SessionCompletedEvent
-from api.modules.sessions.models.participants import AgentParticipantConfig
-from api.modules.sessions.schemas import EventRead, SessionCreate, SessionRead, SessionSummaryRead
+from api.modules.sessions.schemas.events import EventRead
+from api.modules.sessions.schemas.sessions import SessionCreate, SessionRead, SessionSummaryRead
 from api.modules.sessions.service import SessionService
 from api.modules.streaming.deps import SESSION_EVENT_STREAM, TOKEN_STREAM, get_streaming_service
 from api.modules.streaming.service import StreamingService
@@ -22,31 +23,13 @@ from api.shared.responses import ServerSentEventResponse
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
-TEMPORARY_TEST_MODEL = "openai/gpt-4o-mini"
-TEMPORARY_TEST_PROMPT = "How should engineering teams decide when to use AI agents in production workflows?"
-TEMPORARY_TEST_AGENTS = [
-    AgentParticipantConfig(
-        name="Pragmatist",
-        model=TEMPORARY_TEST_MODEL,
-        system_prompt="Argue for the simplest useful implementation that proves value quickly.",
-    ),
-    AgentParticipantConfig(
-        name="Skeptic",
-        model=TEMPORARY_TEST_MODEL,
-        system_prompt="Point out risks, failure modes, and missing safeguards in the implementation.",
-    ),
-]
-
 
 @router.post("", operation_id="createSession", response_model=SessionRead, status_code=201)
 def create_session(
-    _payload: SessionCreate,
+    payload: SessionCreate,
     service: Annotated[SessionService, Depends(get_session_service)],
 ) -> SessionRead:
-    session = service.create_session(
-        prompt=TEMPORARY_TEST_PROMPT,
-        agents=TEMPORARY_TEST_AGENTS,
-    )
+    session = service.create_session(session_config_from_create(payload))
     return session_read_from_session(session)
 
 

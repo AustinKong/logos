@@ -1,18 +1,89 @@
 from __future__ import annotations
 
-from sqlalchemy import Text
+from dataclasses import dataclass
+from datetime import datetime
+from enum import StrEnum
+from typing import Any
+from uuid import UUID
+
+from sqlalchemy import JSON, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from api.db.base import Base
 from api.db.mixins import TimestampMixin, UUIDMixin
 from api.modules.sessions.models.events import Event
 from api.modules.sessions.models.participants import Participant
+from api.modules.strategies.context.configs import (
+    ContextConfig,
+)
+from api.modules.strategies.resolution.configs import (
+    RESOLUTION_CONFIG_ADAPTER,
+    JudgeResolutionConfig,
+    ResolutionConfig,
+)
+from api.modules.strategies.turn_selection.configs import (
+    RoundRobinTurnSelectionConfig,
+    TurnSelectionConfig,
+)
+from api.modules.strategies.validation.configs import (
+    AllowAllValidationConfig,
+    ValidationConfig,
+)
+
+
+class SessionStatus(StrEnum):
+    DRAFT = "draft"
+    RUNNING = "running"
+    COMPLETED = "completed"
+
+    @classmethod
+    def from_flags(cls, *, has_started: bool, has_completed: bool) -> SessionStatus:
+        if has_completed:
+            return SessionStatus.COMPLETED
+        if has_started:
+            return SessionStatus.RUNNING
+
+        return SessionStatus.DRAFT
+
+
+@dataclass(frozen=True, slots=True)
+class SessionSummary:
+    id: UUID
+    prompt: str
+    created_at: datetime
+    updated_at: datetime
+    participant_count: int
+    status: SessionStatus
 
 
 class Session(UUIDMixin, TimestampMixin, Base):
     __tablename__ = "sessions"
 
     prompt: Mapped[str] = mapped_column(Text)
+    _turn_selection_config: Mapped[dict[str, Any]] = mapped_column(
+        "turn_selection_config",
+        JSON,
+        default=lambda: RoundRobinTurnSelectionConfig().model_dump(mode="json"),
+        nullable=False,
+    )
+    _context_config: Mapped[dict[str, Any]] = mapped_column(
+        "context_config",
+        JSON,
+        default=lambda: ContextConfig().model_dump(mode="json"),
+        nullable=False,
+    )
+    _validation_config: Mapped[dict[str, Any]] = mapped_column(
+        "validation_config",
+        JSON,
+        default=lambda: AllowAllValidationConfig().model_dump(mode="json"),
+        nullable=False,
+    )
+    _resolution_config: Mapped[dict[str, Any]] = mapped_column(
+        "resolution_config",
+        JSON,
+        default=lambda: JudgeResolutionConfig().model_dump(mode="json"),
+        nullable=False,
+    )
 
     participants: Mapped[list[Participant]] = relationship(
         cascade="all, delete-orphan",
@@ -24,3 +95,35 @@ class Session(UUIDMixin, TimestampMixin, Base):
         order_by=lambda: Event.created_at,
         lazy="raise",
     )
+
+    @property
+    def turn_selection_config(self) -> TurnSelectionConfig:
+        return TurnSelectionConfig.model_validate(self._turn_selection_config)
+
+    @turn_selection_config.setter
+    def turn_selection_config(self, config: TurnSelectionConfig) -> None:
+        self._turn_selection_config = config.model_dump(mode="json")
+
+    @property
+    def context_config(self) -> ContextConfig:
+        return ContextConfig.model_validate(self._context_config)
+
+    @context_config.setter
+    def context_config(self, config: ContextConfig) -> None:
+        self._context_config = config.model_dump(mode="json")
+
+    @property
+    def validation_config(self) -> ValidationConfig:
+        return ValidationConfig.model_validate(self._validation_config)
+
+    @validation_config.setter
+    def validation_config(self, config: ValidationConfig) -> None:
+        self._validation_config = config.model_dump(mode="json")
+
+    @property
+    def resolution_config(self) -> ResolutionConfig:
+        return RESOLUTION_CONFIG_ADAPTER.validate_python(self._resolution_config)
+
+    @resolution_config.setter
+    def resolution_config(self, config: ResolutionConfig) -> None:
+        self._resolution_config = config.model_dump(mode="json")
