@@ -1,23 +1,38 @@
-from textual.geometry import Spacing
-from textual.reactive import reactive
-from textual.widgets import Input
+from textual.app import ComposeResult
+from textual.containers import Horizontal
+from textual.widgets import Input, Static
 
 
-class ChatInput(Input):
+class ChatInput(Horizontal):
     DEFAULT_CSS = """
     ChatInput {
+        height: 3;
+        width: 100%;
+        border: solid $primary;
+        background: transparent;
+        padding: 0;
+    }
+
+    ChatInput Static {
+        width: 3;
+        height: 1fr;
+        content-align: center middle;
+        background: transparent;
+    }
+
+    ChatInput Input {
+        height: 1fr;
         width: 1fr;
         border: none;
         background: transparent;
+        padding: 0;
     }
     """
 
-    shown = reactive(False)
+    def __init__(self, *, placeholder: str) -> None:
+        super().__init__()
+        self._placeholder = placeholder
 
-    def on_mount(self) -> None:
-        # TODO: What
-        self.styles.height = "1fr"
-        self.styles.padding = Spacing(0, 0, 0, 0)
-
-    def watch_shown(self, shown: bool) -> None:
-        self.display = shown
+    def compose(self) -> ComposeResult:
+        yield Static(" → ")
+        yield Input(placeholder=self._placeholder)

@@ -1,7 +1,7 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response, status
+from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from sse_starlette import EventSourceResponse
 
 from api.modules.engine.background import run_session_until_blocked_background
@@ -34,6 +34,7 @@ router = APIRouter(prefix="/sessions", tags=["sessions"])
 @router.post("", operation_id="createSession", response_model=SessionRead, status_code=201)
 def create_session(
     payload: SessionCreate,
+    background_tasks: BackgroundTasks,
     service: Annotated[SessionService, Depends(get_session_service)],
 ) -> SessionRead:
     config = payload.config
@@ -45,6 +46,7 @@ def create_session(
         validation=validation_config_from_create(config.validation),
         resolution=resolution_config_from_create(config.resolution),
     )
+    background_tasks.add_task(run_session_until_blocked_background, session.id)
     return session_read_from_session(session)
 
 
@@ -70,20 +72,6 @@ def list_session_events(
     service: Annotated[SessionService, Depends(get_session_service)],
 ) -> list[EventRead]:
     return [event_read_from_event(event) for event in service.list_events(session_id)]
-
-
-@router.post(
-    "/{session_id}/run-until-blocked",
-    operation_id="runSessionUntilBlocked",
-    status_code=status.HTTP_202_ACCEPTED,
-    response_class=Response,
-)
-def run_session_until_blocked(
-    session_id: UUID,
-    background_tasks: BackgroundTasks,
-) -> Response:
-    background_tasks.add_task(run_session_until_blocked_background, session_id)
-    return Response(status_code=status.HTTP_202_ACCEPTED)
 
 
 @router.get("/{session_id}/events/stream", operation_id="streamSessionEvents", response_class=ServerSentEventResponse)

@@ -1,3 +1,4 @@
+from api_client.models.session_read import SessionRead
 from api_client.models.session_summary_read import SessionSummaryRead
 from textual import work
 from textual.app import ComposeResult
@@ -75,6 +76,12 @@ class SessionsScreen(BaseScreen):
         if session := self.selected_session:
             self.post_message(Navigate(Route.SESSION_CHAT, SessionChatParams(session_id=session.id)))
 
+    def handle_session_created(self, session: SessionRead | None) -> None:
+        self.load_sessions()
+
+        if session is not None:
+            self.post_message(Navigate(Route.SESSION_CHAT, SessionChatParams(session_id=session.id)))
+
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if action == "view_config":
             return self.selected_session is not None
@@ -85,7 +92,7 @@ class SessionsScreen(BaseScreen):
         self.post_message(
             Navigate(
                 Route.SESSION_CONFIG,
-                SessionConfigParams(on_close=self.load_sessions),
+                SessionConfigParams(on_close=self.handle_session_created),
             )
         )
 

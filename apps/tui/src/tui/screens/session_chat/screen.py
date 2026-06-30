@@ -5,12 +5,12 @@ from api_client.models import (
     SessionCompletedEventRead,
     SessionRead,
 )
+from httpx import HTTPStatusError
 from textual import work
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Horizontal, Vertical
+from textual.containers import Vertical
 from textual.reactive import reactive
-from textual.widgets import Static
 
 from tui.screens.session_chat.loaders import SessionChatLoader
 from tui.screens.session_chat.widgets.chat_input import ChatInput
@@ -24,29 +24,13 @@ class SessionChatScreen(BaseScreen):
         height: 1fr;
         width: 100%;
     }
-
-    #composer {
-        height: 3;
-        width: 100%;
-        border: solid $primary;
-        background: transparent;
-        padding: 0;
-    }
-
-    #prompt-prefix {
-        width: 3;
-        height: 1fr;
-        content-align: center middle;
-        background: transparent;
-    }
-
     """
 
     BINDINGS = [
         Binding("escape", "app.pop_screen", "Back", key_display="Esc"),
     ]
 
-    chat_input_shown = reactive(False)
+    chat_input_shown = reactive(False, recompose=True)
 
     def __init__(
         self,
@@ -60,17 +44,11 @@ class SessionChatScreen(BaseScreen):
         self._session: SessionRead | None = None
 
     def compose_content(self) -> ComposeResult:
-        yield Vertical(
-            EventLog(),
-            Horizontal(
-                Static(" → ", id="prompt-prefix"),
-                ChatInput(placeholder="Start a session...", id="prompt-input").data_bind(
-                    shown=SessionChatScreen.chat_input_shown
-                ),
-                id="composer",
-            ),
-            id="session",
-        )
+        with Vertical(id="session"):
+            yield EventLog()
+
+            if self.chat_input_shown:
+                yield ChatInput(placeholder="Start a session...")
 
     def on_mount(self) -> None:
         self.load_session()
@@ -92,7 +70,6 @@ class SessionChatScreen(BaseScreen):
                     completed = True
 
             if not completed:
-                self.chat_input_shown = True
                 self.stream_events(after_event_id=latest_event_id)
         except Exception as exc:
             self.notify(str(exc), title="Failed to load session", severity="error")
@@ -118,6 +95,11 @@ class SessionChatScreen(BaseScreen):
                 if isinstance(event, SessionCompletedEventRead):
                     self.chat_input_shown = False
                     return
+        except HTTPStatusError as exc:
+            if exc.response.status_code == 404:
+                return
+
+            self.notify(str(exc), title="Session event stream failed", severity="error")
         except Exception as exc:
             self.notify(str(exc), title="Session event stream failed", severity="error")
 
@@ -130,5 +112,10 @@ class SessionChatScreen(BaseScreen):
         try:
             async for token in self._loader.stream_tokens(session_id=self._session.id, stream_id=stream_id):
                 log.handle_token(token)
+        except HTTPStatusError as exc:
+            if exc.response.status_code == 404:
+                return
+
+            self.notify(str(exc), title="Token stream failed", severity="error")
         except Exception as exc:
             self.notify(str(exc), title="Token stream failed", severity="error")

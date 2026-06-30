@@ -253,40 +253,6 @@
         }
       }
     },
-    "/sessions/{session_id}/run-until-blocked": {
-      "post": {
-        "tags": ["sessions"],
-        "summary": "Run Session Until Blocked",
-        "operationId": "runSessionUntilBlocked",
-        "parameters": [
-          {
-            "name": "session_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Session Id"
-            }
-          }
-        ],
-        "responses": {
-          "202": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/sessions/{session_id}/events/stream": {
       "get": {
         "tags": ["sessions"],

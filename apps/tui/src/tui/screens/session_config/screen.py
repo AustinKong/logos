@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from api_client.models import SessionRead
 from textual import work
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -17,7 +18,7 @@ from tui.screens.session_config.widgets.section_editor import SectionEditor
 from tui.widgets.screens.base_modal_screen import BaseModalScreen
 
 
-class SessionConfigModal(BaseModalScreen[None]):
+class SessionConfigModal(BaseModalScreen[SessionRead | None]):
     BINDINGS = [
         ("escape", "close", "Close"),
         Binding("ctrl+n", "create_config", "Create", key_display="Ctrl+N"),
@@ -94,9 +95,9 @@ class SessionConfigModal(BaseModalScreen[None]):
     async def create_config(self) -> None:
         try:
             form_state = self.query_one(SectionEditor).form_state()
-            await self._controller.create_session(form_state)
+            session = await self._controller.create_session(form_state)
         except Exception as exc:
             self.notify(str(exc), title="Failed to create session", severity="error")
             return
 
-        self.dismiss(None)
+        self.dismiss(session)

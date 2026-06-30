@@ -4,6 +4,7 @@ from enum import StrEnum
 from uuid import UUID
 
 from api_client import Client
+from api_client.models import SessionRead
 from textual.app import App
 from textual.message import Message
 
@@ -17,7 +18,7 @@ class Route(StrEnum):
 @dataclass(frozen=True, slots=True)
 class SessionConfigParams:
     session_id: UUID | None = None
-    on_close: Callable[[], object] | None = None
+    on_close: Callable[[SessionRead | None], None] | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -67,7 +68,7 @@ class Navigator:
 
         self._app.push_screen(
             screen,
-            None if params.on_close is None else lambda _: params.on_close(),
+            None if params.on_close is None else params.on_close,
         )
 
     def _push_session_chat(self, params: SessionChatParams) -> None:
