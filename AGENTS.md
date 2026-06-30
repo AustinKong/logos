@@ -106,6 +106,15 @@ For discriminated union response schemas that need a reusable OpenAPI component,
 
 Avoid `model_config` on API request/response schemas unless it is required for runtime validation or serialization behavior. Do not use schema-level `json_schema_extra`, examples, or similar documentation-only config that pollutes generated OpenAPI response definitions. This restriction does not apply to non-contract settings models such as `BaseSettings` configuration.
 
+Use field-level `Field(title=..., description=...)` when a schema field needs shared UI copy, such as form labels, option labels, or helper text used by both the TUI and web clients. The client override generation flow emits this as runtime schema metadata:
+
+- TypeScript: `schemaFields.<SchemaName>.<fieldName>.title` and `.description` from `api-client`.
+- Python: `SCHEMA_FIELDS["<SchemaName>"]["<fieldName>"]["title"]` and `["description"]` from `api_client.schema_metadata`.
+
+For discriminated union options, put the option label and helper text on the concrete branch's discriminator field, for example `JudgeResolutionConfigCreate.mode`. Keep option arrays explicit in consumers and read only the display copy from schema metadata. Do not generate separate discriminator-option metadata unless the UI truly needs a richer structure.
+
+OpenAPI preserves nested schemas through `$ref` and union components, so generated schema metadata is schema-scoped rather than deep-path-scoped. For example, use `SessionConfigCreate.prompt`, `AgentParticipantCreate.model`, or `JudgeResolutionConfigCreate.mode`; do not expect a nested path such as `SessionConfigCreate.participants.AgentParticipantCreate.model`.
+
 Do not set default values on API request/response schema fields. These schemas are DTO contracts, and defaults make fields optional in OpenAPI and generated clients. Use required fields for required contract data. The exception is discriminator fields on concrete discriminated-union members, where a `Literal[...] = ...` default is required to identify the branch.
 
 Set explicit `operation_id` values on routes that are consumed by generated clients. Operation IDs become generated client function names, so keep them stable and readable:

@@ -1,6 +1,7 @@
 from typing import cast
 
 from api_client.models import ParticipantType
+from api_client.schema_metadata import SCHEMA_FIELDS
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll
 from textual.widgets import ContentSwitcher, Input, Select
@@ -18,11 +19,19 @@ from tui.screens.session_config.sections.participants.state import (
 )
 from tui.screens.session_config.sections.state import state_or_default
 from tui.shared.textual import on
-from tui.widgets.forms import field
+from tui.widgets.forms.select_field import SelectField, SelectOption
 
 PARTICIPANT_TYPE_OPTIONS = [
-    ("Agent", ParticipantType.AGENT),
-    ("User", ParticipantType.USER),
+    SelectOption(
+        SCHEMA_FIELDS["AgentParticipantCreate"]["type"]["title"],
+        ParticipantType.AGENT,
+        SCHEMA_FIELDS["AgentParticipantCreate"]["type"]["description"],
+    ),
+    SelectOption(
+        SCHEMA_FIELDS["UserParticipantCreate"]["type"]["title"],
+        ParticipantType.USER,
+        SCHEMA_FIELDS["UserParticipantCreate"]["type"]["description"],
+    ),
 ]
 PARTICIPANT_TYPE_CONTENT_IDS = {
     ParticipantType.AGENT: "agent-participant-fields",
@@ -61,15 +70,13 @@ class ParticipantDetails(VerticalScroll):
         self._read_only = read_only
 
     def compose(self) -> ComposeResult:
-        yield field(
+        yield SelectField(
             "Role",
-            Select(
-                PARTICIPANT_TYPE_OPTIONS,
-                value=self._initial_state.type_,
-                allow_blank=False,
-                disabled=self._read_only,
-                classes="participant-role",
-            ),
+            options=PARTICIPANT_TYPE_OPTIONS,
+            value=self._initial_state.type_,
+            allow_blank=False,
+            disabled=self._read_only,
+            select_classes="participant-role",
         )
         yield ContentSwitcher(
             UserParticipantFields(

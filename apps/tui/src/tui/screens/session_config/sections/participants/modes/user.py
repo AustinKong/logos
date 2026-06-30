@@ -1,9 +1,10 @@
+from api_client.schema_metadata import SCHEMA_FIELDS
 from textual.app import ComposeResult
 from textual.containers import Container
 from textual.widgets import Input
 
 from tui.screens.session_config.sections.participants.state import UserParticipantFormState
-from tui.widgets.forms import field
+from tui.widgets.forms.field import field
 
 
 class UserParticipantFields(Container):
@@ -28,7 +29,11 @@ class UserParticipantFields(Container):
         self._read_only = read_only
 
     def compose(self) -> ComposeResult:
-        yield field("Name", Input(self._initial_state.name, disabled=self._read_only, classes="participant-name"))
+        yield field(
+            SCHEMA_FIELDS["UserParticipantCreate"]["name"]["title"],
+            Input(self._initial_state.name, disabled=self._read_only, classes="participant-name"),
+            helper_text=SCHEMA_FIELDS["UserParticipantCreate"]["name"]["description"],
+        )
 
     def form_state(self) -> UserParticipantFormState:
         return UserParticipantFormState(

@@ -17,7 +17,11 @@ from api.modules.session_configs.schemas.participants import ParticipantCreate, 
 
 
 class SessionConfigCreate(BaseModel):
-    prompt: str = Field(min_length=1)
+    prompt: str = Field(
+        min_length=1,
+        title="Session prompt",
+        description="Prompt that defines the session topic and instructions for participants.",
+    )
     participants: list[ParticipantCreate] = Field(min_length=1)
     turn_selection: TurnSelectionConfigCreate
     context: ContextConfigCreate

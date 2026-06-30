@@ -55,6 +55,7 @@ for (const override of overrides) {
 
 await generatePythonUnionAliasModels();
 await generateSourceEnumOverrides(sourceEnumOverrides);
+await generateSchemaMetadata();
 
 const packageJsonPath = resolve("packages/client-ts/package.json");
 const packagePatchPath = resolve(
@@ -276,6 +277,94 @@ function typescriptClientExports(content, name) {
     `^export (?:type|const) ${escapeRegExp(name)}\\b`,
     "m",
   ).test(content);
+}
+
+async function generateSchemaMetadata() {
+  const openapiPath = resolve("packages/contracts/openapi.json");
+  const openapi = JSON.parse(await readFile(openapiPath, "utf8"));
+  const metadata = extractSchemaMetadata(openapi);
+
+  await writeFile(
+    resolve("packages/client-ts/src/client/schema_metadata.ts"),
+    renderTypescriptSchemaMetadata(metadata),
+  );
+  await writeFile(
+    resolve("packages/client-py/api_client/schema_metadata.py"),
+    renderPythonSchemaMetadata(metadata),
+  );
+}
+
+function extractSchemaMetadata(openapi) {
+  const schemas = openapi.components?.schemas ?? {};
+  const schemaFields = {};
+
+  for (const [schemaName, schema] of Object.entries(schemas)) {
+    const fields = Object.fromEntries(
+      Object.entries(schema.properties ?? {})
+        .map(([propertyName, property]) => [
+          propertyName,
+          schemaFieldMetadata(property),
+        ])
+        .filter(([, metadata]) => Object.keys(metadata).length > 0),
+    );
+
+    if (Object.keys(fields).length > 0) {
+      schemaFields[schemaName] = fields;
+    }
+  }
+
+  return {
+    schemaFields: sortNestedObject(schemaFields),
+  };
+}
+
+function schemaFieldMetadata(property) {
+  return Object.fromEntries(
+    [
+      [
+        "title",
+        typeof property.title === "string" &&
+        typeof property.description === "string"
+          ? property.title
+          : undefined,
+      ],
+      [
+        "description",
+        typeof property.description === "string"
+          ? property.description
+          : undefined,
+      ],
+    ].filter(([, value]) => typeof value === "string"),
+  );
+}
+
+function sortNestedObject(value) {
+  if (!isPlainObject(value)) {
+    return value;
+  }
+
+  return Object.fromEntries(
+    Object.entries(value)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, entry]) => [key, sortNestedObject(entry)]),
+  );
+}
+
+function renderTypescriptSchemaMetadata(metadata) {
+  return `export interface SchemaFieldMetadata {
+  title?: string;
+  description?: string;
+}
+
+export type SchemaFields = Record<string, Record<string, SchemaFieldMetadata>>;
+
+export const schemaFields = ${JSON.stringify(metadata.schemaFields, null, 2)} as const satisfies SchemaFields;
+`;
+}
+
+function renderPythonSchemaMetadata(metadata) {
+  return `SCHEMA_FIELDS: dict[str, dict[str, dict[str, str]]] = ${JSON.stringify(metadata.schemaFields, null, 4)}
+`;
 }
 
 async function generatePythonUnionAliasModels() {

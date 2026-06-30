@@ -1,15 +1,20 @@
 from typing import cast
 
 from api_client.models import ContextConfigRead, ContextMode
+from api_client.schema_metadata import SCHEMA_FIELDS
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll
 from textual.widgets import Select
 
 from tui.screens.session_config.sections.context.state import ContextFormState
-from tui.widgets.forms import field
+from tui.widgets.forms.select_field import SelectField, SelectOption
 
 CONTEXT_MODE_OPTIONS = [
-    ("Full transcript", ContextMode.FULL),
+    SelectOption(
+        SCHEMA_FIELDS["ContextConfigCreate"]["mode"]["title"],
+        ContextMode.FULL,
+        SCHEMA_FIELDS["ContextConfigCreate"]["mode"]["description"],
+    ),
 ]
 
 
@@ -22,15 +27,13 @@ class ContextSection(VerticalScroll):
         self._read_only = read_only
 
     def compose(self) -> ComposeResult:
-        yield field(
+        yield SelectField(
             "Context mode",
-            Select(
-                CONTEXT_MODE_OPTIONS,
-                value=self._initial_state.mode,
-                allow_blank=False,
-                disabled=self._read_only,
-                id="context-mode",
-            ),
+            options=CONTEXT_MODE_OPTIONS,
+            value=self._initial_state.mode,
+            allow_blank=False,
+            disabled=self._read_only,
+            select_id="context-mode",
         )
 
     def form_state(self) -> ContextFormState:

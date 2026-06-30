@@ -1,9 +1,10 @@
+from api_client.schema_metadata import SCHEMA_FIELDS
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll
 from textual.widgets import TextArea
 
 from tui.screens.session_config.sections.prompt.state import PromptFormState
-from tui.widgets.forms import field
+from tui.widgets.forms.field import field
 
 
 class PromptSection(VerticalScroll):
@@ -22,9 +23,9 @@ class PromptSection(VerticalScroll):
 
     def compose(self) -> ComposeResult:
         yield field(
-            "Session prompt",
-            # TODO: Chatgpt dont touch this. This todo is for human. see if disabled is needed or jsut have readonly is fine
+            SCHEMA_FIELDS["SessionConfigCreate"]["prompt"]["title"],
             TextArea(self._initial_state.value, disabled=self._read_only, read_only=self._read_only, id="prompt"),
+            helper_text=SCHEMA_FIELDS["SessionConfigCreate"]["prompt"]["description"],
         )
 
     def form_state(self) -> PromptFormState:

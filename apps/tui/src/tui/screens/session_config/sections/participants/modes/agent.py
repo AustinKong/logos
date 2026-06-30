@@ -1,5 +1,6 @@
 from typing import cast
 
+from api_client.schema_metadata import SCHEMA_FIELDS
 from textual.app import ComposeResult
 from textual.containers import Container
 from textual.widgets import Input, Select, TextArea
@@ -7,7 +8,7 @@ from textual.widgets import Input, Select, TextArea
 from tui.screens.session_config.models import ModelOptionState
 from tui.screens.session_config.sections.participants.state import AgentParticipantFormState
 from tui.screens.session_config.sections.state import SelectValue
-from tui.widgets.forms import field
+from tui.widgets.forms.field import field
 
 
 class AgentParticipantFields(Container):
@@ -38,9 +39,13 @@ class AgentParticipantFields(Container):
         self._read_only = read_only
 
     def compose(self) -> ComposeResult:
-        yield field("Name", Input(self._initial_state.name, disabled=self._read_only, classes="participant-name"))
         yield field(
-            "Model",
+            SCHEMA_FIELDS["AgentParticipantCreate"]["name"]["title"],
+            Input(self._initial_state.name, disabled=self._read_only, classes="participant-name"),
+            helper_text=SCHEMA_FIELDS["AgentParticipantCreate"]["name"]["description"],
+        )
+        yield field(
+            SCHEMA_FIELDS["AgentParticipantCreate"]["model"]["title"],
             Select(
                 [(model.label, model.id) for model in self._model_options],
                 value=self._initial_state.model,
@@ -48,15 +53,17 @@ class AgentParticipantFields(Container):
                 disabled=self._read_only,
                 classes="agent-model",
             ),
+            helper_text=SCHEMA_FIELDS["AgentParticipantCreate"]["model"]["description"],
         )
         yield field(
-            "System prompt",
+            SCHEMA_FIELDS["AgentParticipantCreate"]["system_prompt"]["title"],
             TextArea(
                 self._initial_state.system_prompt,
                 disabled=self._read_only,
                 read_only=self._read_only,
                 classes="agent-system-prompt",
             ),
+            helper_text=SCHEMA_FIELDS["AgentParticipantCreate"]["system_prompt"]["description"],
         )
 
     def form_state(self) -> AgentParticipantFormState:

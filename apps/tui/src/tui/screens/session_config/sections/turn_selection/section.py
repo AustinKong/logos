@@ -1,15 +1,20 @@
 from typing import cast
 
 from api_client.models import TurnSelectionConfigRead, TurnSelectionMode
+from api_client.schema_metadata import SCHEMA_FIELDS
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll
 from textual.widgets import Select
 
 from tui.screens.session_config.sections.turn_selection.state import TurnSelectionFormState
-from tui.widgets.forms import field
+from tui.widgets.forms.select_field import SelectField, SelectOption
 
 TURN_SELECTION_MODE_OPTIONS = [
-    ("Round robin", TurnSelectionMode.ROUND_ROBIN),
+    SelectOption(
+        SCHEMA_FIELDS["TurnSelectionConfigCreate"]["mode"]["title"],
+        TurnSelectionMode.ROUND_ROBIN,
+        SCHEMA_FIELDS["TurnSelectionConfigCreate"]["mode"]["description"],
+    ),
 ]
 
 
@@ -22,14 +27,12 @@ class TurnSelectionSection(VerticalScroll):
         self._read_only = read_only
 
     def compose(self) -> ComposeResult:
-        yield field(
+        yield SelectField(
             "Mode",
-            Select(
-                TURN_SELECTION_MODE_OPTIONS,
-                value=self._initial_state.mode,
-                allow_blank=False,
-                disabled=self._read_only,
-            ),
+            options=TURN_SELECTION_MODE_OPTIONS,
+            value=self._initial_state.mode,
+            allow_blank=False,
+            disabled=self._read_only,
         )
 
     def form_state(self) -> TurnSelectionFormState:

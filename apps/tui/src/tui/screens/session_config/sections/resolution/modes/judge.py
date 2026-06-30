@@ -1,5 +1,6 @@
 from typing import cast
 
+from api_client.schema_metadata import SCHEMA_FIELDS
 from textual.app import ComposeResult
 from textual.containers import Container
 from textual.widgets import Input, Select
@@ -7,7 +8,7 @@ from textual.widgets import Input, Select
 from tui.screens.session_config.models import ModelOptionState
 from tui.screens.session_config.sections.resolution.state import JudgeResolutionFormState
 from tui.screens.session_config.sections.state import SelectValue
-from tui.widgets.forms import field
+from tui.widgets.forms.field import field
 
 
 class JudgeResolutionFields(Container):
@@ -35,7 +36,7 @@ class JudgeResolutionFields(Container):
 
     def compose(self) -> ComposeResult:
         yield field(
-            "Judge model",
+            SCHEMA_FIELDS["JudgeResolutionConfigCreate"]["judge_model"]["title"],
             Select(
                 [(model.label, model.id) for model in self._model_options],
                 value=self._initial_state.judge_model,
@@ -43,14 +44,16 @@ class JudgeResolutionFields(Container):
                 disabled=self._read_only,
                 id="judge-model",
             ),
+            helper_text=SCHEMA_FIELDS["JudgeResolutionConfigCreate"]["judge_model"]["description"],
         )
         yield field(
-            "Judge temperature",
+            SCHEMA_FIELDS["JudgeResolutionConfigCreate"]["judge_temperature"]["title"],
             Input(
                 self._initial_state.judge_temperature,
                 disabled=self._read_only,
                 id="judge-temperature",
             ),
+            helper_text=SCHEMA_FIELDS["JudgeResolutionConfigCreate"]["judge_temperature"]["description"],
         )
 
     def form_state(self) -> JudgeResolutionFormState:

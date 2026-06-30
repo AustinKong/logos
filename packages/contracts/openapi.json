@@ -393,23 +393,27 @@
           "type": {
             "type": "string",
             "const": "agent",
-            "title": "Type",
+            "title": "Agent",
+            "description": "AI participant that responds with the selected model and system prompt.",
             "default": "agent"
           },
           "name": {
             "type": "string",
             "minLength": 1,
-            "title": "Name"
+            "title": "Name",
+            "description": "Display name for this participant."
           },
           "model": {
             "type": "string",
             "minLength": 1,
-            "title": "Model"
+            "title": "Model",
+            "description": "AI model used to generate this participant's responses."
           },
           "system_prompt": {
             "type": "string",
             "minLength": 1,
-            "title": "System Prompt"
+            "title": "System prompt",
+            "description": "Instructions that shape how this participant behaves."
           }
         },
         "type": "object",
@@ -466,7 +470,9 @@
       "ContextConfigCreate": {
         "properties": {
           "mode": {
-            "$ref": "#/components/schemas/ContextMode"
+            "$ref": "#/components/schemas/ContextMode",
+            "title": "Full transcript",
+            "description": "Include the full session transcript when generating the next response."
           }
         },
         "type": "object",
@@ -476,7 +482,9 @@
       "ContextConfigRead": {
         "properties": {
           "mode": {
-            "$ref": "#/components/schemas/ContextMode"
+            "$ref": "#/components/schemas/ContextMode",
+            "title": "Full transcript",
+            "description": "Include the full session transcript when generating the next response."
           }
         },
         "type": "object",
@@ -554,17 +562,20 @@
           "mode": {
             "type": "string",
             "const": "judge_llm",
-            "title": "Mode",
+            "title": "Judge LLM",
+            "description": "Use an AI judge to select the final resolution.",
             "default": "judge_llm"
           },
           "judge_model": {
             "type": "string",
             "minLength": 1,
-            "title": "Judge Model"
+            "title": "Judge model",
+            "description": "Model used by the AI judge to choose the final resolution."
           },
           "judge_temperature": {
             "type": "number",
-            "title": "Judge Temperature"
+            "title": "Judge temperature",
+            "description": "Sampling temperature used by the AI judge."
           }
         },
         "type": "object",
@@ -576,17 +587,20 @@
           "mode": {
             "type": "string",
             "const": "judge_llm",
-            "title": "Mode",
+            "title": "Judge LLM",
+            "description": "Use an AI judge to select the final resolution.",
             "default": "judge_llm"
           },
           "judge_model": {
             "type": "string",
             "minLength": 1,
-            "title": "Judge Model"
+            "title": "Judge model",
+            "description": "Model used by the AI judge to choose the final resolution."
           },
           "judge_temperature": {
             "type": "number",
-            "title": "Judge Temperature"
+            "title": "Judge temperature",
+            "description": "Sampling temperature used by the AI judge."
           }
         },
         "type": "object",
@@ -695,7 +709,8 @@
           "mode": {
             "type": "string",
             "const": "none",
-            "title": "Mode",
+            "title": "No automatic resolution",
+            "description": "Do not select a final resolution automatically.",
             "default": "none"
           }
         },
@@ -707,7 +722,8 @@
           "mode": {
             "type": "string",
             "const": "none",
-            "title": "Mode",
+            "title": "No automatic resolution",
+            "description": "Do not select a final resolution automatically.",
             "default": "none"
           }
         },
@@ -955,7 +971,8 @@
           "prompt": {
             "type": "string",
             "minLength": 1,
-            "title": "Prompt"
+            "title": "Session prompt",
+            "description": "Prompt that defines the session topic and instructions for participants."
           },
           "participants": {
             "items": {
@@ -1159,7 +1176,9 @@
       "TurnSelectionConfigCreate": {
         "properties": {
           "mode": {
-            "$ref": "#/components/schemas/TurnSelectionMode"
+            "$ref": "#/components/schemas/TurnSelectionMode",
+            "title": "Round robin",
+            "description": "Give each participant a turn in sequence."
           }
         },
         "type": "object",
@@ -1169,7 +1188,9 @@
       "TurnSelectionConfigRead": {
         "properties": {
           "mode": {
-            "$ref": "#/components/schemas/TurnSelectionMode"
+            "$ref": "#/components/schemas/TurnSelectionMode",
+            "title": "Round robin",
+            "description": "Give each participant a turn in sequence."
           }
         },
         "type": "object",
@@ -1186,13 +1207,15 @@
           "type": {
             "type": "string",
             "const": "user",
-            "title": "Type",
+            "title": "User",
+            "description": "Human participant represented in the session.",
             "default": "user"
           },
           "name": {
             "type": "string",
             "minLength": 1,
-            "title": "Name"
+            "title": "Name",
+            "description": "Display name for this participant."
           }
         },
         "type": "object",
@@ -1234,7 +1257,9 @@
       "ValidationConfigCreate": {
         "properties": {
           "mode": {
-            "$ref": "#/components/schemas/ValidationMode"
+            "$ref": "#/components/schemas/ValidationMode",
+            "title": "Allow all",
+            "description": "Allow every participant response without automated validation."
           }
         },
         "type": "object",
@@ -1244,7 +1269,9 @@
       "ValidationConfigRead": {
         "properties": {
           "mode": {
-            "$ref": "#/components/schemas/ValidationMode"
+            "$ref": "#/components/schemas/ValidationMode",
+            "title": "Allow all",
+            "description": "Allow every participant response without automated validation."
           }
         },
         "type": "object",

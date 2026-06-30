@@ -1,4 +1,5 @@
 from api_client.models import ResolutionMode
+from api_client.schema_metadata import SCHEMA_FIELDS
 from textual.app import ComposeResult
 from textual.containers import Container, VerticalScroll
 from textual.widgets import ContentSwitcher, Select
@@ -12,11 +13,19 @@ from tui.screens.session_config.sections.resolution.state import (
 )
 from tui.screens.session_config.sections.state import state_or_default
 from tui.shared.textual import on
-from tui.widgets.forms import field
+from tui.widgets.forms.select_field import SelectField, SelectOption
 
 RESOLUTION_MODE_OPTIONS = [
-    ("Judge LLM", ResolutionMode.JUDGE_LLM),
-    ("No automatic resolution", ResolutionMode.NONE),
+    SelectOption(
+        SCHEMA_FIELDS["JudgeResolutionConfigCreate"]["mode"]["title"],
+        ResolutionMode.JUDGE_LLM,
+        SCHEMA_FIELDS["JudgeResolutionConfigCreate"]["mode"]["description"],
+    ),
+    SelectOption(
+        SCHEMA_FIELDS["NoneResolutionConfigCreate"]["mode"]["title"],
+        ResolutionMode.NONE,
+        SCHEMA_FIELDS["NoneResolutionConfigCreate"]["mode"]["description"],
+    ),
 ]
 RESOLUTION_MODE_CONTENT_IDS = {
     ResolutionMode.JUDGE_LLM: "judge-resolution-fields",
@@ -47,15 +56,13 @@ class ResolutionSection(VerticalScroll):
         self._read_only = read_only
 
     def compose(self) -> ComposeResult:
-        yield field(
+        yield SelectField(
             "Resolution mode",
-            Select(
-                RESOLUTION_MODE_OPTIONS,
-                value=self._initial_state.mode,
-                allow_blank=False,
-                disabled=self._read_only,
-                id="resolution-mode",
-            ),
+            options=RESOLUTION_MODE_OPTIONS,
+            value=self._initial_state.mode,
+            allow_blank=False,
+            disabled=self._read_only,
+            select_id="resolution-mode",
         )
         yield ContentSwitcher(
             Container(id=RESOLUTION_MODE_CONTENT_IDS[ResolutionMode.NONE]),

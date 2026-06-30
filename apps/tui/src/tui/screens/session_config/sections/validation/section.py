@@ -1,15 +1,20 @@
 from typing import cast
 
 from api_client.models import ValidationConfigRead, ValidationMode
+from api_client.schema_metadata import SCHEMA_FIELDS
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll
 from textual.widgets import Select
 
 from tui.screens.session_config.sections.validation.state import ValidationFormState
-from tui.widgets.forms import field
+from tui.widgets.forms.select_field import SelectField, SelectOption
 
 VALIDATION_MODE_OPTIONS = [
-    ("Allow all", ValidationMode.ALLOW_ALL),
+    SelectOption(
+        SCHEMA_FIELDS["ValidationConfigCreate"]["mode"]["title"],
+        ValidationMode.ALLOW_ALL,
+        SCHEMA_FIELDS["ValidationConfigCreate"]["mode"]["description"],
+    ),
 ]
 
 
@@ -22,14 +27,12 @@ class ValidationSection(VerticalScroll):
         self._read_only = read_only
 
     def compose(self) -> ComposeResult:
-        yield field(
+        yield SelectField(
             "Validation mode",
-            Select(
-                VALIDATION_MODE_OPTIONS,
-                value=self._initial_state.mode,
-                allow_blank=False,
-                disabled=self._read_only,
-            ),
+            options=VALIDATION_MODE_OPTIONS,
+            value=self._initial_state.mode,
+            allow_blank=False,
+            disabled=self._read_only,
         )
 
     def form_state(self) -> ValidationFormState:
