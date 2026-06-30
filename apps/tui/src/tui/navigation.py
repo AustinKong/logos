@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import StrEnum
 from uuid import UUID
@@ -5,8 +6,6 @@ from uuid import UUID
 from api_client import Client
 from textual.app import App
 from textual.message import Message
-
-from tui.screens.session_config.screen import SessionConfigMode
 
 
 class Route(StrEnum):
@@ -16,13 +15,14 @@ class Route(StrEnum):
 
 
 @dataclass(frozen=True, slots=True)
-class SessionChatParams:
-    session_id: UUID
+class SessionConfigParams:
+    session_id: UUID | None = None
+    on_close: Callable[[], object] | None = None
 
 
 @dataclass(frozen=True, slots=True)
-class SessionConfigParams:
-    mode: SessionConfigMode
+class SessionChatParams:
+    session_id: UUID
 
 
 class Navigate(Message):
@@ -56,11 +56,19 @@ class Navigator:
         self._app.push_screen(screen)
 
     def _push_session_config(self, params: SessionConfigParams) -> None:
-        from tui.screens.session_config.screen import SessionConfigScreen
+        from tui.screens.session_config.controllers import SessionConfigController
+        from tui.screens.session_config.screen import SessionConfigModal
 
-        screen = SessionConfigScreen(mode=params.mode)
+        session_config_controller = SessionConfigController(client=self._client)
+        screen = SessionConfigModal(
+            controller=session_config_controller,
+            session_id=params.session_id,
+        )
 
-        self._app.push_screen(screen)
+        self._app.push_screen(
+            screen,
+            None if params.on_close is None else lambda _: params.on_close(),
+        )
 
     def _push_session_chat(self, params: SessionChatParams) -> None:
         from tui.screens.session_chat.loaders import SessionChatLoader

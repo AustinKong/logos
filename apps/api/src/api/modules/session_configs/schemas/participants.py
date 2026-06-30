@@ -16,6 +16,7 @@ class AgentParticipantCreate(BaseModel):
 
 class UserParticipantCreate(BaseModel):
     type: Literal[ParticipantType.USER] = ParticipantType.USER
+    name: str = Field(min_length=1)
 
 
 type ParticipantCreate = Annotated[
@@ -37,6 +38,7 @@ class AgentParticipantRead(BaseModel):
 class UserParticipantRead(BaseModel):
     id: UUID
     type: Literal[ParticipantType.USER] = ParticipantType.USER
+    name: str
     created_at: datetime
     updated_at: datetime
 

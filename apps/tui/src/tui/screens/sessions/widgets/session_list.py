@@ -1,4 +1,5 @@
 from api_client.models.session_summary_read import SessionSummaryRead
+from textual.binding import Binding
 from textual.reactive import reactive
 from textual.widgets import DataTable
 from tui.shared.text import truncate
@@ -14,6 +15,10 @@ COLUMNS = [
 
 class SessionList(DataTable[str]):
     sessions = reactive[list[SessionSummaryRead]](list)
+
+    BINDINGS = [
+        Binding("enter", "select_cursor", "Open Session", key_display="Enter", show=True),
+    ]
 
     DEFAULT_CSS = """
     SessionList {

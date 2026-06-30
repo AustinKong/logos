@@ -26,7 +26,7 @@ def participant_data_from_create(participant: ParticipantCreate) -> ParticipantD
                 system_prompt=participant.system_prompt,
             )
         case UserParticipantCreate():
-            return UserParticipantData()
+            return UserParticipantData(name=participant.name)
 
     raise UnsupportedParticipantCreateError()
 
@@ -45,6 +45,7 @@ def participant_read_from_participant(participant: Participant) -> ParticipantRe
         case UserParticipant():
             return UserParticipantRead(
                 id=participant.id,
+                name=participant.name,
                 created_at=participant.created_at,
                 updated_at=participant.updated_at,
             )

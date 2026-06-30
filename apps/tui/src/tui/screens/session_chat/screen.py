@@ -5,32 +5,26 @@ from api_client.models import (
     SessionCompletedEventRead,
     SessionRead,
 )
+from textual import work
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
-from textual.geometry import Spacing
-from textual.widgets import Input, Static
+from textual.reactive import reactive
+from textual.widgets import Static
 
-from tui.screens.base import BaseScreen
 from tui.screens.session_chat.loaders import SessionChatLoader
+from tui.screens.session_chat.widgets.chat_input import ChatInput
 from tui.screens.session_chat.widgets.event_log import EventLog
-
-
-# TODO: Make its own widget in widgets/
-class ChatPromptInput(Input):
-    DEFAULT_CSS = """
-    ChatPromptInput {
-        width: 1fr;
-        border: none;
-        background: transparent;
-    }
-    """
-
-    def on_mount(self) -> None:
-        self.styles.height = "1fr"
-        self.styles.padding = Spacing(0, 0, 0, 0)
+from tui.widgets.screens.base_screen import BaseScreen
 
 
 class SessionChatScreen(BaseScreen):
+    chat_input_shown = reactive(False)
+
+    BINDINGS = [
+        Binding("escape", "app.pop_screen", "Back", key_display="Esc"),
+    ]
+
     DEFAULT_CSS = """
     #session {
         height: 1fr;
@@ -70,20 +64,19 @@ class SessionChatScreen(BaseScreen):
             EventLog(),
             Horizontal(
                 Static(" → ", id="prompt-prefix"),
-                ChatPromptInput(placeholder="Start a session...", id="prompt-input"),
+                ChatInput(placeholder="Start a session...", id="prompt-input").data_bind(
+                    shown=SessionChatScreen.chat_input_shown
+                ),
                 id="composer",
             ),
             id="session",
         )
 
     def on_mount(self) -> None:
-        self.run_worker(self.load_session(), group="session-load", exclusive=True)
+        self.load_session()
 
+    @work(group="session-load", exclusive=True)
     async def load_session(self) -> None:
-        prompt_input = self.query_one("#prompt-input", ChatPromptInput)
-        prompt_input.disabled = True
-        prompt_input.placeholder = "Session loaded"
-
         log = self.query_one(EventLog)
         try:
             self._session = await self._loader.get_session(session_id=self._session_id)
@@ -99,15 +92,12 @@ class SessionChatScreen(BaseScreen):
                     completed = True
 
             if not completed:
-                self.run_worker(
-                    self.stream_events(after_event_id=latest_event_id),
-                    group="session-event-stream",
-                    exclusive=True,
-                )
+                self.chat_input_shown = True
+                self.stream_events(after_event_id=latest_event_id)
         except Exception as exc:
-            # TODO: Make errors use self.notify instead of appending to logs
-            await log.handle_event(exc)
+            self.notify(str(exc), title="Failed to load session", severity="error")
 
+    @work(group="session-event-stream", exclusive=True)
     async def stream_events(self, *, after_event_id: UUID | None) -> None:
         log = self.query_one(EventLog)
 
@@ -126,9 +116,10 @@ class SessionChatScreen(BaseScreen):
                     )
 
                 if isinstance(event, SessionCompletedEventRead):
+                    self.chat_input_shown = False
                     return
         except Exception as exc:
-            await log.handle_event(exc)
+            self.notify(str(exc), title="Session event stream failed", severity="error")
 
     async def stream_tokens(self, *, stream_id: UUID) -> None:
         log = self.query_one(EventLog)
@@ -140,4 +131,4 @@ class SessionChatScreen(BaseScreen):
             async for token in self._loader.stream_tokens(session_id=self._session.id, stream_id=stream_id):
                 log.handle_token(token)
         except Exception as exc:
-            await log.handle_event(exc)
+            self.notify(str(exc), title="Token stream failed", severity="error")

@@ -116,8 +116,7 @@ class SessionConfigService:
                         UserParticipant(
                             config_id=config.id,
                             type=ParticipantType.USER,
-                            # TODO: TBD if we want to allow users to config themselves
-                            name="User",
+                            name=participant.name,
                         )
                     )
 

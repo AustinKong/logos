@@ -5,7 +5,6 @@ from api_client.models.event_read import EventRead
 from api_client.models.message_completed_event_read import MessageCompletedEventRead
 from api_client.models.message_started_event_read import MessageStartedEventRead
 from textual.containers import VerticalScroll
-from textual.widgets import Static
 
 from tui.screens.session_chat.widgets.streamable.base import StreamableWidget
 from tui.screens.session_chat.widgets.streamable.message import Message
@@ -28,22 +27,16 @@ class EventLog(VerticalScroll):
         super().__init__()
         self._streamable_widgets: dict[UUID, StreamableWidget] = {}
 
-    async def handle_event(self, event: EventRead | Exception) -> None:
+    async def handle_event(self, event: EventRead) -> None:
         match event:
             case MessageStartedEventRead():
-                message = Message(
-                    sender_id=event.sender.id,
-                    sender_name=event.sender.name,
-                    timestamp=event.created_at,
-                )
+                message = Message(event=event)
                 self._streamable_widgets[event.message_id] = message
                 await self.mount(message)
             case MessageCompletedEventRead():
                 widget = self._streamable_widgets.get(event.message_id)
                 if widget:
                     widget.set_content(event.content)
-            case Exception():  # TODO: Consider whether we want exceptions to be shown inline
-                await self.mount(Static(f"Error: {event}"))
             case _:
                 pass
 

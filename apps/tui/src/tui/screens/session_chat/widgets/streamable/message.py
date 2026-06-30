@@ -1,6 +1,4 @@
-from datetime import datetime
-from uuid import UUID
-
+from api_client.models.message_started_event_read import MessageStartedEventRead
 from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual.widgets import Static
@@ -34,26 +32,24 @@ class Message(Vertical):
     }
     """
 
-    # TODO: TBD if it should take MessageStartEventRead for simplicity and to match expectations of other components
-    def __init__(self, *, content: str = "", sender_id: UUID, sender_name: str, timestamp: datetime) -> None:
+    def __init__(self, *, event: MessageStartedEventRead, content: str = "") -> None:
         super().__init__(classes="message")
         self._content = content
-        self._sender_id = sender_id
-        self._sender_name = sender_name
-        self._timestamp = timestamp
+        self._event = event
 
         self._content_widget: Static | None = None
 
     def compose(self) -> ComposeResult:
-        sender = Static(self._sender_name, classes="message-sender")
+        sender = Static(self._event.sender.name, classes="message-sender")
         accent = self.app.theme_variables["accent"]
-        sender.styles.color = color_from_id(self._sender_id, accent)
+        sender.styles.color = color_from_id(self._event.sender.id, accent)
         yield sender
 
         self._content_widget = Static(self._content, classes="message-content")
         yield self._content_widget
 
-        yield Static(self._timestamp.strftime("%H:%M"), classes="message-time")
+        # TODO: Make this strftime a helper fn
+        yield Static(self._event.created_at.strftime("%H:%M"), classes="message-time")
 
     def append_content(self, content: str) -> None:
         self.set_content(self._content + content)

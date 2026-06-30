@@ -1,14 +1,16 @@
 from api_client import Client
 from textual.app import App
+from textual.binding import Binding
 
 from tui.navigation import Navigate, Navigator, Route
 from tui.settings import Settings, get_settings
+from tui.shared.textual import on
 
 
 class TuiApp(App[None]):
     TITLE = "Logos"
     SUB_TITLE = "Terminal workspace"
-    BINDINGS = [("q", "quit", "Quit")]
+    BINDINGS = [Binding("ctrl+q", "quit", "Quit", key_display="Ctrl+Q")]
     CSS_PATH = "app.tcss"
 
     def __init__(self, *, settings: Settings | None = None) -> None:
@@ -21,8 +23,8 @@ class TuiApp(App[None]):
         await self._api_client.__aenter__()
         self._navigator.navigate(Route.SESSIONS)
 
-    def on_navigate(self, message: Navigate) -> None:
-        message.stop()
+    @on(Navigate)
+    def handle_navigate(self, message: Navigate) -> None:
         self._navigator.navigate(message.route, message.params)
 
     async def on_unmount(self) -> None:

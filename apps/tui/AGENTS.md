@@ -6,6 +6,8 @@ These instructions apply to `apps/tui/`.
 
 The TUI is a Textual client for the Logos API. The FastAPI app remains the source of truth for API behavior and schemas; the TUI consumes the generated Python client from `packages/client-py/`.
 
+The TUI is deliberately kept extremely simple because it is not the main interaction surface. Avoid adding rich validation, advanced affordances, or feature-heavy flows to the TUI by default. If future work starts expanding TUI complexity, remind the user of this product decision and ask whether the architecture should still prioritize TUI.
+
 ## Layout
 
 Use the Python `src` layout:
@@ -80,6 +82,26 @@ Widgets should stay presentational when practical. They should receive plain dat
 Prefer widget-scoped `DEFAULT_CSS` for Textual styling. If a screen's CSS becomes very large, move it into a colocated `styles.tcss` file for that screen.
 
 Keep API response validation and generated-model adaptation inside loaders/controllers. Screens should receive generated models directly when they are already ergonomic for rendering and state management; otherwise loaders/controllers may adapt responses into TUI-owned models from `models.py`.
+
+When a focused widget has a built-in binding for a key, that widget binding can hide or override a screen-level binding in the Footer. For widgets like `DataTable`, prefer handling the widget event such as `RowSelected` in the screen, and override the widget binding label only when the Footer needs to show app-specific wording.
+
+Use `can_focus` deliberately. Container widgets that exist only for layout should usually set `can_focus = False` so keyboard focus lands on meaningful controls, while interactive widgets and panes that need direct keyboard handling should remain focusable.
+
+For screen-owned form or wizard state, prefer a single authoritative state reactive on the screen, such as `form_state`. When child widgets need to update that state, define a screen-local message subclass of `tui.shared.state.StateChanged[StateType]`, and apply its pure update callable in one screen handler such as `handle_form_state_changed`. This keeps updates race-resistant and avoids drilling the current full state through multiple widget layers. Update callables must be small, pure, and side-effect free.
+
+Prefer uncontrolled input widgets for TUI forms. Pass initial values when the section/widget is mounted, let the Textual input own its live value while focused, and post update messages as values change. Do not globally recompose on ordinary input changes. If a parent state change significantly changes the form shape, such as switching a strategy mode that changes which fields exist, the screen or owning section should explicitly remount only that affected area.
+
+Prefer explicit constructor props over ad hoc context helpers. Pass initial section state and read-only dependencies such as option lists through constructors, and post messages upward for mutations. Avoid child widgets mutating screen state directly; let the screen handler apply update messages so state changes stay centralized, typed, and observable.
+
+Do not defensively catch `NoMatches` around `query_one(...)` for children that the same screen or widget always composes. If a required child is missing, let the error surface because that indicates a broken composition invariant. Only handle missing widgets when absence is a real, expected state.
+
+Prefer `tui.shared.textual.on` over importing Textual's `on` decorator directly. The TUI wrapper stops message bubbling by default with `stop=True`; pass `stop=False` only when a handler intentionally lets the message continue upward. Decorated message handlers should use descriptive `handle_*` names, such as `handle_judge_model_changed`, instead of Textual's implicit `on_xxx` method names. Keep `on_mount`, `on_unmount`, and other lifecycle hooks as `on_xxx` methods.
+
+When a decorated handler targets a specific widget among multiple controls, use a clear widget ID without incidental prefixes, for example `id="judge-model"` with `@on(Select.Changed, "#judge-model")`. Do not use placeholder prefixes such as `alt-`.
+
+Prefer Textual's `@work(...)` decorator for workers instead of calling `run_worker(...)` directly. Call the decorated method from event handlers or lifecycle hooks. Use direct `run_worker(...)` only when worker options must be computed dynamically, such as a group name derived from a runtime id. Worker methods do not need a private underscore prefix just because they are implementation details; prefer readable public-style names for decorated workers.
+
+Organize Textual screen and widget classes in this order: `DEFAULT_CSS`, `BORDER_TITLE`, `BINDINGS`, `can_focus`, reactive state declarations, `__init__`, `compose` or `compose_content`, `on_mount`, event handlers such as decorated `handle_*` methods, `check_action`, action handlers such as `action_xxx`, workers decorated with `@work`, then other private helper methods.
 
 ## Settings
 

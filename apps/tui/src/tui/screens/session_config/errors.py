@@ -1,0 +1,2 @@
+class SessionConfigValidationError(ValueError):
+    pass

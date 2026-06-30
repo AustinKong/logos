@@ -1,0 +1,62 @@
+from typing import cast
+
+from textual.app import ComposeResult
+from textual.containers import Container
+from textual.widgets import Input, Select
+
+from tui.screens.session_config.models import ModelOptionState
+from tui.screens.session_config.sections.resolution.state import JudgeResolutionFormState
+from tui.screens.session_config.sections.state import SelectValue
+from tui.widgets.forms import field
+
+
+class JudgeResolutionFields(Container):
+    DEFAULT_CSS = """
+    JudgeResolutionFields {
+        height: auto;
+        width: 100%;
+    }
+    """
+
+    can_focus = False
+
+    def __init__(
+        self,
+        *,
+        initial_state: JudgeResolutionFormState,
+        model_options: list[ModelOptionState],
+        read_only: bool = False,
+        id: str | None = None,
+    ) -> None:
+        super().__init__(id=id)
+        self._initial_state = initial_state
+        self._model_options = model_options
+        self._read_only = read_only
+
+    def compose(self) -> ComposeResult:
+        yield field(
+            "Judge model",
+            Select(
+                [(model.label, model.id) for model in self._model_options],
+                value=self._initial_state.judge_model,
+                allow_blank=True,
+                disabled=self._read_only,
+                id="judge-model",
+            ),
+        )
+        yield field(
+            "Judge temperature",
+            Input(
+                self._initial_state.judge_temperature,
+                disabled=self._read_only,
+                id="judge-temperature",
+            ),
+        )
+
+    def form_state(self) -> JudgeResolutionFormState:
+        model_select = self.query_one("#judge-model", Select)
+        judge_temperature = self.query_one("#judge-temperature", Input).value
+        return JudgeResolutionFormState(
+            judge_model=cast(SelectValue, model_select.value),
+            judge_temperature=judge_temperature,
+        )

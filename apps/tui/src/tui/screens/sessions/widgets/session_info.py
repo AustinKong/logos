@@ -30,24 +30,6 @@ class SessionInfo(Vertical):
         width: 100%;
     }
 
-    SessionInfo .session-info-label {
-        text-style: bold;
-        color: $text-secondary;
-        # TODO: Have some sort of global style override on label/sublabel (if it exists?) instead of constantly redefining text-style, color etc. styles 
-    }
-
-    SessionInfo .session-info-section-label {
-        height: auto;
-        width: 100%;
-        margin: 1 0 0 0;
-        text-style: bold;
-        color: $primary;
-    }
-
-    SessionInfo .session-info-section-label.first {
-        margin-top: 0;
-    }
-
     SessionInfo .session-info-text {
         height: auto;
         width: 100%;
@@ -60,25 +42,25 @@ class SessionInfo(Vertical):
     """
 
     def compose(self) -> ComposeResult:
-        yield Label("Overview", classes="session-info-section-label first")
+        yield Label("Overview", classes="section-label first")
         yield Grid(
-            Label("ID", classes="session-info-label"),
+            Label("ID", classes="label"),
             Static("No session selected", id="session-info-id"),
-            Label("Created", classes="session-info-label"),
+            Label("Created", classes="label"),
             Static("-", id="session-info-created"),
-            Label("Modified", classes="session-info-label"),
+            Label("Modified", classes="label"),
             Static("-", id="session-info-updated"),
-            Label("Status", classes="session-info-label"),
+            Label("Status", classes="label"),
             Static("-", id="session-info-status"),
             classes="session-info-grid",
         )
-        yield Label("Prompt", classes="session-info-section-label")
+        yield Label("Prompt", classes="section-label")
         yield Static(
             "Select a session to inspect its prompt and participants.",
             id="session-info-prompt",
             classes="session-info-text",
         )
-        yield Label("Participants", classes="session-info-section-label")
+        yield Label("Participants", classes="section-label")
         yield Static("-", id="session-info-participants", classes="session-info-list")
 
     def watch_session(self, session: SessionSummaryRead | None) -> None:

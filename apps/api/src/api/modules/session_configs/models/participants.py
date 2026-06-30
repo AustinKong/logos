@@ -28,6 +28,7 @@ class AgentParticipantData:
 
 @dataclass(frozen=True, slots=True)
 class UserParticipantData:
+    name: str
     type: ParticipantType = ParticipantType.USER
 
 
