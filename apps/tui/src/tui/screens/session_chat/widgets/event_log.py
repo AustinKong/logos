@@ -6,8 +6,8 @@ from api_client.models.message_completed_event_read import MessageCompletedEvent
 from api_client.models.message_started_event_read import MessageStartedEventRead
 from textual.containers import VerticalScroll
 
-from tui.screens.session_chat.widgets.streamable.base import StreamableWidget
-from tui.screens.session_chat.widgets.streamable.message import Message
+from tui.screens.session_chat.streamables.base import StreamableWidget
+from tui.screens.session_chat.streamables.message import Message
 
 
 class EventLog(VerticalScroll):
