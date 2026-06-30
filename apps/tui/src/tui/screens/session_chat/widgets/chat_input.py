@@ -4,8 +4,6 @@ from textual.widgets import Input
 
 
 class ChatInput(Input):
-    shown = reactive(False)
-
     DEFAULT_CSS = """
     ChatInput {
         width: 1fr;
@@ -13,6 +11,8 @@ class ChatInput(Input):
         background: transparent;
     }
     """
+
+    shown = reactive(False)
 
     def on_mount(self) -> None:
         # TODO: What

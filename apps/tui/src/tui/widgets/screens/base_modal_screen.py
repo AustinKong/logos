@@ -6,10 +6,6 @@ from textual.widgets import Footer, LoadingIndicator
 
 
 class BaseModalScreen[ResultT](ModalScreen[ResultT]):
-    DEFAULT_CLASSES = "base-modal-screen"
-
-    SCOPED_CSS = False
-
     DEFAULT_CSS = """
     .base-modal-screen {
         align: center middle;
@@ -31,6 +27,9 @@ class BaseModalScreen[ResultT](ModalScreen[ResultT]):
         padding: 0 1;
     }
     """
+
+    DEFAULT_CLASSES = "base-modal-screen"
+    SCOPED_CSS = False
 
     modal_title = ""
     content_loading = reactive(False, recompose=True)

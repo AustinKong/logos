@@ -30,6 +30,13 @@ class ParticipantsTable(DataTable[str]):
         self._initial_state = initial_state
         self._read_only = read_only
 
+    def on_mount(self) -> None:
+        self.cursor_type = "row"
+        self.add_column("Name", key="name")
+
+        for participant in self._initial_state.participants:
+            self.add_participant(participant.key, participant.name)
+
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if action == "remove_participant" and self.row_count <= 1:
             return False
@@ -45,13 +52,6 @@ class ParticipantsTable(DataTable[str]):
     def action_remove_participant(self) -> None:
         if not self._read_only and self.row_count > 1:
             self.post_message(RemoveParticipant())
-
-    def on_mount(self) -> None:
-        self.cursor_type = "row"
-        self.add_column("Name", key="name")
-
-        for participant in self._initial_state.participants:
-            self.add_participant(participant.key, participant.name)
 
     def add_participant(self, participant_key: str, name: str) -> None:
         self.add_row(name, key=participant_key)

@@ -14,17 +14,17 @@ COLUMNS = [
 
 
 class SessionList(DataTable[str]):
-    sessions = reactive[list[SessionSummaryRead]](list)
-
-    BINDINGS = [
-        Binding("enter", "select_cursor", "Open Session", key_display="Enter", show=True),
-    ]
-
     DEFAULT_CSS = """
     SessionList {
         height: 100%;
     }
     """
+
+    BINDINGS = [
+        Binding("enter", "select_cursor", "Open Session", key_display="Enter", show=True),
+    ]
+
+    sessions = reactive[list[SessionSummaryRead]](list)
 
     def on_mount(self) -> None:
         self.cursor_type = "row"

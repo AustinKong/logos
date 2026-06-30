@@ -8,15 +8,6 @@ from tui.shared.time import format_datetime
 
 
 class SessionInfo(Vertical):
-    session = reactive[SessionSummaryRead | None](None)
-
-    session_id = getters.query_one("#session-info-id", Static)
-    session_created = getters.query_one("#session-info-created", Static)
-    session_updated = getters.query_one("#session-info-updated", Static)
-    session_status = getters.query_one("#session-info-status", Static)
-    session_prompt = getters.query_one("#session-info-prompt", Static)
-    session_participants = getters.query_one("#session-info-participants", Static)
-
     DEFAULT_CSS = """
     SessionInfo {
         height: 100%;
@@ -40,6 +31,15 @@ class SessionInfo(Vertical):
         width: 100%;
     }
     """
+
+    session = reactive[SessionSummaryRead | None](None)
+
+    session_id = getters.query_one("#session-info-id", Static)
+    session_created = getters.query_one("#session-info-created", Static)
+    session_updated = getters.query_one("#session-info-updated", Static)
+    session_status = getters.query_one("#session-info-status", Static)
+    session_prompt = getters.query_one("#session-info-prompt", Static)
+    session_participants = getters.query_one("#session-info-participants", Static)
 
     def compose(self) -> ComposeResult:
         yield Label("Overview", classes="section-label first")

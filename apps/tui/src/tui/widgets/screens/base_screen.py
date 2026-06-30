@@ -8,8 +8,6 @@ from tui.widgets.header import Header
 
 
 class BaseScreen(Screen[None]):
-    content_loading = reactive(False, recompose=True)
-
     DEFAULT_CSS = """
     BaseScreen {
         padding: 1;
@@ -20,6 +18,8 @@ class BaseScreen(Screen[None]):
         width: 100%;
     }
     """
+
+    content_loading = reactive(False, recompose=True)
 
     def compose(self) -> ComposeResult:
         yield Header(version="0.0.1")

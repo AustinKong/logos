@@ -19,12 +19,6 @@ from tui.widgets.screens.base_screen import BaseScreen
 
 
 class SessionChatScreen(BaseScreen):
-    chat_input_shown = reactive(False)
-
-    BINDINGS = [
-        Binding("escape", "app.pop_screen", "Back", key_display="Esc"),
-    ]
-
     DEFAULT_CSS = """
     #session {
         height: 1fr;
@@ -47,6 +41,12 @@ class SessionChatScreen(BaseScreen):
     }
 
     """
+
+    BINDINGS = [
+        Binding("escape", "app.pop_screen", "Back", key_display="Esc"),
+    ]
+
+    chat_input_shown = reactive(False)
 
     def __init__(
         self,

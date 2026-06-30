@@ -23,9 +23,9 @@ class TuiApp(App[None]):
         await self._api_client.__aenter__()
         self._navigator.navigate(Route.SESSIONS)
 
+    async def on_unmount(self) -> None:
+        await self._api_client.__aexit__(None, None, None)
+
     @on(Navigate)
     def handle_navigate(self, message: Navigate) -> None:
         self._navigator.navigate(message.route, message.params)
-
-    async def on_unmount(self) -> None:
-        await self._api_client.__aexit__(None, None, None)
