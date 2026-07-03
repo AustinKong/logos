@@ -14,6 +14,11 @@ def list_ai_models(
     service: Annotated[AIService, Depends(get_ai_service)],
 ) -> list[AIModelRead]:
     return [
-        AIModelRead(id=model.id, label=model.label, provider=model.provider)
+        AIModelRead(
+            id=model.id,
+            label=model.label,
+            provider=model.provider,
+            supports_reasoning=model.supports_reasoning,
+        )
         for model in service.list_available_models()
     ]

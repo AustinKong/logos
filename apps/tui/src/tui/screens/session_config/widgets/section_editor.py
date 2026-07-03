@@ -1,8 +1,9 @@
+from api_client.models import AIModelRead
 from textual.app import ComposeResult
 from textual.containers import Container
 from textual.widgets import TabbedContent, TabPane
 
-from tui.screens.session_config.models import ConfigSection, ModelOptionState, SessionConfigFormState
+from tui.screens.session_config.models import ConfigSection, SessionConfigFormState
 from tui.screens.session_config.sections.history.section import HistorySection
 from tui.screens.session_config.sections.participants.section import ParticipantsSection
 from tui.screens.session_config.sections.prompt.section import PromptSection
@@ -47,12 +48,12 @@ class SectionEditor(Container):
         self,
         *,
         form_state: SessionConfigFormState,
-        model_options: list[ModelOptionState],
+        models: list[AIModelRead],
         read_only: bool = False,
     ) -> None:
         super().__init__(id="session-config")
         self._form_state = form_state
-        self._model_options = model_options
+        self._models = models
         self._read_only = read_only
 
     def compose(self) -> ComposeResult:
@@ -81,7 +82,7 @@ class SectionEditor(Container):
                 "Resolution",
                 ResolutionSection(
                     initial_state=self._form_state.resolution,
-                    model_options=self._model_options,
+                    models=self._models,
                     read_only=self._read_only,
                 ),
                 id=SECTION_TAB_IDS[ConfigSection.RESOLUTION],
@@ -90,7 +91,7 @@ class SectionEditor(Container):
                 "Participants",
                 ParticipantsSection(
                     initial_state=self._form_state.participants,
-                    model_options=self._model_options,
+                    models=self._models,
                     read_only=self._read_only,
                 ),
                 id=SECTION_TAB_IDS[ConfigSection.PARTICIPANTS],

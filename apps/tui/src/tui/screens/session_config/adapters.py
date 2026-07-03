@@ -1,14 +1,6 @@
-from api_client.models import (
-    AgentParticipantRead,
-    AIModelRead,
-    JudgeResolutionConfigRead,
-    SessionConfigCreate,
-    SessionConfigRead,
-    SessionCreate,
-    SessionRead,
-)
+from api_client.models import SessionConfigCreate, SessionConfigRead, SessionCreate, SessionRead
 
-from tui.screens.session_config.models import ModelOptionState, SessionConfigFormState
+from tui.screens.session_config.models import SessionConfigFormState
 from tui.screens.session_config.sections.history.adapters import (
     history_create_from_form_state,
     history_form_state_from_read,
@@ -48,20 +40,6 @@ def form_state_from_config_read(config: SessionConfigRead) -> SessionConfigFormS
 
 def form_state_from_session_read(session: SessionRead) -> SessionConfigFormState:
     return form_state_from_config_read(session.config)
-
-
-def model_options_from_ai_models(models: list[AIModelRead]) -> list[ModelOptionState]:
-    return [ModelOptionState(id=model.id, label=model.label) for model in models]
-
-
-def model_options_from_config_read(config: SessionConfigRead) -> list[ModelOptionState]:
-    model_ids = {
-        participant.model for participant in config.participants if isinstance(participant, AgentParticipantRead)
-    }
-    if isinstance(config.resolution, JudgeResolutionConfigRead):
-        model_ids.add(config.resolution.judge_model)
-
-    return [ModelOptionState(id=model_id, label=model_id) for model_id in sorted(model_ids)]
 
 
 def session_create_from_form_state(form_state: SessionConfigFormState) -> SessionCreate:

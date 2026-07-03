@@ -10,10 +10,12 @@ from api.modules.ai.models import (
     AIMessage,
     AIMessageDelta,
     AIMessageResponseAction,
+    AIProviderName,
     AIReasoningDelta,
     AIResponse,
     AIResponseEvent,
     GenerationOptions,
+    ReasoningEffort,
 )
 from api.modules.ai.providers.base import GeneratedObject
 
@@ -95,16 +97,30 @@ class LiteLLMProvider:
 def _completion_kwargs(*, api_key: str, messages: Sequence[AIMessage], options: GenerationOptions) -> dict[str, Any]:
     litellm_messages = [{"role": message.role.value, "content": message.content} for message in messages]
     kwargs: dict[str, Any] = {
-        "model": options.model,
+        "model": _litellm_model_for_options(options),
         "messages": litellm_messages,
         "api_key": api_key,
-        "reasoning_effort": options.reasoning_effort.value,
     }
+    # Models that do not support reasoning can reject even `reasoning_effort="none"` (from LiteLLM.)
+    if options.reasoning_effort is not ReasoningEffort.NONE:
+        kwargs["reasoning_effort"] = {"effort": options.reasoning_effort.value, "summary": "detailed"}
     if options.temperature is not None:
         kwargs["temperature"] = options.temperature
     if options.max_tokens is not None:
         kwargs["max_tokens"] = options.max_tokens
     return kwargs
+
+
+def _litellm_model_for_options(options: GenerationOptions) -> str:
+    provider, _, model = options.model.partition("/")
+    if provider == AIProviderName.OPENAI.value and model and options.reasoning_effort is not ReasoningEffort.NONE:
+        # LiteLLM currently needs OpenAI reasoning requests routed through its
+        # Responses API bridge to stream reasoning content correctly. Keep this
+        # provider routing detail out of persisted/catalog model IDs.
+        # Reference: https://github.com/BerriAI/litellm/issues/17428
+        return "/".join((provider, "responses", model))
+
+    return options.model
 
 
 def _get_response_message(response: ModelResponse | CustomStreamWrapper) -> Message:
@@ -146,4 +162,7 @@ def _get_reasoning_content(source: Message | Delta) -> str | None:
     if thinking_blocks := getattr(source, "thinking_blocks", None):
         return "".join(block.get("thinking") or block.get("data") or "" for block in thinking_blocks) or None
 
+    # OpenAI can emit post-hoc summaries as `reasoning_items` after already
+    # streaming the same observable reasoning through `reasoning_content`.
+    # Ignore them to avoid duplicating the reasoning stream at the end.
     return None

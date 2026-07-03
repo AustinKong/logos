@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from api_client.models import SessionRead
+from api_client.models import AIModelRead, SessionRead
 from textual import work
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -9,11 +9,9 @@ from textual.reactive import reactive
 from tui.screens.session_config.adapters import (
     form_state_from_config_read,
     form_state_from_session_read,
-    model_options_from_ai_models,
-    model_options_from_config_read,
 )
 from tui.screens.session_config.controllers import SessionConfigController
-from tui.screens.session_config.models import ModelOptionState, SessionConfigFormState
+from tui.screens.session_config.models import SessionConfigFormState
 from tui.screens.session_config.widgets.section_editor import SectionEditor
 from tui.widgets.screens.base_modal_screen import BaseModalScreen
 
@@ -25,7 +23,7 @@ class SessionConfigModal(BaseModalScreen[SessionRead | None]):
     ]
 
     initial_state = reactive[SessionConfigFormState | None](None, recompose=True)
-    model_options = reactive[list[ModelOptionState]](list)
+    models = reactive[list[AIModelRead]](list)
 
     def __init__(
         self,
@@ -44,7 +42,7 @@ class SessionConfigModal(BaseModalScreen[SessionRead | None]):
         if self.initial_state is not None:
             yield SectionEditor(
                 form_state=self.initial_state,
-                model_options=self.model_options,
+                models=self.models,
                 read_only=self._read_only,
             )
 
@@ -72,21 +70,19 @@ class SessionConfigModal(BaseModalScreen[SessionRead | None]):
     @work(group="session-config", exclusive=True)
     async def load_config(self) -> None:
         try:
+            models = await self._controller.list_ai_models()
             if self._session_id is not None:
                 session = await self._controller.get_session(session_id=self._session_id)
                 form_state = form_state_from_session_read(session)
-                model_options = model_options_from_config_read(session.config)
             else:
                 default_config = await self._controller.get_default_config()
-                models = await self._controller.list_ai_models()
                 form_state = form_state_from_config_read(default_config)
-                model_options = model_options_from_ai_models(models)
         except Exception as exc:
             self.notify(str(exc), title="Failed to load session config", severity="error")
             self.content_loading = False
             return
 
-        self.model_options = model_options
+        self.models = models
         self.initial_state = form_state
         self.content_loading = False
         self.call_after_refresh(lambda: self.focus_next())

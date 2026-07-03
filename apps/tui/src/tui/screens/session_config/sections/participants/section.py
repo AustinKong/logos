@@ -1,9 +1,9 @@
+from api_client.models import AIModelRead
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal
 from textual.reactive import reactive
 from textual.widgets import ContentSwitcher, DataTable, Rule
 
-from tui.screens.session_config.models import ModelOptionState
 from tui.screens.session_config.sections.participants.details import ParticipantDetails
 from tui.screens.session_config.sections.participants.messages import (
     NewParticipant,
@@ -59,7 +59,7 @@ class ParticipantsSection(Container):
         self,
         *,
         initial_state: ParticipantsFormState,
-        model_options: list[ModelOptionState],
+        models: list[AIModelRead],
         read_only: bool = False,
     ) -> None:
         super().__init__()
@@ -68,7 +68,7 @@ class ParticipantsSection(Container):
 
         self._initial_state = initial_state
         self.selected_participant_key = initial_state.participants[0].key
-        self._model_options = model_options
+        self._models = models
         self._read_only = read_only
 
     def compose(self) -> ComposeResult:
@@ -154,7 +154,7 @@ class ParticipantsSection(Container):
         return ParticipantDetails(
             participant_index=index,
             initial_state=participant,
-            model_options=self._model_options,
+            models=self._models,
             read_only=self._read_only,
             id=self._details_id(participant.key),
         )

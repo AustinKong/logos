@@ -12,6 +12,8 @@ from ...models.message_completed_event_read import MessageCompletedEventRead
 from ...models.message_started_event_read import MessageStartedEventRead
 from ...models.participant_removed_event_read import ParticipantRemovedEventRead
 from ...models.participant_vote_event_read import ParticipantVoteEventRead
+from ...models.reasoning_completed_event_read import ReasoningCompletedEventRead
+from ...models.reasoning_started_event_read import ReasoningStartedEventRead
 from ...models.resolution_created_event_read import ResolutionCreatedEventRead
 from ...models.session_completed_event_read import SessionCompletedEventRead
 from ...models.session_started_event_read import SessionStartedEventRead
@@ -47,6 +49,10 @@ def _event_from_data(data: str) -> EventRead:
             return MessageStartedEventRead.from_dict(event_data)
         case "message.completed":
             return MessageCompletedEventRead.from_dict(event_data)
+        case "reasoning.started":
+            return ReasoningStartedEventRead.from_dict(event_data)
+        case "reasoning.completed":
+            return ReasoningCompletedEventRead.from_dict(event_data)
         case "participant.vote":
             return ParticipantVoteEventRead.from_dict(event_data)
         case "participant.removed":

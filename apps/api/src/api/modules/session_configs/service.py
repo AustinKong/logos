@@ -7,7 +7,11 @@ from sqlalchemy.orm import selectinload
 from api.modules.ai.models import ReasoningEffort
 from api.modules.ai.service import AIService
 from api.modules.session_configs.constants import DEFAULT_SESSION_CONFIG_ID
-from api.modules.session_configs.errors import SessionConfigNotFoundError
+from api.modules.session_configs.errors import (
+    SessionConfigNotFoundError,
+    UnsupportedParticipantModelError,
+    UnsupportedReasoningModelError,
+)
 from api.modules.session_configs.models.participants import (
     AgentParticipant,
     AgentParticipantData,
@@ -90,6 +94,15 @@ class SessionConfigService:
         id: UUID | None = None,
         commit: bool = True,
     ) -> SessionConfig:
+        models_by_id = {model.id: model for model in self._ai_service.list_available_models()}
+        for participant in participants:
+            if isinstance(participant, AgentParticipantData):
+                model = models_by_id.get(participant.model)
+                if model is None:
+                    raise UnsupportedParticipantModelError()
+                if participant.reasoning_effort is not ReasoningEffort.NONE and not model.supports_reasoning:
+                    raise UnsupportedReasoningModelError()
+
         config = SessionConfig(
             prompt=prompt,
             turn_selection_config=turn_selection,

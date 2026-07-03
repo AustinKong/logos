@@ -20,12 +20,6 @@ class ConfigSection(StrEnum):
 
 
 @define(frozen=True)
-class ModelOptionState:
-    id: str
-    label: str
-
-
-@define(frozen=True)
 class SessionConfigFormState:
     prompt: PromptFormState
     participants: ParticipantsFormState

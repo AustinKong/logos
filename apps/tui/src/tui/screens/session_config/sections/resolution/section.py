@@ -1,10 +1,9 @@
-from api_client.models import ResolutionMode
+from api_client.models import AIModelRead, ResolutionMode
 from api_client.schema_metadata import SCHEMA_FIELDS
 from textual.app import ComposeResult
 from textual.containers import Container, VerticalScroll
 from textual.widgets import ContentSwitcher, Select
 
-from tui.screens.session_config.models import ModelOptionState
 from tui.screens.session_config.sections.resolution.modes.judge import JudgeResolutionFields
 from tui.screens.session_config.sections.resolution.state import (
     JudgeResolutionFormState,
@@ -47,12 +46,12 @@ class ResolutionSection(VerticalScroll):
         self,
         *,
         initial_state: ResolutionFormState,
-        model_options: list[ModelOptionState],
+        models: list[AIModelRead],
         read_only: bool = False,
     ) -> None:
         super().__init__()
         self._initial_state = initial_state
-        self._model_options = model_options
+        self._models = models
         self._read_only = read_only
 
     def compose(self) -> ComposeResult:
@@ -72,7 +71,7 @@ class ResolutionSection(VerticalScroll):
                     JudgeResolutionFormState,
                     JudgeResolutionFormState(judge_model=Select.NULL, judge_temperature=""),
                 ),
-                model_options=self._model_options,
+                models=self._models,
                 read_only=self._read_only,
                 id=RESOLUTION_MODE_CONTENT_IDS[ResolutionMode.JUDGE_LLM],
             ),

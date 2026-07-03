@@ -33,6 +33,7 @@ class AIModel:
     id: str
     label: str
     provider: AIProviderName
+    supports_reasoning: bool
 
 
 @dataclass(frozen=True, slots=True)

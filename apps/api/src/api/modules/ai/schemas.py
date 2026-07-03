@@ -7,3 +7,4 @@ class AIModelRead(BaseModel):
     id: str
     label: str
     provider: AIProviderName
+    supports_reasoning: bool

@@ -377,10 +377,14 @@
           },
           "provider": {
             "$ref": "#/components/schemas/AIProviderName"
+          },
+          "supports_reasoning": {
+            "type": "boolean",
+            "title": "Supports Reasoning"
           }
         },
         "type": "object",
-        "required": ["id", "label", "provider"],
+        "required": ["id", "label", "provider", "supports_reasoning"],
         "title": "AIModelRead"
       },
       "AIProviderName": {

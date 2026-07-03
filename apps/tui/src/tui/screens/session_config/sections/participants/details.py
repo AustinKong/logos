@@ -1,12 +1,11 @@
 from typing import cast
 
-from api_client.models import ParticipantType
+from api_client.models import AIModelRead, ParticipantType
 from api_client.schema_metadata import SCHEMA_FIELDS
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll
 from textual.widgets import ContentSwitcher, Input, Select
 
-from tui.screens.session_config.models import ModelOptionState
 from tui.screens.session_config.sections.participants.messages import ParticipantNameChanged
 from tui.screens.session_config.sections.participants.modes.agent import AgentParticipantFields
 from tui.screens.session_config.sections.participants.modes.user import UserParticipantFields
@@ -58,7 +57,7 @@ class ParticipantDetails(VerticalScroll):
         *,
         participant_index: int,
         initial_state: ParticipantFormState,
-        model_options: list[ModelOptionState],
+        models: list[AIModelRead],
         read_only: bool = False,
         id: str | None = None,
     ) -> None:
@@ -66,7 +65,7 @@ class ParticipantDetails(VerticalScroll):
         self._participant_index = participant_index
         self._participant_key = initial_state.key
         self._initial_state = initial_state
-        self._model_options = model_options
+        self._models = models
         self._read_only = read_only
 
     def compose(self) -> ComposeResult:
@@ -94,7 +93,7 @@ class ParticipantDetails(VerticalScroll):
                     AgentParticipantFormState,
                     agent_participant_form_state(self._participant_index, key=self._participant_key),
                 ),
-                model_options=self._model_options,
+                models=self._models,
                 read_only=self._read_only,
                 id=self._content_id(ParticipantType.AGENT),
             ),
@@ -102,6 +101,7 @@ class ParticipantDetails(VerticalScroll):
             classes="participant-fields",
         )
 
+    # TODO: Change to target class directly. like session_configs -> participants -> modes.py
     @on(Select.Changed)
     def handle_participant_role_changed(self, event: Select.Changed) -> None:
         if not event.select.has_class("participant-role"):
