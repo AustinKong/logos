@@ -476,35 +476,6 @@
         ],
         "title": "AgentParticipantRead"
       },
-      "ContextConfigCreate": {
-        "properties": {
-          "mode": {
-            "$ref": "#/components/schemas/ContextMode",
-            "title": "Full transcript",
-            "description": "Include the full session transcript when generating the next response."
-          }
-        },
-        "type": "object",
-        "required": ["mode"],
-        "title": "ContextConfigCreate"
-      },
-      "ContextConfigRead": {
-        "properties": {
-          "mode": {
-            "$ref": "#/components/schemas/ContextMode",
-            "title": "Full transcript",
-            "description": "Include the full session transcript when generating the next response."
-          }
-        },
-        "type": "object",
-        "required": ["mode"],
-        "title": "ContextConfigRead"
-      },
-      "ContextMode": {
-        "type": "string",
-        "enum": ["full"],
-        "title": "ContextMode"
-      },
       "EventRead": {
         "oneOf": [
           {
@@ -550,6 +521,32 @@
           }
         }
       },
+      "FullHistoryConfigCreate": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "const": "full",
+            "title": "Full transcript",
+            "description": "Include the full session transcript when generating the next response.",
+            "default": "full"
+          }
+        },
+        "type": "object",
+        "title": "FullHistoryConfigCreate"
+      },
+      "FullHistoryConfigRead": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "const": "full",
+            "title": "Full transcript",
+            "description": "Include the full session transcript when generating the next response.",
+            "default": "full"
+          }
+        },
+        "type": "object",
+        "title": "FullHistoryConfigRead"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -573,6 +570,40 @@
         "type": "object",
         "required": ["status"],
         "title": "HealthCheckResponse"
+      },
+      "HistoryConfigCreate": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/FullHistoryConfigCreate"
+          },
+          {
+            "$ref": "#/components/schemas/SlidingWindowHistoryConfigCreate"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "mode",
+          "mapping": {
+            "full": "#/components/schemas/FullHistoryConfigCreate",
+            "sliding_window": "#/components/schemas/SlidingWindowHistoryConfigCreate"
+          }
+        }
+      },
+      "HistoryConfigRead": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/FullHistoryConfigRead"
+          },
+          {
+            "$ref": "#/components/schemas/SlidingWindowHistoryConfigRead"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "mode",
+          "mapping": {
+            "full": "#/components/schemas/FullHistoryConfigRead",
+            "sliding_window": "#/components/schemas/SlidingWindowHistoryConfigRead"
+          }
+        }
       },
       "JudgeResolutionConfigCreate": {
         "properties": {
@@ -1104,8 +1135,8 @@
           "turn_selection": {
             "$ref": "#/components/schemas/TurnSelectionConfigCreate"
           },
-          "context": {
-            "$ref": "#/components/schemas/ContextConfigCreate"
+          "history": {
+            "$ref": "#/components/schemas/HistoryConfigCreate"
           },
           "validation": {
             "$ref": "#/components/schemas/ValidationConfigCreate"
@@ -1119,7 +1150,7 @@
           "prompt",
           "participants",
           "turn_selection",
-          "context",
+          "history",
           "validation",
           "resolution"
         ],
@@ -1156,8 +1187,8 @@
           "turn_selection": {
             "$ref": "#/components/schemas/TurnSelectionConfigRead"
           },
-          "context": {
-            "$ref": "#/components/schemas/ContextConfigRead"
+          "history": {
+            "$ref": "#/components/schemas/HistoryConfigRead"
           },
           "validation": {
             "$ref": "#/components/schemas/ValidationConfigRead"
@@ -1174,7 +1205,7 @@
           "updated_at",
           "participants",
           "turn_selection",
-          "context",
+          "history",
           "validation",
           "resolution"
         ],
@@ -1291,6 +1322,46 @@
           "status"
         ],
         "title": "SessionSummaryRead"
+      },
+      "SlidingWindowHistoryConfigCreate": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "const": "sliding_window",
+            "title": "Sliding window",
+            "description": "Include only the most recent participant messages when generating the next response.",
+            "default": "sliding_window"
+          },
+          "window_size": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Window size",
+            "description": "Number of recent completed messages to include."
+          }
+        },
+        "type": "object",
+        "required": ["window_size"],
+        "title": "SlidingWindowHistoryConfigCreate"
+      },
+      "SlidingWindowHistoryConfigRead": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "const": "sliding_window",
+            "title": "Sliding window",
+            "description": "Include only the most recent participant messages when generating the next response.",
+            "default": "sliding_window"
+          },
+          "window_size": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Window size",
+            "description": "Number of recent completed messages to include."
+          }
+        },
+        "type": "object",
+        "required": ["window_size"],
+        "title": "SlidingWindowHistoryConfigRead"
       },
       "TurnSelectionConfigCreate": {
         "properties": {

@@ -4,10 +4,13 @@ from api_client.api.sessions.stream_session_tokens import TokenRead
 from api_client.models.event_read import EventRead
 from api_client.models.message_completed_event_read import MessageCompletedEventRead
 from api_client.models.message_started_event_read import MessageStartedEventRead
+from api_client.models.reasoning_completed_event_read import ReasoningCompletedEventRead
+from api_client.models.reasoning_started_event_read import ReasoningStartedEventRead
 from textual.containers import VerticalScroll
 
 from tui.screens.session_chat.streamables.base import StreamableWidget
 from tui.screens.session_chat.streamables.message import Message
+from tui.screens.session_chat.streamables.reasoning import Reasoning
 
 
 class EventLog(VerticalScroll):
@@ -35,6 +38,14 @@ class EventLog(VerticalScroll):
                 await self.mount(message)
             case MessageCompletedEventRead():
                 widget = self._streamable_widgets.get(event.message_id)
+                if widget:
+                    widget.set_content(event.content)
+            case ReasoningStartedEventRead():
+                reasoning = Reasoning(event=event)
+                self._streamable_widgets[event.reasoning_id] = reasoning
+                await self.mount(reasoning)
+            case ReasoningCompletedEventRead():
+                widget = self._streamable_widgets.get(event.reasoning_id)
                 if widget:
                     widget.set_content(event.content)
             case _:

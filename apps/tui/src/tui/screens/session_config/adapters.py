@@ -9,9 +9,9 @@ from api_client.models import (
 )
 
 from tui.screens.session_config.models import ModelOptionState, SessionConfigFormState
-from tui.screens.session_config.sections.context.adapters import (
-    context_create_from_form_state,
-    context_form_state_from_read,
+from tui.screens.session_config.sections.history.adapters import (
+    history_create_from_form_state,
+    history_form_state_from_read,
 )
 from tui.screens.session_config.sections.participants.adapters import (
     participants_create_from_form_state,
@@ -40,7 +40,7 @@ def form_state_from_config_read(config: SessionConfigRead) -> SessionConfigFormS
         prompt=prompt_form_state_from_read(config.prompt),
         participants=participants_form_state_from_read(config.participants),
         turn_selection=turn_selection_form_state_from_read(config.turn_selection),
-        context=context_form_state_from_read(config.context),
+        history=history_form_state_from_read(config.history),
         validation=validation_form_state_from_read(config.validation),
         resolution=resolution_form_state_from_read(config.resolution),
     )
@@ -70,7 +70,7 @@ def session_create_from_form_state(form_state: SessionConfigFormState) -> Sessio
             prompt=prompt_create_from_form_state(form_state.prompt),
             participants=participants_create_from_form_state(form_state.participants),
             turn_selection=turn_selection_create_from_form_state(form_state.turn_selection),
-            context=context_create_from_form_state(form_state.context),
+            history=history_create_from_form_state(form_state.history),
             validation=validation_create_from_form_state(form_state.validation),
             resolution=resolution_create_from_form_state(form_state.resolution),
         )

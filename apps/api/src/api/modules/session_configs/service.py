@@ -17,7 +17,7 @@ from api.modules.session_configs.models.participants import (
     UserParticipantData,
 )
 from api.modules.session_configs.models.session_configs import SessionConfig
-from api.modules.strategies.context.configs import ContextConfig
+from api.modules.strategies.history.configs import FullHistoryConfig, HistoryConfig
 from api.modules.strategies.resolution.configs import NoneResolutionConfig, ResolutionConfig
 from api.modules.strategies.turn_selection.configs import RoundRobinTurnSelectionConfig, TurnSelectionConfig
 from api.modules.strategies.validation.configs import AllowAllValidationConfig, ValidationConfig
@@ -60,7 +60,7 @@ class SessionConfigService:
                     ),
                 ],
                 turn_selection=RoundRobinTurnSelectionConfig(),
-                context=ContextConfig(),
+                history=FullHistoryConfig(),
                 validation=AllowAllValidationConfig(),
                 resolution=NoneResolutionConfig(),
             )
@@ -84,7 +84,7 @@ class SessionConfigService:
         prompt: str,
         participants: list[ParticipantData],
         turn_selection: TurnSelectionConfig,
-        context: ContextConfig,
+        history: HistoryConfig,
         validation: ValidationConfig,
         resolution: ResolutionConfig,
         id: UUID | None = None,
@@ -93,7 +93,7 @@ class SessionConfigService:
         config = SessionConfig(
             prompt=prompt,
             turn_selection_config=turn_selection,
-            context_config=context,
+            history_config=history,
             validation_config=validation,
             resolution_config=resolution,
         )

@@ -12,7 +12,7 @@ from api.modules.sessions.errors import SessionNotFoundError
 from api.modules.sessions.models.events import Event
 from api.modules.sessions.models.sessions import Session, SessionSummary
 from api.modules.sessions.repository import SessionRepository
-from api.modules.strategies.context.configs import ContextConfig
+from api.modules.strategies.history.configs import HistoryConfig
 from api.modules.strategies.resolution.configs import ResolutionConfig
 from api.modules.strategies.turn_selection.configs import TurnSelectionConfig
 from api.modules.strategies.validation.configs import ValidationConfig
@@ -35,7 +35,7 @@ class SessionService:
         prompt: str,
         agents: list[ParticipantData],
         turn_selection: TurnSelectionConfig,
-        context: ContextConfig,
+        history: HistoryConfig,
         validation: ValidationConfig,
         resolution: ResolutionConfig,
     ) -> Session:
@@ -43,7 +43,7 @@ class SessionService:
             prompt=prompt,
             participants=agents,
             turn_selection=turn_selection,
-            context=context,
+            history=history,
             validation=validation,
             resolution=resolution,
             commit=False,

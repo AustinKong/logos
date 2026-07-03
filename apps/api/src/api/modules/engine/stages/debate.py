@@ -1,8 +1,8 @@
-from api.modules.ai.models import GenerationOptions
+from api.modules.ai.models import AIMessage, GenerationOptions, MessageRole
 from api.modules.engine.generation import GenerationRunner
 from api.modules.engine.models import EngineContext, EngineOutputStream
 from api.modules.session_configs.models.participants import AgentParticipant, UserParticipant
-from api.modules.strategies.context.base import ContextStrategy
+from api.modules.strategies.history.base import HistoryStrategy
 from api.modules.strategies.turn_selection.base import TurnSelectionStrategy
 
 
@@ -11,11 +11,11 @@ class DebateStage:
         self,
         *,
         turn_selection_strategy: TurnSelectionStrategy,
-        context_strategy: ContextStrategy,
+        history_strategy: HistoryStrategy,
         generation_runner: GenerationRunner,
     ) -> None:
         self._turn_selection_strategy = turn_selection_strategy
-        self._context_strategy = context_strategy
+        self._history_strategy = history_strategy
         self._generation_runner = generation_runner
 
     async def run(self, ctx: EngineContext) -> EngineOutputStream:
@@ -26,7 +26,11 @@ class DebateStage:
                 async for output in self._generation_runner.run_response(
                     session_id=ctx.session.id,
                     sender=participant,
-                    messages=self._context_strategy.build_messages(ctx, participant),
+                    messages=_build_debate_messages(
+                        ctx=ctx,
+                        agent=participant,
+                        history=self._history_strategy.build_history(ctx),
+                    ),
                     options=GenerationOptions(
                         model=participant.model,
                         reasoning_effort=participant.reasoning_effort,
@@ -36,3 +40,22 @@ class DebateStage:
             case UserParticipant():
                 # TODO: Add human/system turn handling when those participant types become eligible.
                 return
+
+
+def _build_debate_messages(
+    *,
+    ctx: EngineContext,
+    agent: AgentParticipant,
+    history: str | None,
+) -> list[AIMessage]:
+    return [
+        AIMessage(role=MessageRole.SYSTEM, content=agent.system_prompt),
+        AIMessage(
+            role=MessageRole.USER,
+            content=(
+                f"Session prompt:\n{ctx.session.config.prompt}\n\n"
+                f"Transcript so far:\n{history or '(none)'}\n\n"
+                f"Respond as {agent.name}."
+            ),
+        ),
+    ]

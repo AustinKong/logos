@@ -33,6 +33,7 @@ def participant_form_state_from_read(participant: ParticipantRead) -> Participan
             return AgentParticipantFormState(
                 name=participant.name,
                 model=participant.model,
+                reasoning_effort=participant.reasoning_effort,
                 system_prompt=participant.system_prompt,
             )
         case UserParticipantRead():
@@ -53,6 +54,7 @@ def participant_create_from_form_state(participant: ParticipantFormState) -> Par
             return AgentParticipantCreate(
                 name=participant.name,
                 model=model,
+                reasoning_effort=participant.reasoning_effort,
                 system_prompt=participant.system_prompt,
             )
         case UserParticipantFormState():

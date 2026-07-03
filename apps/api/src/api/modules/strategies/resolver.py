@@ -1,8 +1,9 @@
 from api.modules.ai.service import AIService
 from api.modules.sessions.models.sessions import Session
-from api.modules.strategies.context.base import ContextStrategy
-from api.modules.strategies.context.configs import ContextMode
-from api.modules.strategies.context.full import FullContextStrategy
+from api.modules.strategies.history.base import HistoryStrategy
+from api.modules.strategies.history.configs import HistoryMode
+from api.modules.strategies.history.full import FullHistoryStrategy
+from api.modules.strategies.history.sliding_window import SlidingWindowHistoryStrategy
 from api.modules.strategies.resolution.base import ResolutionStrategy
 from api.modules.strategies.resolution.configs import (
     JudgeResolutionConfig,
@@ -30,12 +31,14 @@ class StrategyResolver:
         # TODO: Custom error for these
         raise ValueError(f"Unsupported turn selection mode: {config.mode}")
 
-    def context(self, session: Session) -> ContextStrategy:
-        config = session.config.context_config
+    def history(self, session: Session) -> HistoryStrategy:
+        config = session.config.history_config
         match config.mode:
-            case ContextMode.FULL:
-                return FullContextStrategy()
-        raise ValueError(f"Unsupported context mode: {config.mode}")
+            case HistoryMode.FULL:
+                return FullHistoryStrategy()
+            case HistoryMode.SLIDING_WINDOW:
+                return SlidingWindowHistoryStrategy(config=config)
+        raise ValueError(f"Unsupported history mode: {config.mode}")
 
     def validation(self, session: Session) -> ValidationStrategy:
         config = session.config.validation_config

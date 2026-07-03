@@ -30,8 +30,8 @@ const sourceEnumOverrides = [
     source: "apps/api/src/api/modules/session_configs/models/participants.py",
   },
   {
-    name: "ContextMode",
-    source: "apps/api/src/api/modules/strategies/context/configs.py",
+    name: "HistoryMode",
+    source: "apps/api/src/api/modules/strategies/history/configs.py",
   },
   {
     name: "ResolutionMode",

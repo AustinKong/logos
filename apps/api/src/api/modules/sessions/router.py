@@ -7,7 +7,7 @@ from sse_starlette import EventSourceResponse
 from api.modules.engine.background import run_session_until_blocked_background
 from api.modules.session_configs.adapters.participants import participant_data_from_create
 from api.modules.sessions.adapters.configs import (
-    context_config_from_create,
+    history_config_from_create,
     resolution_config_from_create,
     turn_selection_config_from_create,
     validation_config_from_create,
@@ -42,7 +42,7 @@ def create_session(
         prompt=config.prompt,
         agents=[participant_data_from_create(participant) for participant in config.participants],
         turn_selection=turn_selection_config_from_create(config.turn_selection),
-        context=context_config_from_create(config.context),
+        history=history_config_from_create(config.history),
         validation=validation_config_from_create(config.validation),
         resolution=resolution_config_from_create(config.resolution),
     )

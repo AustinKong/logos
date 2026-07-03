@@ -5,8 +5,8 @@ from api.modules.sessions.models.events import (
     ResolutionCreatedEvent,
     SessionCompletedEvent,
 )
+from api.modules.strategies.history.full import FullHistoryStrategy
 from api.modules.strategies.resolution.configs import JudgeResolutionConfig
-from api.modules.strategies.transcripts import format_message_transcript
 
 JUDGE_SYSTEM_PROMPT = (
     "You are a neutral judge resolving a structured debate. "
@@ -23,9 +23,10 @@ class JudgeResolutionStrategy:
     ) -> None:
         self._ai_service = ai_service
         self._config = config
+        self._history_strategy = FullHistoryStrategy()
 
     async def resolve(self, ctx: EngineContext) -> EngineOutputStream:
-        transcript = format_message_transcript(ctx)
+        transcript = self._history_strategy.build_history(ctx)
         if transcript is None:
             return
 

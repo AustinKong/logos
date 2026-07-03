@@ -4,8 +4,8 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 from api.modules.session_configs.schemas.configs import (
-    ContextConfigCreate,
-    ContextConfigRead,
+    HistoryConfigCreate,
+    HistoryConfigRead,
     ResolutionConfigCreate,
     ResolutionConfigRead,
     TurnSelectionConfigCreate,
@@ -24,7 +24,7 @@ class SessionConfigCreate(BaseModel):
     )
     participants: list[ParticipantCreate] = Field(min_length=1)
     turn_selection: TurnSelectionConfigCreate
-    context: ContextConfigCreate
+    history: HistoryConfigCreate
     validation: ValidationConfigCreate
     resolution: ResolutionConfigCreate
 
@@ -36,6 +36,6 @@ class SessionConfigRead(BaseModel):
     updated_at: datetime
     participants: list[ParticipantRead]
     turn_selection: TurnSelectionConfigRead
-    context: ContextConfigRead
+    history: HistoryConfigRead
     validation: ValidationConfigRead
     resolution: ResolutionConfigRead

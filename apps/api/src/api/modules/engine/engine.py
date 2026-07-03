@@ -22,7 +22,7 @@ class Engine:
         return [
             DebateStage(
                 turn_selection_strategy=self._strategy_resolver.turn_selection(ctx.session),
-                context_strategy=self._strategy_resolver.context(ctx.session),
+                history_strategy=self._strategy_resolver.history(ctx.session),
                 generation_runner=self._generation_runner,
             ),
             ValidationStage(

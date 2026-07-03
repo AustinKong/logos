@@ -2,7 +2,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
 
-from api.modules.strategies.context.configs import ContextMode
+from api.modules.strategies.history.configs import HistoryMode
 from api.modules.strategies.resolution.configs import ResolutionMode
 from api.modules.strategies.turn_selection.configs import TurnSelectionMode
 from api.modules.strategies.validation.configs import ValidationMode
@@ -23,18 +23,40 @@ class TurnSelectionConfigRead(TurnSelectionConfigBase):
     pass
 
 
-class ContextConfigBase(BaseModel):
-    mode: ContextMode = Field(
+class FullHistoryConfigBase(BaseModel):
+    mode: Literal[HistoryMode.FULL] = Field(
+        HistoryMode.FULL,
         title="Full transcript",
         description="Include the full session transcript when generating the next response.",
     )
 
 
-class ContextConfigCreate(ContextConfigBase):
+class FullHistoryConfigCreate(FullHistoryConfigBase):
     pass
 
 
-class ContextConfigRead(ContextConfigBase):
+class FullHistoryConfigRead(FullHistoryConfigBase):
+    pass
+
+
+class SlidingWindowHistoryConfigBase(BaseModel):
+    mode: Literal[HistoryMode.SLIDING_WINDOW] = Field(
+        HistoryMode.SLIDING_WINDOW,
+        title="Sliding window",
+        description="Include only the most recent participant messages when generating the next response.",
+    )
+    window_size: int = Field(
+        ge=1,
+        title="Window size",
+        description="Number of recent completed messages to include.",
+    )
+
+
+class SlidingWindowHistoryConfigCreate(SlidingWindowHistoryConfigBase):
+    pass
+
+
+class SlidingWindowHistoryConfigRead(SlidingWindowHistoryConfigBase):
     pass
 
 
@@ -101,5 +123,15 @@ type ResolutionConfigCreate = Annotated[
 
 type ResolutionConfigRead = Annotated[
     JudgeResolutionConfigRead | NoneResolutionConfigRead,
+    Field(discriminator="mode"),
+]
+
+type HistoryConfigCreate = Annotated[
+    FullHistoryConfigCreate | SlidingWindowHistoryConfigCreate,
+    Field(discriminator="mode"),
+]
+
+type HistoryConfigRead = Annotated[
+    FullHistoryConfigRead | SlidingWindowHistoryConfigRead,
     Field(discriminator="mode"),
 ]

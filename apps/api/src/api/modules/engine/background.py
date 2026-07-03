@@ -4,6 +4,7 @@ from api.db.database import db_context
 from api.modules.ai.resolver import AIProviderResolver
 from api.modules.ai.service import AIService
 from api.modules.engine.engine import Engine
+from api.modules.engine.generation import GenerationRunner
 from api.modules.engine.service import EngineService
 from api.modules.session_configs.service import SessionConfigService
 from api.modules.sessions.repository import SessionRepository
@@ -19,9 +20,10 @@ async def run_session_until_blocked_background(session_id: UUID) -> None:
         session_config_service = SessionConfigService(db=db, ai_service=ai_service)
         session_service = SessionService(db, SessionRepository(db), session_config_service)
         strategy_resolver = StrategyResolver(ai_service=ai_service)
+        generation_runner = GenerationRunner(ai_service=ai_service)
         engine_service = EngineService(
             session_service=session_service,
-            engine=Engine(ai_service=ai_service, strategy_resolver=strategy_resolver),
+            engine=Engine(generation_runner=generation_runner, strategy_resolver=strategy_resolver),
             streaming_service=get_streaming_service(),
         )
         await engine_service.run_until_blocked(session_id)

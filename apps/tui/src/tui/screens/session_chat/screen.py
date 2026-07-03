@@ -2,6 +2,7 @@ from uuid import UUID
 
 from api_client.models import (
     MessageStartedEventRead,
+    ReasoningStartedEventRead,
     SessionCompletedEventRead,
     SessionRead,
 )
@@ -89,6 +90,12 @@ class SessionChatScreen(BaseScreen):
                     self.run_worker(
                         self.stream_tokens(stream_id=event.message_id),
                         group=f"session-token-stream:{event.message_id}",
+                        exclusive=True,
+                    )
+                if isinstance(event, ReasoningStartedEventRead):
+                    self.run_worker(
+                        self.stream_tokens(stream_id=event.reasoning_id),
+                        group=f"session-token-stream:{event.reasoning_id}",
                         exclusive=True,
                     )
 

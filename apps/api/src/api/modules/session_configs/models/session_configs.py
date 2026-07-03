@@ -8,7 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from api.db.base import Base
 from api.db.mixins import TimestampMixin, UUIDMixin
 from api.modules.session_configs.models.participants import Participant
-from api.modules.strategies.context.configs import ContextConfig
+from api.modules.strategies.history.configs import HISTORY_CONFIG_ADAPTER, HistoryConfig
 from api.modules.strategies.resolution.configs import RESOLUTION_CONFIG_ADAPTER, ResolutionConfig
 from api.modules.strategies.turn_selection.configs import TurnSelectionConfig
 from api.modules.strategies.validation.configs import ValidationConfig
@@ -19,7 +19,7 @@ class SessionConfig(UUIDMixin, TimestampMixin, Base):
 
     prompt: Mapped[str] = mapped_column(Text)
     _turn_selection_config: Mapped[dict[str, Any]] = mapped_column("turn_selection_config", JSON, nullable=False)
-    _context_config: Mapped[dict[str, Any]] = mapped_column("context_config", JSON, nullable=False)
+    _history_config: Mapped[dict[str, Any]] = mapped_column("history_config", JSON, nullable=False)
     _validation_config: Mapped[dict[str, Any]] = mapped_column("validation_config", JSON, nullable=False)
     _resolution_config: Mapped[dict[str, Any]] = mapped_column("resolution_config", JSON, nullable=False)
 
@@ -38,12 +38,12 @@ class SessionConfig(UUIDMixin, TimestampMixin, Base):
         self._turn_selection_config = config.model_dump(mode="json")
 
     @property
-    def context_config(self) -> ContextConfig:
-        return ContextConfig.model_validate(self._context_config)
+    def history_config(self) -> HistoryConfig:
+        return HISTORY_CONFIG_ADAPTER.validate_python(self._history_config)
 
-    @context_config.setter
-    def context_config(self, config: ContextConfig) -> None:
-        self._context_config = config.model_dump(mode="json")
+    @history_config.setter
+    def history_config(self, config: HistoryConfig) -> None:
+        self._history_config = config.model_dump(mode="json")
 
     @property
     def validation_config(self) -> ValidationConfig:
