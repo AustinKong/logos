@@ -5,6 +5,7 @@ from fastapi import Depends
 from api.modules.ai.deps import get_ai_service
 from api.modules.ai.service import AIService
 from api.modules.engine.engine import Engine
+from api.modules.engine.generation import GenerationRunner
 from api.modules.engine.service import EngineService
 from api.modules.sessions.deps import get_session_service
 from api.modules.sessions.service import SessionService
@@ -14,11 +15,17 @@ from api.modules.streaming.deps import get_streaming_service
 from api.modules.streaming.service import StreamingService
 
 
-def get_engine(
+def get_generation_runner(
     ai_service: Annotated[AIService, Depends(get_ai_service)],
+) -> GenerationRunner:
+    return GenerationRunner(ai_service=ai_service)
+
+
+def get_engine(
+    generation_runner: Annotated[GenerationRunner, Depends(get_generation_runner)],
     strategy_resolver: Annotated[StrategyResolver, Depends(get_strategy_resolver)],
 ) -> Engine:
-    return Engine(ai_service=ai_service, strategy_resolver=strategy_resolver)
+    return Engine(generation_runner=generation_runner, strategy_resolver=strategy_resolver)
 
 
 def get_engine_service(

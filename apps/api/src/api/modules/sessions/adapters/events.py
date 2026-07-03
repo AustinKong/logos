@@ -8,6 +8,8 @@ from api.modules.sessions.models.events import (
     MessageStartedEvent,
     ParticipantRemovedEvent,
     ParticipantVoteEvent,
+    ReasoningCompletedEvent,
+    ReasoningStartedEvent,
     ResolutionCreatedEvent,
     SessionCompletedEvent,
     SessionStartedEvent,
@@ -18,6 +20,8 @@ from api.modules.sessions.schemas.events import (
     MessageStartedEventRead,
     ParticipantRemovedEventRead,
     ParticipantVoteEventRead,
+    ReasoningCompletedEventRead,
+    ReasoningStartedEventRead,
     ResolutionCreatedEventRead,
     SessionCompletedEventRead,
     SessionStartedEventRead,
@@ -40,6 +44,20 @@ def event_read_from_event(event: Event) -> EventRead:
                 **event_fields,
                 type=EventType.MESSAGE_COMPLETED,
                 message_id=event.message_id,
+                content=event.content,
+            )
+        case ReasoningStartedEvent():
+            return ReasoningStartedEventRead(
+                **event_fields,
+                type=EventType.REASONING_STARTED,
+                reasoning_id=event.reasoning_id,
+                sender=participant_read_from_participant(event.sender),
+            )
+        case ReasoningCompletedEvent():
+            return ReasoningCompletedEventRead(
+                **event_fields,
+                type=EventType.REASONING_COMPLETED,
+                reasoning_id=event.reasoning_id,
                 content=event.content,
             )
         case ParticipantVoteEvent():

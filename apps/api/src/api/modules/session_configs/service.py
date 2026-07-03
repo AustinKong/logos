@@ -4,6 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session as SqlAlchemyDb
 from sqlalchemy.orm import selectinload
 
+from api.modules.ai.models import ReasoningEffort
 from api.modules.ai.service import AIService
 from api.modules.session_configs.constants import DEFAULT_SESSION_CONFIG_ID
 from api.modules.session_configs.errors import SessionConfigNotFoundError
@@ -43,16 +44,19 @@ class SessionConfigService:
                         name="Analyst",
                         model=default_model,
                         system_prompt="Argue for the strongest practical answer. Call out implementation risks.",
+                        reasoning_effort=ReasoningEffort.NONE,
                     ),
                     AgentParticipantData(
                         name="Critic",
                         model=default_model,
                         system_prompt="Challenge weak assumptions and look for missing edge cases.",
+                        reasoning_effort=ReasoningEffort.NONE,
                     ),
                     AgentParticipantData(
                         name="Synthesizer",
                         model=default_model,
                         system_prompt="Synthesize tradeoffs into a clear recommendation.",
+                        reasoning_effort=ReasoningEffort.NONE,
                     ),
                 ],
                 turn_selection=RoundRobinTurnSelectionConfig(),
@@ -109,6 +113,7 @@ class SessionConfigService:
                             name=participant.name,
                             model=participant.model,
                             system_prompt=participant.system_prompt,
+                            reasoning_effort=participant.reasoning_effort,
                         )
                     )
                 case UserParticipantData():

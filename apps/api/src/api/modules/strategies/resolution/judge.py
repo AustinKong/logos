@@ -1,4 +1,4 @@
-from api.modules.ai.models import AIMessage, GenerationOptions, MessageRole
+from api.modules.ai.models import AIMessage, AIMessageResponseAction, GenerationOptions, MessageRole
 from api.modules.ai.service import AIService
 from api.modules.engine.models import EngineContext, EngineOutputStream
 from api.modules.sessions.models.events import (
@@ -29,7 +29,7 @@ class JudgeResolutionStrategy:
         if transcript is None:
             return
 
-        resolution = await self._ai_service.generate_text(
+        response = await self._ai_service.generate_response(
             messages=[
                 AIMessage(role=MessageRole.SYSTEM, content=JUDGE_SYSTEM_PROMPT),
                 AIMessage(
@@ -45,6 +45,12 @@ class JudgeResolutionStrategy:
                 temperature=self._config.judge_temperature,
             ),
         )
+
+        if not isinstance(response.action, AIMessageResponseAction):
+            raise ValueError("Unsupported response")
+
+        resolution = response.action.content
+
         yield ResolutionCreatedEvent(
             session_id=ctx.session.id,
             resolution=resolution,

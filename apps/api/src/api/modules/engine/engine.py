@@ -1,4 +1,4 @@
-from api.modules.ai.service import AIService
+from api.modules.engine.generation import GenerationRunner
 from api.modules.engine.models import EngineContext, EngineOutputStream
 from api.modules.engine.stages.base import EngineStage
 from api.modules.engine.stages.debate import DebateStage
@@ -9,8 +9,13 @@ from api.modules.strategies.resolver import StrategyResolver
 
 
 class Engine:
-    def __init__(self, *, ai_service: AIService, strategy_resolver: StrategyResolver) -> None:
-        self._ai_service = ai_service
+    def __init__(
+        self,
+        *,
+        generation_runner: GenerationRunner,
+        strategy_resolver: StrategyResolver,
+    ) -> None:
+        self._generation_runner = generation_runner
         self._strategy_resolver = strategy_resolver
 
     def _build_stages(self, ctx: EngineContext) -> list[EngineStage]:
@@ -18,7 +23,7 @@ class Engine:
             DebateStage(
                 turn_selection_strategy=self._strategy_resolver.turn_selection(ctx.session),
                 context_strategy=self._strategy_resolver.context(ctx.session),
-                ai_service=self._ai_service,
+                generation_runner=self._generation_runner,
             ),
             ValidationStage(
                 validation_strategy=self._strategy_resolver.validation(ctx.session),

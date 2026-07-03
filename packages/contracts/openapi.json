@@ -414,10 +414,15 @@
             "minLength": 1,
             "title": "System prompt",
             "description": "Instructions that shape how this participant behaves."
+          },
+          "reasoning_effort": {
+            "$ref": "#/components/schemas/ReasoningEffort",
+            "title": "Reasoning effort",
+            "description": "Model reasoning effort used for this participant's responses."
           }
         },
         "type": "object",
-        "required": ["name", "model", "system_prompt"],
+        "required": ["name", "model", "system_prompt", "reasoning_effort"],
         "title": "AgentParticipantCreate"
       },
       "AgentParticipantRead": {
@@ -454,6 +459,9 @@
           "system_prompt": {
             "type": "string",
             "title": "System Prompt"
+          },
+          "reasoning_effort": {
+            "$ref": "#/components/schemas/ReasoningEffort"
           }
         },
         "type": "object",
@@ -463,7 +471,8 @@
           "created_at",
           "updated_at",
           "model",
-          "system_prompt"
+          "system_prompt",
+          "reasoning_effort"
         ],
         "title": "AgentParticipantRead"
       },
@@ -511,6 +520,12 @@
             "$ref": "#/components/schemas/MessageCompletedEventRead"
           },
           {
+            "$ref": "#/components/schemas/ReasoningStartedEventRead"
+          },
+          {
+            "$ref": "#/components/schemas/ReasoningCompletedEventRead"
+          },
+          {
             "$ref": "#/components/schemas/ParticipantVoteEventRead"
           },
           {
@@ -527,6 +542,8 @@
             "message.started": "#/components/schemas/MessageStartedEventRead",
             "participant.removed": "#/components/schemas/ParticipantRemovedEventRead",
             "participant.vote": "#/components/schemas/ParticipantVoteEventRead",
+            "reasoning.completed": "#/components/schemas/ReasoningCompletedEventRead",
+            "reasoning.started": "#/components/schemas/ReasoningStartedEventRead",
             "resolution.created": "#/components/schemas/ResolutionCreatedEventRead",
             "session.completed": "#/components/schemas/SessionCompletedEventRead",
             "session.started": "#/components/schemas/SessionStartedEventRead"
@@ -856,6 +873,108 @@
           "reason"
         ],
         "title": "ParticipantVoteEventRead"
+      },
+      "ReasoningCompletedEventRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "type": {
+            "type": "string",
+            "const": "reasoning.completed",
+            "title": "Type"
+          },
+          "reasoning_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Reasoning Id"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "session_id",
+          "created_at",
+          "updated_at",
+          "type",
+          "reasoning_id",
+          "content"
+        ],
+        "title": "ReasoningCompletedEventRead"
+      },
+      "ReasoningEffort": {
+        "type": "string",
+        "enum": ["none", "low", "medium", "high"],
+        "title": "ReasoningEffort"
+      },
+      "ReasoningStartedEventRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "type": {
+            "type": "string",
+            "const": "reasoning.started",
+            "title": "Type"
+          },
+          "reasoning_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Reasoning Id"
+          },
+          "sender": {
+            "$ref": "#/components/schemas/ParticipantRead"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "session_id",
+          "created_at",
+          "updated_at",
+          "type",
+          "reasoning_id",
+          "sender"
+        ],
+        "title": "ReasoningStartedEventRead"
       },
       "ResolutionConfigCreate": {
         "oneOf": [

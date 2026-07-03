@@ -1,5 +1,11 @@
 from dataclasses import dataclass
 from enum import StrEnum
+from typing import Annotated, Any, Literal
+
+from pydantic import BaseModel, Field
+
+# Model, Message, ToolCall, Reasoning, Response, and Provider overlap with domain concepts
+# or Python reserved words, so prefix them with "AI".
 
 
 class MessageRole(StrEnum):
@@ -15,6 +21,13 @@ class AIProviderName(StrEnum):
     DEEPSEEK = "deepseek"
 
 
+class ReasoningEffort(StrEnum):
+    NONE = "none"
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+
+
 @dataclass(frozen=True, slots=True)
 class AIModel:
     id: str
@@ -28,8 +41,57 @@ class AIMessage:
     content: str
 
 
+class AIToolCall(BaseModel):
+    name: str = Field(min_length=1)
+    arguments: dict[str, Any]
+
+
+class AIMessageResponseAction(BaseModel):
+    type: Literal["message"] = "message"
+    content: str = Field(min_length=1)
+
+
+class AIToolCallsResponseAction(BaseModel):
+    type: Literal["tool_calls"] = "tool_calls"
+    tool_calls: list[AIToolCall] = Field(min_length=1)
+
+
+type AIResponseAction = Annotated[
+    AIMessageResponseAction | AIToolCallsResponseAction,
+    Field(discriminator="type"),
+]
+
+
+# Reasoning cannot exist without a corresponding action
+class AIResponse(BaseModel):
+    reasoning: str | None = None
+    action: AIResponseAction
+
+
+class AIMessageDelta(BaseModel):
+    type: Literal["message.delta"] = "message.delta"
+    content: str
+
+
+class AIReasoningDelta(BaseModel):
+    type: Literal["reasoning.delta"] = "reasoning.delta"
+    content: str
+
+
+class AIToolCallEvent(BaseModel):
+    type: Literal["tool_call"] = "tool_call"
+    tool_call: AIToolCall
+
+
+type AIResponseEvent = Annotated[
+    AIMessageDelta | AIReasoningDelta | AIToolCallEvent,
+    Field(discriminator="type"),
+]
+
+
 @dataclass(frozen=True, slots=True)
 class GenerationOptions:
     model: str
     temperature: float | None = None
     max_tokens: int | None = None
+    reasoning_effort: ReasoningEffort = ReasoningEffort.NONE

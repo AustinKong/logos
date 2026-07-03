@@ -3,7 +3,7 @@ from typing import TypeVar
 
 from pydantic import BaseModel
 
-from api.modules.ai.models import AIMessage, AIModel, GenerationOptions
+from api.modules.ai.models import AIMessage, AIModel, AIResponse, AIResponseEvent, GenerationOptions
 from api.modules.ai.resolver import AIProviderResolver
 
 GeneratedObject = TypeVar("GeneratedObject", bound=BaseModel)
@@ -13,23 +13,23 @@ class AIService:
     def __init__(self, provider_resolver: AIProviderResolver) -> None:
         self._provider_resolver = provider_resolver
 
-    async def generate_text(
+    async def generate_response(
         self,
         *,
         messages: Sequence[AIMessage],
         options: GenerationOptions,
-    ) -> str:
+    ) -> AIResponse:
         provider = self._provider_resolver.resolve(options.model)
-        return await provider.generate_text(messages=messages, options=options)
+        return await provider.generate_response(messages=messages, options=options)
 
-    async def stream_text(
+    async def stream_response(
         self,
         *,
         messages: Sequence[AIMessage],
         options: GenerationOptions,
-    ) -> AsyncIterable[str]:
+    ) -> AsyncIterable[AIResponseEvent]:
         provider = self._provider_resolver.resolve(options.model)
-        return await provider.stream_text(messages=messages, options=options)
+        return await provider.stream_response(messages=messages, options=options)
 
     async def generate_object(
         self,

@@ -4,6 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from api.modules.ai.models import ReasoningEffort
 from api.modules.session_configs.models.participants import ParticipantType
 
 
@@ -27,6 +28,10 @@ class AgentParticipantCreate(BaseModel):
         min_length=1,
         title="System prompt",
         description="Instructions that shape how this participant behaves.",
+    )
+    reasoning_effort: ReasoningEffort = Field(
+        title="Reasoning effort",
+        description="Model reasoning effort used for this participant's responses.",
     )
 
 
@@ -57,6 +62,7 @@ class AgentParticipantRead(BaseModel):
     updated_at: datetime
     model: str
     system_prompt: str
+    reasoning_effort: ReasoningEffort
 
 
 class UserParticipantRead(BaseModel):

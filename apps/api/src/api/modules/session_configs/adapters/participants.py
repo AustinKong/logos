@@ -24,6 +24,7 @@ def participant_data_from_create(participant: ParticipantCreate) -> ParticipantD
                 name=participant.name,
                 model=participant.model,
                 system_prompt=participant.system_prompt,
+                reasoning_effort=participant.reasoning_effort,
             )
         case UserParticipantCreate():
             return UserParticipantData(name=participant.name)
@@ -41,6 +42,7 @@ def participant_read_from_participant(participant: Participant) -> ParticipantRe
                 updated_at=participant.updated_at,
                 model=participant.model,
                 system_prompt=participant.system_prompt,
+                reasoning_effort=participant.reasoning_effort,
             )
         case UserParticipant():
             return UserParticipantRead(

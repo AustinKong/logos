@@ -35,6 +35,18 @@ class MessageCompletedEventRead(EventReadBase):
     content: str
 
 
+class ReasoningStartedEventRead(EventReadBase):
+    type: Literal[EventType.REASONING_STARTED]
+    reasoning_id: UUID
+    sender: ParticipantRead
+
+
+class ReasoningCompletedEventRead(EventReadBase):
+    type: Literal[EventType.REASONING_COMPLETED]
+    reasoning_id: UUID
+    content: str
+
+
 class ParticipantVoteEventRead(EventReadBase):
     type: Literal[EventType.PARTICIPANT_VOTE]
     voter: ParticipantRead
@@ -57,6 +69,8 @@ type EventRead = Annotated[
     | SessionCompletedEventRead
     | MessageStartedEventRead
     | MessageCompletedEventRead
+    | ReasoningStartedEventRead
+    | ReasoningCompletedEventRead
     | ParticipantVoteEventRead
     | ParticipantRemovedEventRead
     | ResolutionCreatedEventRead,

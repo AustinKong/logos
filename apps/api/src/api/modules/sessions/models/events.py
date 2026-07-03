@@ -17,6 +17,8 @@ class EventType(StrEnum):
     SESSION_COMPLETED = "session.completed"
     MESSAGE_STARTED = "message.started"
     MESSAGE_COMPLETED = "message.completed"
+    REASONING_STARTED = "reasoning.started"
+    REASONING_COMPLETED = "reasoning.completed"
     PARTICIPANT_VOTE = "participant.vote"
     PARTICIPANT_REMOVED = "participant.removed"
     RESOLUTION_CREATED = "resolution.created"
@@ -81,6 +83,32 @@ class MessageCompletedEvent(Event):
 
     __mapper_args__ = {
         "polymorphic_identity": EventType.MESSAGE_COMPLETED,
+    }
+
+
+class ReasoningStartedEvent(Event):
+    __tablename__ = "reasoning_started_events"
+
+    id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), primary_key=True)
+    reasoning_id: Mapped[UUID] = mapped_column(index=True, unique=True)
+    sender_id: Mapped[UUID] = mapped_column(ForeignKey("participants.id"), index=True)
+
+    sender: Mapped[Participant] = relationship(Participant, foreign_keys=[sender_id], lazy="joined")
+
+    __mapper_args__ = {
+        "polymorphic_identity": EventType.REASONING_STARTED,
+    }
+
+
+class ReasoningCompletedEvent(Event):
+    __tablename__ = "reasoning_completed_events"
+
+    id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), primary_key=True)
+    reasoning_id: Mapped[UUID] = mapped_column(index=True, unique=True)
+    content: Mapped[str] = mapped_column(Text)
+
+    __mapper_args__ = {
+        "polymorphic_identity": EventType.REASONING_COMPLETED,
     }
 
 

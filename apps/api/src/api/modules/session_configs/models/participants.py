@@ -11,6 +11,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from api.db.base import Base
 from api.db.mixins import TimestampMixin, UUIDMixin
 from api.db.types import ShortString
+from api.modules.ai.models import ReasoningEffort
 
 
 class ParticipantType(StrEnum):
@@ -23,6 +24,7 @@ class AgentParticipantData:
     name: str
     model: str
     system_prompt: str
+    reasoning_effort: ReasoningEffort
     type: ParticipantType = ParticipantType.AGENT
 
 
@@ -62,6 +64,13 @@ class AgentParticipant(Participant):
     id: Mapped[UUID] = mapped_column(ForeignKey("participants.id"), primary_key=True)
     model: Mapped[str] = mapped_column(ShortString)
     system_prompt: Mapped[str] = mapped_column(Text)
+    reasoning_effort: Mapped[ReasoningEffort] = mapped_column(
+        SQLAlchemyEnum(
+            ReasoningEffort,
+            name="reasoning_effort",
+            values_callable=lambda enum: [item.value for item in enum],
+        ),
+    )
 
     __mapper_args__ = {
         "polymorphic_identity": ParticipantType.AGENT,

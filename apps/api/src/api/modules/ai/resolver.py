@@ -11,15 +11,15 @@ class AIProviderResolver:
         self._settings = settings
 
     def resolve(self, model: str) -> AIProvider:
-        prefix = _parse_model_prefix(model)
-        # In future (if/when we drop LiteLLM), route to different providers based on prefix here.
-        return LiteLLMProvider(self._get_api_key(prefix=prefix))
+        provider = _parse_model_provider(model)
+        # In future (if/when we drop LiteLLM), route to different providers here.
+        return LiteLLMProvider(self._get_api_key(provider=provider))
 
     def list_available_models(self) -> list[AIModel]:
         available: list[AIModel] = []
         for model in AI_MODEL_CATALOG:
             try:
-                self._get_api_key(prefix=model.provider)
+                self._get_api_key(provider=model.provider)
             except AIProviderMismatchError:
                 continue
 
@@ -27,9 +27,9 @@ class AIProviderResolver:
 
         return available
 
-    def _get_api_key(self, prefix: AIProviderName) -> str:
+    def _get_api_key(self, provider: AIProviderName) -> str:
         api_keys = self._settings.ai.api_keys
-        match prefix:
+        match provider:
             case AIProviderName.OPENAI:
                 api_key = api_keys.openai
             case AIProviderName.ANTHROPIC:
@@ -40,14 +40,14 @@ class AIProviderResolver:
                 api_key = api_keys.deepseek
 
         if not api_key:
-            raise AIProviderMismatchError(f"AI provider API key is not configured for model prefix: {prefix.value}")
+            raise AIProviderMismatchError(f"AI provider API key is not configured for provider: {provider.value}")
 
         return api_key
 
 
-def _parse_model_prefix(model: str) -> AIProviderName:
-    prefix = model.split("/", maxsplit=1)[0]
+def _parse_model_provider(model: str) -> AIProviderName:
+    provider = model.split("/", maxsplit=1)[0]
     try:
-        return AIProviderName(prefix)
+        return AIProviderName(provider)
     except ValueError as exc:
-        raise AIProviderMismatchError(f"AI model provider prefix is not supported: {prefix}") from exc
+        raise AIProviderMismatchError(f"AI model provider is not supported: {provider}") from exc

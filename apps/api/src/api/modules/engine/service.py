@@ -6,6 +6,8 @@ from api.modules.sessions.models.events import (
     Event,
     MessageCompletedEvent,
     MessageStartedEvent,
+    ReasoningCompletedEvent,
+    ReasoningStartedEvent,
     SessionCompletedEvent,
     SessionStartedEvent,
 )
@@ -51,6 +53,8 @@ class EngineService:
                 await self._streaming_service.open(SESSION_EVENT_STREAM, event.session_id)
             case MessageStartedEvent():
                 await self._streaming_service.open(TOKEN_STREAM, event.message_id)
+            case ReasoningStartedEvent():
+                await self._streaming_service.open(TOKEN_STREAM, event.reasoning_id)
             case _:
                 return
 
@@ -60,6 +64,8 @@ class EngineService:
                 await self._streaming_service.close(SESSION_EVENT_STREAM, event.session_id)
             case MessageCompletedEvent():
                 await self._streaming_service.close(TOKEN_STREAM, event.message_id)
+            case ReasoningCompletedEvent():
+                await self._streaming_service.close(TOKEN_STREAM, event.reasoning_id)
             case _:
                 return
 
