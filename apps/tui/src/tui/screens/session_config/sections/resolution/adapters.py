@@ -9,7 +9,7 @@ from api_client.models import (
 from textual.widgets import Select
 
 from tui.screens.session_config.errors import SessionConfigValidationError
-from tui.screens.session_config.sections.resolution.state import (
+from tui.screens.session_config.sections.resolution.models import (
     JudgeResolutionFormState,
     NoneResolutionFormState,
     ResolutionFormState,

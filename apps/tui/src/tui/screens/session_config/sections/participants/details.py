@@ -7,15 +7,15 @@ from textual.containers import VerticalScroll
 from textual.widgets import ContentSwitcher, Input, Select
 
 from tui.screens.session_config.sections.participants.messages import ParticipantNameChanged
-from tui.screens.session_config.sections.participants.modes.agent import AgentParticipantFields
-from tui.screens.session_config.sections.participants.modes.user import UserParticipantFields
-from tui.screens.session_config.sections.participants.state import (
+from tui.screens.session_config.sections.participants.models import (
     AgentParticipantFormState,
     ParticipantFormState,
     UserParticipantFormState,
     agent_participant_form_state,
     user_participant_form_state,
 )
+from tui.screens.session_config.sections.participants.modes.agent import AgentParticipantFields
+from tui.screens.session_config.sections.participants.modes.user import UserParticipantFields
 from tui.screens.session_config.sections.state import state_or_default
 from tui.shared.textual import on
 from tui.widgets.forms.select_field import SelectField, SelectOption

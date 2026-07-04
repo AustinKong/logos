@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from sqlalchemy import JSON, Text
+from sqlalchemy import JSON, Integer, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from api.db.base import Base
@@ -10,7 +10,7 @@ from api.db.mixins import TimestampMixin, UUIDMixin
 from api.modules.session_configs.models.participants import Participant
 from api.modules.strategies.history.configs import HISTORY_CONFIG_ADAPTER, HistoryConfig
 from api.modules.strategies.resolution.configs import RESOLUTION_CONFIG_ADAPTER, ResolutionConfig
-from api.modules.strategies.turn_selection.configs import TurnSelectionConfig
+from api.modules.strategies.turn_selection.configs import TURN_SELECTION_CONFIG_ADAPTER, TurnSelectionConfig
 from api.modules.strategies.validation.configs import ValidationConfig
 
 
@@ -18,6 +18,7 @@ class SessionConfig(UUIDMixin, TimestampMixin, Base):
     __tablename__ = "session_configs"
 
     prompt: Mapped[str] = mapped_column(Text)
+    seed: Mapped[int] = mapped_column(Integer, nullable=False)
     _turn_selection_config: Mapped[dict[str, Any]] = mapped_column("turn_selection_config", JSON, nullable=False)
     _history_config: Mapped[dict[str, Any]] = mapped_column("history_config", JSON, nullable=False)
     _validation_config: Mapped[dict[str, Any]] = mapped_column("validation_config", JSON, nullable=False)
@@ -31,7 +32,7 @@ class SessionConfig(UUIDMixin, TimestampMixin, Base):
 
     @property
     def turn_selection_config(self) -> TurnSelectionConfig:
-        return TurnSelectionConfig.model_validate(self._turn_selection_config)
+        return TURN_SELECTION_CONFIG_ADAPTER.validate_python(self._turn_selection_config)
 
     @turn_selection_config.setter
     def turn_selection_config(self, config: TurnSelectionConfig) -> None:

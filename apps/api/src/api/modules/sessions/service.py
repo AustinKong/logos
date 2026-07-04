@@ -33,6 +33,7 @@ class SessionService:
         self,
         *,
         prompt: str,
+        seed: int | None,
         agents: list[ParticipantData],
         turn_selection: TurnSelectionConfig,
         history: HistoryConfig,
@@ -41,6 +42,7 @@ class SessionService:
     ) -> Session:
         config = self._session_config_service.create_config(
             prompt=prompt,
+            seed=seed,
             participants=agents,
             turn_selection=turn_selection,
             history=history,

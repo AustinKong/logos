@@ -5,7 +5,7 @@ from tui.screens.session_config.sections.participants.messages import (
     NewParticipant,
     RemoveParticipant,
 )
-from tui.screens.session_config.sections.participants.state import ParticipantsFormState
+from tui.screens.session_config.sections.participants.models import ParticipantsFormState
 
 
 class ParticipantsTable(DataTable[str]):

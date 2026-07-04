@@ -6,7 +6,7 @@ from textual.app import ComposeResult
 from textual.containers import Container
 from textual.widgets import Input, Select, TextArea
 
-from tui.screens.session_config.sections.participants.state import AgentParticipantFormState
+from tui.screens.session_config.sections.participants.models import AgentParticipantFormState
 from tui.screens.session_config.sections.state import SelectValue
 from tui.shared.textual import on
 from tui.widgets.forms.field import field

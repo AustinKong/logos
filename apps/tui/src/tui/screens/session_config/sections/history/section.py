@@ -6,12 +6,12 @@ from textual.app import ComposeResult
 from textual.containers import Container, VerticalScroll
 from textual.widgets import ContentSwitcher, Select
 
-from tui.screens.session_config.sections.history.modes.sliding_window import SlidingWindowHistoryFields
-from tui.screens.session_config.sections.history.state import (
+from tui.screens.session_config.sections.history.models import (
     FullHistoryFormState,
     HistoryFormState,
     SlidingWindowHistoryFormState,
 )
+from tui.screens.session_config.sections.history.modes.sliding_window import SlidingWindowHistoryFields
 from tui.screens.session_config.sections.state import state_or_default
 from tui.shared.textual import on
 from tui.widgets.forms.select_field import SelectField, SelectOption

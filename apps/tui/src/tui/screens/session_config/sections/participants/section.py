@@ -10,7 +10,7 @@ from tui.screens.session_config.sections.participants.messages import (
     ParticipantNameChanged,
     RemoveParticipant,
 )
-from tui.screens.session_config.sections.participants.state import (
+from tui.screens.session_config.sections.participants.models import (
     ParticipantFormState,
     ParticipantsFormState,
     agent_participant_form_state,

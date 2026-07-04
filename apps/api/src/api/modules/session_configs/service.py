@@ -1,3 +1,4 @@
+import secrets
 from typing import assert_never
 from uuid import UUID
 
@@ -28,6 +29,7 @@ from api.modules.strategies.turn_selection.configs import RoundRobinTurnSelectio
 from api.modules.strategies.validation.configs import AllowAllValidationConfig, ValidationConfig
 
 DEFAULT_PROMPT = "Evaluate the best architecture for a terminal-first multi-agent debate workflow."
+MAX_SEED = 2**63 - 1
 
 
 class SessionConfigService:
@@ -44,6 +46,7 @@ class SessionConfigService:
             config = self.create_config(
                 id=DEFAULT_SESSION_CONFIG_ID,
                 prompt=DEFAULT_PROMPT,
+                seed=None,
                 participants=[
                     AgentParticipantData(
                         name="Analyst",
@@ -87,6 +90,7 @@ class SessionConfigService:
         self,
         *,
         prompt: str,
+        seed: int | None,
         participants: list[ParticipantData],
         turn_selection: TurnSelectionConfig,
         history: HistoryConfig,
@@ -104,8 +108,12 @@ class SessionConfigService:
                 if participant.reasoning_effort is not ReasoningEffort.NONE and not model.supports_reasoning:
                     raise UnsupportedReasoningModelError()
 
+        if not seed:
+            seed = secrets.randbelow(MAX_SEED + 1)
+
         config = SessionConfig(
             prompt=prompt,
+            seed=seed,
             turn_selection_config=turn_selection,
             history_config=history,
             validation_config=validation,

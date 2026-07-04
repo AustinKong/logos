@@ -14,24 +14,31 @@ from api.modules.strategies.resolution.configs import (
 from api.modules.strategies.resolution.judge import JudgeResolutionStrategy
 from api.modules.strategies.resolution.none import NoneResolutionStrategy
 from api.modules.strategies.turn_selection.base import TurnSelectionStrategy
-from api.modules.strategies.turn_selection.configs import TurnSelectionMode
+from api.modules.strategies.turn_selection.configs import (
+    RoundRobinTurnSelectionConfig,
+    ShuffledTurnSelectionConfig,
+)
 from api.modules.strategies.turn_selection.round_robin import RoundRobinTurnSelectionStrategy
+from api.modules.strategies.turn_selection.shuffled import ShuffledTurnSelectionStrategy
 from api.modules.strategies.validation.allow_all import AllowAllValidationStrategy
 from api.modules.strategies.validation.base import ValidationStrategy
 from api.modules.strategies.validation.configs import ValidationMode
 
 
+# TODO: Sometimes we just use ctx, other things we feed config in constructor. Lets standardize
 class StrategyResolver:
     def __init__(self, *, ai_service: AIService) -> None:
         self._ai_service = ai_service
 
     def turn_selection(self, session: Session) -> TurnSelectionStrategy:
         config = session.config.turn_selection_config
-        match config.mode:
-            case TurnSelectionMode.ROUND_ROBIN:
+        match config:
+            case RoundRobinTurnSelectionConfig():
                 return RoundRobinTurnSelectionStrategy()
-        # TODO: Custom error for these
-        raise ValueError(f"Unsupported turn selection mode: {config.mode}")
+            case ShuffledTurnSelectionConfig():
+                return ShuffledTurnSelectionStrategy()
+            case _ as never:
+                assert_never(never)
 
     def history(self, session: Session) -> HistoryStrategy:
         config = session.config.history_config
@@ -40,14 +47,16 @@ class StrategyResolver:
                 return FullHistoryStrategy()
             case HistoryMode.SLIDING_WINDOW:
                 return SlidingWindowHistoryStrategy(config=config)
-        raise ValueError(f"Unsupported history mode: {config.mode}")
+            case _ as never:
+                assert_never(never)
 
     def validation(self, session: Session) -> ValidationStrategy:
         config = session.config.validation_config
         match config.mode:
             case ValidationMode.ALLOW_ALL:
                 return AllowAllValidationStrategy()
-        raise ValueError(f"Unsupported validation mode: {config.mode}")
+            case _ as never:
+                assert_never(never)
 
     def resolution(self, session: Session) -> ResolutionStrategy:
         config = session.config.resolution_config

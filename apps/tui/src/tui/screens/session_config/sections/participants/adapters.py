@@ -11,7 +11,7 @@ from api_client.models import (
 from textual.widgets import Select
 
 from tui.screens.session_config.errors import SessionConfigValidationError
-from tui.screens.session_config.sections.participants.state import (
+from tui.screens.session_config.sections.participants.models import (
     AgentParticipantFormState,
     ParticipantFormState,
     ParticipantsFormState,

@@ -1088,6 +1088,32 @@
         ],
         "title": "ResolutionCreatedEventRead"
       },
+      "RoundRobinTurnSelectionConfigCreate": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "const": "round_robin",
+            "title": "Round robin",
+            "description": "Give each participant a turn in sequence.",
+            "default": "round_robin"
+          }
+        },
+        "type": "object",
+        "title": "RoundRobinTurnSelectionConfigCreate"
+      },
+      "RoundRobinTurnSelectionConfigRead": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "const": "round_robin",
+            "title": "Round robin",
+            "description": "Give each participant a turn in sequence.",
+            "default": "round_robin"
+          }
+        },
+        "type": "object",
+        "title": "RoundRobinTurnSelectionConfigRead"
+      },
       "SessionCompletedEventRead": {
         "properties": {
           "id": {
@@ -1128,6 +1154,18 @@
             "title": "Session prompt",
             "description": "Prompt that defines the session topic and instructions for participants."
           },
+          "seed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seed",
+            "description": "Optional deterministic seed for random app behavior. Leave blank to generate one."
+          },
           "participants": {
             "items": {
               "$ref": "#/components/schemas/ParticipantCreate"
@@ -1152,6 +1190,7 @@
         "type": "object",
         "required": [
           "prompt",
+          "seed",
           "participants",
           "turn_selection",
           "history",
@@ -1170,6 +1209,10 @@
           "prompt": {
             "type": "string",
             "title": "Prompt"
+          },
+          "seed": {
+            "type": "integer",
+            "title": "Seed"
           },
           "created_at": {
             "type": "string",
@@ -1205,6 +1248,7 @@
         "required": [
           "id",
           "prompt",
+          "seed",
           "created_at",
           "updated_at",
           "participants",
@@ -1327,6 +1371,32 @@
         ],
         "title": "SessionSummaryRead"
       },
+      "ShuffledTurnSelectionConfigCreate": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "const": "shuffled",
+            "title": "Shuffled",
+            "description": "Give each participant one turn in a deterministic seeded random order.",
+            "default": "shuffled"
+          }
+        },
+        "type": "object",
+        "title": "ShuffledTurnSelectionConfigCreate"
+      },
+      "ShuffledTurnSelectionConfigRead": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "const": "shuffled",
+            "title": "Shuffled",
+            "description": "Give each participant one turn in a deterministic seeded random order.",
+            "default": "shuffled"
+          }
+        },
+        "type": "object",
+        "title": "ShuffledTurnSelectionConfigRead"
+      },
       "SlidingWindowHistoryConfigCreate": {
         "properties": {
           "mode": {
@@ -1368,33 +1438,38 @@
         "title": "SlidingWindowHistoryConfigRead"
       },
       "TurnSelectionConfigCreate": {
-        "properties": {
-          "mode": {
-            "$ref": "#/components/schemas/TurnSelectionMode",
-            "title": "Round robin",
-            "description": "Give each participant a turn in sequence."
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/RoundRobinTurnSelectionConfigCreate"
+          },
+          {
+            "$ref": "#/components/schemas/ShuffledTurnSelectionConfigCreate"
           }
-        },
-        "type": "object",
-        "required": ["mode"],
-        "title": "TurnSelectionConfigCreate"
+        ],
+        "discriminator": {
+          "propertyName": "mode",
+          "mapping": {
+            "round_robin": "#/components/schemas/RoundRobinTurnSelectionConfigCreate",
+            "shuffled": "#/components/schemas/ShuffledTurnSelectionConfigCreate"
+          }
+        }
       },
       "TurnSelectionConfigRead": {
-        "properties": {
-          "mode": {
-            "$ref": "#/components/schemas/TurnSelectionMode",
-            "title": "Round robin",
-            "description": "Give each participant a turn in sequence."
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/RoundRobinTurnSelectionConfigRead"
+          },
+          {
+            "$ref": "#/components/schemas/ShuffledTurnSelectionConfigRead"
           }
-        },
-        "type": "object",
-        "required": ["mode"],
-        "title": "TurnSelectionConfigRead"
-      },
-      "TurnSelectionMode": {
-        "type": "string",
-        "enum": ["round_robin"],
-        "title": "TurnSelectionMode"
+        ],
+        "discriminator": {
+          "propertyName": "mode",
+          "mapping": {
+            "round_robin": "#/components/schemas/RoundRobinTurnSelectionConfigRead",
+            "shuffled": "#/components/schemas/ShuffledTurnSelectionConfigRead"
+          }
+        }
       },
       "UserParticipantCreate": {
         "properties": {

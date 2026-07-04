@@ -6,7 +6,7 @@ from textual.app import ComposeResult
 from textual.containers import Container
 from textual.widgets import Input, Select
 
-from tui.screens.session_config.sections.resolution.state import JudgeResolutionFormState
+from tui.screens.session_config.sections.resolution.models import JudgeResolutionFormState
 from tui.screens.session_config.sections.state import SelectValue
 from tui.widgets.forms.field import field
 

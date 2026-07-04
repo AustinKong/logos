@@ -1,3 +1,0 @@
-from api_client.models import TurnSelectionConfigRead
-
-type TurnSelectionFormState = TurnSelectionConfigRead

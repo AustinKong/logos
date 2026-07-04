@@ -76,7 +76,7 @@ class SessionConfigModal(BaseModalScreen[SessionRead | None]):
                 form_state = form_state_from_session_read(session)
             else:
                 default_config = await self._controller.get_default_config()
-                form_state = form_state_from_config_read(default_config)
+                form_state = form_state_from_config_read(default_config, blank_seed=True)
         except Exception as exc:
             self.notify(str(exc), title="Failed to load session config", severity="error")
             self.content_loading = False

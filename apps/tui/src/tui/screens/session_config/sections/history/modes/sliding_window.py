@@ -3,7 +3,7 @@ from textual.app import ComposeResult
 from textual.containers import Container
 from textual.widgets import Input
 
-from tui.screens.session_config.sections.history.state import SlidingWindowHistoryFormState
+from tui.screens.session_config.sections.history.models import SlidingWindowHistoryFormState
 from tui.widgets.forms.field import field
 
 

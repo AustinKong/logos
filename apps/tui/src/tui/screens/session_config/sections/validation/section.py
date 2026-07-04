@@ -6,7 +6,7 @@ from textual.app import ComposeResult
 from textual.containers import VerticalScroll
 from textual.widgets import Select
 
-from tui.screens.session_config.sections.validation.state import ValidationFormState
+from tui.screens.session_config.sections.validation.models import ValidationFormState
 from tui.widgets.forms.select_field import SelectField, SelectOption
 
 VALIDATION_MODE_OPTIONS = [

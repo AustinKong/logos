@@ -13,6 +13,7 @@ def session_config_read_from_config(config: SessionConfig) -> SessionConfigRead:
     return SessionConfigRead(
         id=config.id,
         prompt=config.prompt,
+        seed=config.seed,
         created_at=config.created_at,
         updated_at=config.updated_at,
         participants=[participant_read_from_participant(participant) for participant in config.participants],

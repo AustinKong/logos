@@ -40,6 +40,7 @@ def create_session(
     config = payload.config
     session = service.create_session(
         prompt=config.prompt,
+        seed=config.seed,
         agents=[participant_data_from_create(participant) for participant in config.participants],
         turn_selection=turn_selection_config_from_create(config.turn_selection),
         history=history_config_from_create(config.history),

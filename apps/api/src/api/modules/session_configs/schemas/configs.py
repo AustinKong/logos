@@ -8,18 +8,35 @@ from api.modules.strategies.turn_selection.configs import TurnSelectionMode
 from api.modules.strategies.validation.configs import ValidationMode
 
 
-class TurnSelectionConfigBase(BaseModel):
-    mode: TurnSelectionMode = Field(
+class RoundRobinTurnSelectionConfigBase(BaseModel):
+    mode: Literal[TurnSelectionMode.ROUND_ROBIN] = Field(
+        TurnSelectionMode.ROUND_ROBIN,
         title="Round robin",
         description="Give each participant a turn in sequence.",
     )
 
 
-class TurnSelectionConfigCreate(TurnSelectionConfigBase):
+class RoundRobinTurnSelectionConfigCreate(RoundRobinTurnSelectionConfigBase):
     pass
 
 
-class TurnSelectionConfigRead(TurnSelectionConfigBase):
+class RoundRobinTurnSelectionConfigRead(RoundRobinTurnSelectionConfigBase):
+    pass
+
+
+class ShuffledTurnSelectionConfigBase(BaseModel):
+    mode: Literal[TurnSelectionMode.SHUFFLED] = Field(
+        TurnSelectionMode.SHUFFLED,
+        title="Shuffled",
+        description="Give each participant one turn in a deterministic seeded random order.",
+    )
+
+
+class ShuffledTurnSelectionConfigCreate(ShuffledTurnSelectionConfigBase):
+    pass
+
+
+class ShuffledTurnSelectionConfigRead(ShuffledTurnSelectionConfigBase):
     pass
 
 
@@ -133,5 +150,15 @@ type HistoryConfigCreate = Annotated[
 
 type HistoryConfigRead = Annotated[
     FullHistoryConfigRead | SlidingWindowHistoryConfigRead,
+    Field(discriminator="mode"),
+]
+
+type TurnSelectionConfigCreate = Annotated[
+    RoundRobinTurnSelectionConfigCreate | ShuffledTurnSelectionConfigCreate,
+    Field(discriminator="mode"),
+]
+
+type TurnSelectionConfigRead = Annotated[
+    RoundRobinTurnSelectionConfigRead | ShuffledTurnSelectionConfigRead,
     Field(discriminator="mode"),
 ]

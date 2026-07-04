@@ -11,6 +11,10 @@ from api.modules.session_configs.schemas.configs import (
     NoneResolutionConfigRead,
     ResolutionConfigCreate,
     ResolutionConfigRead,
+    RoundRobinTurnSelectionConfigCreate,
+    RoundRobinTurnSelectionConfigRead,
+    ShuffledTurnSelectionConfigCreate,
+    ShuffledTurnSelectionConfigRead,
     SlidingWindowHistoryConfigCreate,
     SlidingWindowHistoryConfigRead,
     TurnSelectionConfigCreate,
@@ -23,14 +27,24 @@ from api.modules.strategies.resolution.configs import (
     JudgeResolutionConfig,
     NoneResolutionConfig,
 )
-from api.modules.strategies.turn_selection.configs import RoundRobinTurnSelectionConfig, TurnSelectionConfig
+from api.modules.strategies.turn_selection.configs import (
+    RoundRobinTurnSelectionConfig,
+    ShuffledTurnSelectionConfig,
+    TurnSelectionConfig,
+)
 from api.modules.strategies.validation.configs import AllowAllValidationConfig, ValidationConfig
 
 
 def turn_selection_config_from_create(
     turn_selection_create: TurnSelectionConfigCreate,
 ) -> TurnSelectionConfig:
-    return RoundRobinTurnSelectionConfig(mode=turn_selection_create.mode)
+    match turn_selection_create:
+        case RoundRobinTurnSelectionConfigCreate():
+            return RoundRobinTurnSelectionConfig(mode=turn_selection_create.mode)
+        case ShuffledTurnSelectionConfigCreate():
+            return ShuffledTurnSelectionConfig(mode=turn_selection_create.mode)
+        case _ as never:
+            assert_never(never)
 
 
 def history_config_from_create(history_create: HistoryConfigCreate) -> HistoryConfig:
@@ -69,7 +83,13 @@ def resolution_config_from_create(
 def turn_selection_config_read_from_config(
     turn_selection_config: TurnSelectionConfig,
 ) -> TurnSelectionConfigRead:
-    return TurnSelectionConfigRead(mode=turn_selection_config.mode)
+    match turn_selection_config:
+        case RoundRobinTurnSelectionConfig():
+            return RoundRobinTurnSelectionConfigRead(mode=turn_selection_config.mode)
+        case ShuffledTurnSelectionConfig():
+            return ShuffledTurnSelectionConfigRead(mode=turn_selection_config.mode)
+        case _ as never:
+            assert_never(never)
 
 
 def history_config_read_from_config(history_config: HistoryConfig) -> HistoryConfigRead:

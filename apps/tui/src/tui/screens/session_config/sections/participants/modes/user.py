@@ -3,7 +3,7 @@ from textual.app import ComposeResult
 from textual.containers import Container
 from textual.widgets import Input
 
-from tui.screens.session_config.sections.participants.state import UserParticipantFormState
+from tui.screens.session_config.sections.participants.models import UserParticipantFormState
 from tui.widgets.forms.field import field
 
 

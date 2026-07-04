@@ -10,7 +10,7 @@ from api_client.models import (
 )
 
 from tui.screens.session_config.errors import SessionConfigValidationError
-from tui.screens.session_config.sections.history.state import (
+from tui.screens.session_config.sections.history.models import (
     FullHistoryFormState,
     HistoryFormState,
     SlidingWindowHistoryFormState,

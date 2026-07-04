@@ -22,6 +22,10 @@ class SessionConfigCreate(BaseModel):
         title="Session prompt",
         description="Prompt that defines the session topic and instructions for participants.",
     )
+    seed: int | None = Field(
+        title="Seed",
+        description="Optional deterministic seed for random app behavior. Leave blank to generate one.",
+    )
     participants: list[ParticipantCreate] = Field(min_length=1)
     turn_selection: TurnSelectionConfigCreate
     history: HistoryConfigCreate
@@ -32,6 +36,7 @@ class SessionConfigCreate(BaseModel):
 class SessionConfigRead(BaseModel):
     id: UUID
     prompt: str
+    seed: int
     created_at: datetime
     updated_at: datetime
     participants: list[ParticipantRead]

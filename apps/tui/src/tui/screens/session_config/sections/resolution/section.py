@@ -6,12 +6,12 @@ from textual.app import ComposeResult
 from textual.containers import Container, VerticalScroll
 from textual.widgets import ContentSwitcher, Select
 
-from tui.screens.session_config.sections.resolution.modes.judge import JudgeResolutionFields
-from tui.screens.session_config.sections.resolution.state import (
+from tui.screens.session_config.sections.resolution.models import (
     JudgeResolutionFormState,
     NoneResolutionFormState,
     ResolutionFormState,
 )
+from tui.screens.session_config.sections.resolution.modes.judge import JudgeResolutionFields
 from tui.screens.session_config.sections.state import state_or_default
 from tui.shared.textual import on
 from tui.widgets.forms.select_field import SelectField, SelectOption

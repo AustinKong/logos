@@ -4,15 +4,15 @@ from textual.containers import Container
 from textual.widgets import TabbedContent, TabPane
 
 from tui.screens.session_config.models import ConfigSection, SessionConfigFormState
+from tui.screens.session_config.sections.general.section import GeneralSection
 from tui.screens.session_config.sections.history.section import HistorySection
 from tui.screens.session_config.sections.participants.section import ParticipantsSection
-from tui.screens.session_config.sections.prompt.section import PromptSection
 from tui.screens.session_config.sections.resolution.section import ResolutionSection
 from tui.screens.session_config.sections.turn_selection.section import TurnSelectionSection
 from tui.screens.session_config.sections.validation.section import ValidationSection
 
 SECTION_TAB_IDS = {
-    ConfigSection.PROMPT: "prompt",
+    ConfigSection.GENERAL: "general",
     ConfigSection.TURN_SELECTION: "turn-selection",
     ConfigSection.HISTORY: "history",
     ConfigSection.VALIDATION: "validation",
@@ -57,11 +57,11 @@ class SectionEditor(Container):
         self._read_only = read_only
 
     def compose(self) -> ComposeResult:
-        with TabbedContent(initial=SECTION_TAB_IDS[ConfigSection.PROMPT], id="section-tabs"):
+        with TabbedContent(initial=SECTION_TAB_IDS[ConfigSection.GENERAL], id="section-tabs"):
             yield TabPane(
-                "Prompt",
-                PromptSection(initial_state=self._form_state.prompt, read_only=self._read_only),
-                id=SECTION_TAB_IDS[ConfigSection.PROMPT],
+                "General",
+                GeneralSection(initial_state=self._form_state.general, read_only=self._read_only),
+                id=SECTION_TAB_IDS[ConfigSection.GENERAL],
             )
             yield TabPane(
                 "Turn Selection",
@@ -99,7 +99,7 @@ class SectionEditor(Container):
 
     def form_state(self) -> SessionConfigFormState:
         return SessionConfigFormState(
-            prompt=self.query_one(PromptSection).form_state(),
+            general=self.query_one(GeneralSection).form_state(),
             participants=self.query_one(ParticipantsSection).form_state(),
             turn_selection=self.query_one(TurnSelectionSection).form_state(),
             history=self.query_one(HistorySection).form_state(),
