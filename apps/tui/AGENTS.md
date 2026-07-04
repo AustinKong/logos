@@ -81,6 +81,10 @@ Widgets should stay presentational when practical. They should receive plain dat
 
 Prefer widget-scoped `DEFAULT_CSS` for Textual styling. If a screen's CSS becomes very large, move it into a colocated `styles.tcss` file for that screen.
 
+Use a tiny global text convention instead of introducing wrapper widgets by default. Use `.label` for short structural labels such as field labels, key/value labels, and table-like labels; it should be bold and use the main text color. Use `.muted` for helper text, timestamps, low-priority metadata, and empty-state hints; it should use `$text-muted` and should not add bold styling. Body text should usually have no class and use the default foreground color. Keep layout-specific classes widget-local, and combine them with these semantic classes when needed, such as `classes="field-label label"` or `classes="field-helper muted"`. Avoid generic variant-like global class names such as `.secondary`, because they can collide with Textual or widget-specific styling.
+
+When a visible border is used as a panel boundary, give the panel a meaningful `border_title` instead of rendering an in-content heading for that same panel. Do not force border titles onto control borders, such as an input composer border, where the border is part of the control rather than a panel container.
+
 Keep API response validation and generated-model adaptation inside loaders/controllers. Screens should receive generated models directly when they are already ergonomic for rendering and state management; otherwise loaders/controllers may adapt responses into TUI-owned models from `models.py`.
 
 When a focused widget has a built-in binding for a key, that widget binding can hide or override a screen-level binding in the Footer. For widgets like `DataTable`, prefer handling the widget event such as `RowSelected` in the screen, and override the widget binding label only when the Footer needs to show app-specific wording.
@@ -98,6 +102,8 @@ Do not defensively catch `NoMatches` around `query_one(...)` for children that t
 Prefer `tui.shared.textual.on` over importing Textual's `on` decorator directly. The TUI wrapper stops message bubbling by default with `stop=True`; pass `stop=False` only when a handler intentionally lets the message continue upward. Decorated message handlers should use descriptive `handle_*` names, such as `handle_judge_model_changed`, instead of Textual's implicit `on_xxx` method names. Keep `on_mount`, `on_unmount`, and other lifecycle hooks as `on_xxx` methods.
 
 When a decorated handler targets a specific widget among multiple controls, use a clear widget ID without incidental prefixes, for example `id="judge-model"` with `@on(Select.Changed, "#judge-model")`. Do not use placeholder prefixes such as `alt-`.
+
+Prefer targeting decorated handlers with an `@on(...)` selector over subscribing broadly and filtering inside the handler with checks like `event.widget.has_class(...)`. Use handler-side filtering only when the condition depends on runtime state that a selector cannot express, such as ignoring events from inactive but still-mounted mode widgets.
 
 Prefer Textual's `@work(...)` decorator for workers instead of calling `run_worker(...)` directly. Call the decorated method from event handlers or lifecycle hooks. Use direct `run_worker(...)` only when worker options must be computed dynamically, such as a group name derived from a runtime id. Worker methods do not need a private underscore prefix just because they are implementation details; prefer readable public-style names for decorated workers.
 

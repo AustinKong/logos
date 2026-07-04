@@ -15,20 +15,7 @@ class Message(Vertical):
     }
 
     Message .message-sender {
-        height: auto;
-        width: 100%;
         text-style: bold;
-    }
-
-    Message .message-content {
-        height: auto;
-        width: 100%;
-    }
-
-    Message .message-time {
-        height: auto;
-        width: 100%;
-        color: $text-secondary
     }
     """
 
@@ -45,11 +32,11 @@ class Message(Vertical):
         sender.styles.color = color_from_id(self._event.sender.id, accent)
         yield sender
 
-        self._content_widget = Static(self._content, classes="message-content")
+        self._content_widget = Static(self._content)
         yield self._content_widget
 
         # TODO: Make this strftime a helper fn
-        yield Static(self._event.created_at.strftime("%H:%M"), classes="message-time")
+        yield Static(self._event.created_at.strftime("%H:%M"), classes="muted")
 
     def append_content(self, content: str) -> None:
         self.set_content(self._content + content)

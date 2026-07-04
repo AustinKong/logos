@@ -29,7 +29,7 @@ class SelectField(Field):
     ) -> None:
         self._descriptions = {option.value: option.description or "" for option in options}
         super().__init__(
-            Label(label, classes="field-label"),
+            Label(label, classes="label"),
             Select(
                 [(option.label, option.value) for option in options],
                 value=value,
@@ -38,7 +38,7 @@ class SelectField(Field):
                 id=select_id,
                 classes=select_classes,
             ),
-            Label(self._descriptions.get(value, ""), classes="field-helper"),
+            Label(self._descriptions.get(value, ""), classes="field-helper muted"),
         )
 
     @on(Select.Changed, stop=False)

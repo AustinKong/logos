@@ -23,14 +23,12 @@ class Reasoning(Vertical):
     Reasoning .reasoning-content {
         height: auto;
         width: 100%;
-        color: $text-secondary;
         text-style: italic;
     }
 
     Reasoning .reasoning-time {
         height: auto;
         width: 100%;
-        color: $text-secondary;
     }
     """
 
@@ -47,10 +45,10 @@ class Reasoning(Vertical):
         sender.styles.color = color_from_id(self._event.sender.id, accent)
         yield sender
 
-        self._content_widget = Static(self._content, classes="reasoning-content")
+        self._content_widget = Static(self._content, classes="reasoning-content muted")
         yield self._content_widget
 
-        yield Static(self._event.created_at.strftime("%H:%M"), classes="reasoning-time")
+        yield Static(self._event.created_at.strftime("%H:%M"), classes="reasoning-time muted")
 
     def append_content(self, content: str) -> None:
         self.set_content(self._content + content)

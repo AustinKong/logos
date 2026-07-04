@@ -21,16 +21,14 @@ class SessionInfo(Vertical):
         width: 100%;
     }
 
-    SessionInfo .session-info-text {
+    SessionInfo .session-info-block-label {
         height: auto;
         width: 100%;
-    }
-
-    SessionInfo .session-info-list {
-        height: auto;
-        width: 100%;
+        margin: 1 0 0 0;
     }
     """
+
+    BORDER_TITLE = "Overview"
 
     session = reactive[SessionSummaryRead | None](None)
 
@@ -42,7 +40,6 @@ class SessionInfo(Vertical):
     session_participants = getters.query_one("#session-info-participants", Static)
 
     def compose(self) -> ComposeResult:
-        yield Label("Overview", classes="section-label first")
         yield Grid(
             Label("ID", classes="label"),
             Static("No session selected", id="session-info-id"),
@@ -54,14 +51,13 @@ class SessionInfo(Vertical):
             Static("-", id="session-info-status"),
             classes="session-info-grid",
         )
-        yield Label("Prompt", classes="section-label")
+        yield Label("Prompt", classes="session-info-block-label label")
         yield Static(
             "Select a session to inspect its prompt and participants.",
             id="session-info-prompt",
-            classes="session-info-text",
         )
-        yield Label("Participants", classes="section-label")
-        yield Static("-", id="session-info-participants", classes="session-info-list")
+        yield Label("Participants", classes="session-info-block-label label")
+        yield Static("-", id="session-info-participants")
 
     def watch_session(self, session: SessionSummaryRead | None) -> None:
         self._render_session(session)

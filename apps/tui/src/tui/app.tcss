@@ -9,22 +9,13 @@
     padding: 0 1;
 }
 
-/* TODO: Remove these */
 .label {
     text-style: bold;
-    color: $text-secondary;
+    color: $text;
 }
 
-.section-label {
-    height: auto;
-    width: 100%;
-    margin: 1 0 0 0;
-    text-style: bold;
-    color: $primary;
-}
-
-.section-label.first {
-    margin-top: 0;
+.muted {
+    color: $text-muted;
 }
 
 Input {

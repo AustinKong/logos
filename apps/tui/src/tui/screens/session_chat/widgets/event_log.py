@@ -24,6 +24,8 @@ class EventLog(VerticalScroll):
     }
     """
 
+    BORDER_TITLE = "Events"
+
     def __init__(
         self,
     ) -> None:

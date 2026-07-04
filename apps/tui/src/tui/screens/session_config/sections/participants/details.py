@@ -101,12 +101,8 @@ class ParticipantDetails(VerticalScroll):
             classes="participant-fields",
         )
 
-    # TODO: Change to target class directly. like session_configs -> participants -> modes.py
-    @on(Select.Changed)
+    @on(Select.Changed, ".participant-role")
     def handle_participant_role_changed(self, event: Select.Changed) -> None:
-        if not event.select.has_class("participant-role"):
-            return
-
         participant_type = cast(ParticipantType, event.value)
         switcher = self.query_one(".participant-fields", ContentSwitcher)
         switcher.current = self._content_id(participant_type)

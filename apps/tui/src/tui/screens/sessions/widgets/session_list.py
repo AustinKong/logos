@@ -20,6 +20,8 @@ class SessionList(DataTable[str]):
     }
     """
 
+    BORDER_TITLE = "Sessions"
+
     BINDINGS = [
         Binding("enter", "select_cursor", "Open Session", key_display="Enter", show=True),
     ]
