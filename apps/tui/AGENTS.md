@@ -87,6 +87,8 @@ When a visible border is used as a panel boundary, give the panel a meaningful `
 
 Keep API response validation and generated-model adaptation inside loaders/controllers. Screens should receive generated models directly when they are already ergonomic for rendering and state management; otherwise loaders/controllers may adapt responses into TUI-owned models from `models.py`.
 
+When adapting discriminated unions or dispatching across two or more concrete generated model/state classes, prefer `match` over repeated `isinstance(...)` branches. Add a `case _ as never: assert_never(never)` fallback for closed unions so adding a new branch fails loudly instead of falling through. Single `isinstance(...)` type guards are fine when there is only one branch.
+
 When a focused widget has a built-in binding for a key, that widget binding can hide or override a screen-level binding in the Footer. For widgets like `DataTable`, prefer handling the widget event such as `RowSelected` in the screen, and override the widget binding label only when the Footer needs to show app-specific wording.
 
 Use `can_focus` deliberately. Container widgets that exist only for layout should usually set `can_focus = False` so keyboard focus lands on meaningful controls, while interactive widgets and panes that need direct keyboard handling should remain focusable.

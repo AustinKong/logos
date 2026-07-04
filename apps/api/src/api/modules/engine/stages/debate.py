@@ -40,6 +40,8 @@ class DebateStage:
             case UserParticipant():
                 # TODO: Add human/system turn handling when those participant types become eligible.
                 return
+            case _:
+                raise ValueError(f"Unsupported participant type: {participant.type}")
 
 
 def _build_debate_messages(

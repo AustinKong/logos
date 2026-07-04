@@ -1,3 +1,5 @@
+from typing import assert_never
+
 from api.modules.ai.catalog import AI_MODEL_CATALOG
 from api.modules.ai.errors import AIProviderMismatchError
 from api.modules.ai.models import AIModel, AIProviderName
@@ -38,6 +40,8 @@ class AIProviderResolver:
                 api_key = api_keys.gemini
             case AIProviderName.DEEPSEEK:
                 api_key = api_keys.deepseek
+            case _ as never:
+                assert_never(never)
 
         if not api_key:
             raise AIProviderMismatchError(f"AI provider API key is not configured for provider: {provider.value}")

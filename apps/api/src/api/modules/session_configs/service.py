@@ -1,3 +1,4 @@
+from typing import assert_never
 from uuid import UUID
 
 from sqlalchemy import select
@@ -137,6 +138,8 @@ class SessionConfigService:
                             name=participant.name,
                         )
                     )
+                case _ as never:
+                    assert_never(never)
 
         if commit:
             self._db.commit()

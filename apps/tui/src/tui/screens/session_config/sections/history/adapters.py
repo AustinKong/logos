@@ -1,5 +1,8 @@
+from typing import assert_never
+
 from api_client.models import (
     FullHistoryConfigCreate,
+    FullHistoryConfigRead,
     HistoryConfigCreate,
     HistoryConfigRead,
     SlidingWindowHistoryConfigCreate,
@@ -15,22 +18,27 @@ from tui.screens.session_config.sections.history.state import (
 
 
 def history_form_state_from_read(config: HistoryConfigRead) -> HistoryFormState:
-    if isinstance(config, SlidingWindowHistoryConfigRead):
-        return SlidingWindowHistoryFormState(window_size=str(config.window_size))
+    match config:
+        case SlidingWindowHistoryConfigRead():
+            return SlidingWindowHistoryFormState(window_size=str(config.window_size))
+        case FullHistoryConfigRead():
+            return FullHistoryFormState()
+        case _ as never:
+            assert_never(never)
 
-    return FullHistoryFormState()
 
-
-# TODO: Why not use match case?
 def history_create_from_form_state(state: HistoryFormState) -> HistoryConfigCreate:
-    if isinstance(state, SlidingWindowHistoryFormState):
-        try:
-            window_size = int(state.window_size)
-        except ValueError as exc:
-            raise SessionConfigValidationError("History window size must be a whole number") from exc
+    match state:
+        case SlidingWindowHistoryFormState():
+            try:
+                window_size = int(state.window_size)
+            except ValueError as exc:
+                raise SessionConfigValidationError("History window size must be a whole number") from exc
 
-        return SlidingWindowHistoryConfigCreate(
-            window_size=max(1, window_size),
-        )
-
-    return FullHistoryConfigCreate()
+            return SlidingWindowHistoryConfigCreate(
+                window_size=max(1, window_size),
+            )
+        case FullHistoryFormState():
+            return FullHistoryConfigCreate()
+        case _ as never:
+            assert_never(never)

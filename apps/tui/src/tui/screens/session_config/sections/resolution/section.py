@@ -1,3 +1,5 @@
+from typing import assert_never
+
 from api_client.models import AIModelRead, ResolutionMode
 from api_client.schema_metadata import SCHEMA_FIELDS
 from textual.app import ComposeResult
@@ -95,3 +97,5 @@ class ResolutionSection(VerticalScroll):
                     f"#{RESOLUTION_MODE_CONTENT_IDS[ResolutionMode.JUDGE_LLM]}",
                     JudgeResolutionFields,
                 ).form_state()
+            case _ as never:
+                assert_never(never)

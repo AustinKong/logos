@@ -1,3 +1,5 @@
+from typing import assert_never
+
 from api_client.models import HistoryMode
 from api_client.schema_metadata import SCHEMA_FIELDS
 from textual.app import ComposeResult
@@ -80,3 +82,5 @@ class HistorySection(VerticalScroll):
                     f"#{HISTORY_MODE_CONTENT_IDS[HistoryMode.SLIDING_WINDOW]}",
                     SlidingWindowHistoryFields,
                 ).form_state()
+            case _ as never:
+                assert_never(never)

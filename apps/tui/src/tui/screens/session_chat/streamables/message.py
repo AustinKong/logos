@@ -3,6 +3,7 @@ from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual.widgets import Static
 from tui.shared.colors import color_from_id
+from tui.shared.time import format_time
 
 
 class Message(Vertical):
@@ -35,8 +36,7 @@ class Message(Vertical):
         self._content_widget = Static(self._content)
         yield self._content_widget
 
-        # TODO: Make this strftime a helper fn
-        yield Static(self._event.created_at.strftime("%H:%M"), classes="muted")
+        yield Static(format_time(self._event.created_at), classes="muted")
 
     def append_content(self, content: str) -> None:
         self.set_content(self._content + content)

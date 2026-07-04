@@ -85,6 +85,8 @@ Use `XData` names for internal domain data containers that have no identity or l
 
 Strategy configuration should live beside its strategy family in `apps/api/src/api/modules/strategies/<family>/configs.py`. When adding a new strategy mode, update the family `Mode` enum, add a concrete Pydantic config model for that mode, add it to the family config alias/union, and update the resolver mapping or match logic. Keep config modules lightweight and independent of runtime strategy implementation modules.
 
+When matching over a closed union or enum, include a `case _ as never: assert_never(never)` fallback so newly added branches fail loudly during static checking or at runtime. Do not use `assert_never` for intentionally partial matches or open base-class dispatch; use an ordinary wildcard branch or domain error there.
+
 ## API Schema Naming
 
 FastAPI request/response schemas live in each module's `schemas.py`.
@@ -112,6 +114,8 @@ Use field-level `Field(title=..., description=...)` when a schema field needs sh
 - Python: `SCHEMA_FIELDS["<SchemaName>"]["<fieldName>"]["title"]` and `["description"]` from `api_client.schema_metadata`.
 
 For discriminated union options, put the option label and helper text on the concrete branch's discriminator field, for example `JudgeResolutionConfigCreate.mode`. Keep option arrays explicit in consumers and read only the display copy from schema metadata. Do not generate separate discriminator-option metadata unless the UI truly needs a richer structure.
+
+For plain enum fields, do not add enum-option metadata generation just to remove small local option-label lists in consumers. Encoding option labels on `StrEnum` members or adding custom OpenAPI/client metadata for every enum adds schema and generator complexity that is not justified by minor duplication. Prefer simple local option arrays, such as reasoning effort labels, until there is a clear cross-client need for richer option metadata.
 
 OpenAPI preserves nested schemas through `$ref` and union components, so generated schema metadata is schema-scoped rather than deep-path-scoped. For example, use `SessionConfigCreate.prompt`, `AgentParticipantCreate.model`, or `JudgeResolutionConfigCreate.mode`; do not expect a nested path such as `SessionConfigCreate.participants.AgentParticipantCreate.model`.
 

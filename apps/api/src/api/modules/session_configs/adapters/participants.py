@@ -1,4 +1,5 @@
-from api.modules.session_configs.errors import UnsupportedParticipantCreateError
+from typing import assert_never
+
 from api.modules.session_configs.models.participants import (
     AgentParticipant,
     AgentParticipantData,
@@ -28,8 +29,8 @@ def participant_data_from_create(participant: ParticipantCreate) -> ParticipantD
             )
         case UserParticipantCreate():
             return UserParticipantData(name=participant.name)
-
-    raise UnsupportedParticipantCreateError()
+        case _ as never:
+            assert_never(never)
 
 
 def participant_read_from_participant(participant: Participant) -> ParticipantRead:
@@ -51,5 +52,5 @@ def participant_read_from_participant(participant: Participant) -> ParticipantRe
                 created_at=participant.created_at,
                 updated_at=participant.updated_at,
             )
-
-    raise ValueError(f"Unsupported participant type: {participant.type}")
+        case _:
+            raise ValueError(f"Unsupported participant type: {participant.type}")

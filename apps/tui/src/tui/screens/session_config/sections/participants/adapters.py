@@ -1,3 +1,5 @@
+from typing import assert_never
+
 from api_client.models import (
     AgentParticipantCreate,
     AgentParticipantRead,
@@ -38,6 +40,8 @@ def participant_form_state_from_read(participant: ParticipantRead) -> Participan
             )
         case UserParticipantRead():
             return UserParticipantFormState(name=participant.name)
+        case _ as never:
+            assert_never(never)
 
 
 def participant_create_from_form_state(participant: ParticipantFormState) -> ParticipantCreate:
@@ -62,3 +66,5 @@ def participant_create_from_form_state(participant: ParticipantFormState) -> Par
                 raise SessionConfigValidationError("User name is required")
 
             return UserParticipantCreate(name=participant.name)
+        case _ as never:
+            assert_never(never)

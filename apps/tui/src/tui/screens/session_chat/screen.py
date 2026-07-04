@@ -86,22 +86,22 @@ class SessionChatScreen(BaseScreen):
             async for event in self._loader.stream_events(session_id=self._session.id, after_event_id=after_event_id):
                 await log.handle_event(event)
 
-                if isinstance(event, MessageStartedEventRead):
-                    self.run_worker(
-                        self.stream_tokens(stream_id=event.message_id),
-                        group=f"session-token-stream:{event.message_id}",
-                        exclusive=True,
-                    )
-                if isinstance(event, ReasoningStartedEventRead):
-                    self.run_worker(
-                        self.stream_tokens(stream_id=event.reasoning_id),
-                        group=f"session-token-stream:{event.reasoning_id}",
-                        exclusive=True,
-                    )
-
-                if isinstance(event, SessionCompletedEventRead):
-                    self.chat_input_shown = False
-                    return
+                match event:
+                    case MessageStartedEventRead():
+                        self.run_worker(
+                            self.stream_tokens(stream_id=event.message_id),
+                            group=f"session-token-stream:{event.message_id}",
+                            exclusive=True,
+                        )
+                    case ReasoningStartedEventRead():
+                        self.run_worker(
+                            self.stream_tokens(stream_id=event.reasoning_id),
+                            group=f"session-token-stream:{event.reasoning_id}",
+                            exclusive=True,
+                        )
+                    case SessionCompletedEventRead():
+                        self.chat_input_shown = False
+                        return
         except HTTPStatusError as exc:
             if exc.response.status_code == 404:
                 return

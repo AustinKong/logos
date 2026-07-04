@@ -1,4 +1,4 @@
-from typing import cast
+from typing import assert_never, cast
 
 from api_client.models import AIModelRead, ParticipantType
 from api_client.schema_metadata import SCHEMA_FIELDS
@@ -126,6 +126,8 @@ class ParticipantDetails(VerticalScroll):
                 ).form_state()
             case ParticipantType.USER:
                 return self.query_one(f"#{self._content_id(ParticipantType.USER)}", UserParticipantFields).form_state()
+            case _ as never:
+                assert_never(never)
 
     @property
     def participant_key(self) -> str:

@@ -1,6 +1,7 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import StrEnum
+from typing import assert_never
 from uuid import UUID
 
 from api_client import Client
@@ -46,6 +47,8 @@ class Navigator:
                 self._push_session_config(_expect_params(params, SessionConfigParams))
             case Route.SESSION_CHAT:
                 self._push_session_chat(_expect_params(params, SessionChatParams))
+            case _ as never:
+                assert_never(never)
 
     def _push_sessions(self) -> None:
         from tui.screens.sessions.loaders import SessionsLoader

@@ -11,7 +11,6 @@ from tui.screens.session_config.sections.state import SelectValue
 from tui.shared.textual import on
 from tui.widgets.forms.field import field
 
-# TODO: Can these strings be part of the schema metadata as well? to DRY
 REASONING_EFFORT_OPTIONS = [
     ("None", ReasoningEffort.NONE),
     ("Low", ReasoningEffort.LOW),

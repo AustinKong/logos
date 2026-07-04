@@ -1,3 +1,5 @@
+from typing import assert_never
+
 from api.modules.session_configs.schemas.configs import (
     FullHistoryConfigCreate,
     FullHistoryConfigRead,
@@ -40,6 +42,8 @@ def history_config_from_create(history_create: HistoryConfigCreate) -> HistoryCo
                 mode=history_create.mode,
                 window_size=history_create.window_size,
             )
+        case _ as never:
+            assert_never(never)
 
 
 def validation_config_from_create(validation_create: ValidationConfigCreate) -> ValidationConfig:
@@ -58,6 +62,8 @@ def resolution_config_from_create(
             )
         case NoneResolutionConfigCreate():
             return NoneResolutionConfig(mode=resolution_create.mode)
+        case _ as never:
+            assert_never(never)
 
 
 def turn_selection_config_read_from_config(
@@ -75,6 +81,8 @@ def history_config_read_from_config(history_config: HistoryConfig) -> HistoryCon
                 mode=history_config.mode,
                 window_size=history_config.window_size,
             )
+        case _ as never:
+            assert_never(never)
 
 
 def validation_config_read_from_config(validation_config: ValidationConfig) -> ValidationConfigRead:
@@ -93,3 +101,5 @@ def resolution_config_read_from_config(
             )
         case NoneResolutionConfig():
             return NoneResolutionConfigRead(mode=resolution_config.mode)
+        case _ as never:
+            assert_never(never)

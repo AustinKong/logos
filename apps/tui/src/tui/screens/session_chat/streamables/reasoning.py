@@ -3,6 +3,7 @@ from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual.widgets import Static
 from tui.shared.colors import color_from_id
+from tui.shared.time import format_time
 
 
 class Reasoning(Vertical):
@@ -48,7 +49,7 @@ class Reasoning(Vertical):
         self._content_widget = Static(self._content, classes="reasoning-content muted")
         yield self._content_widget
 
-        yield Static(self._event.created_at.strftime("%H:%M"), classes="reasoning-time muted")
+        yield Static(format_time(self._event.created_at), classes="reasoning-time muted")
 
     def append_content(self, content: str) -> None:
         self.set_content(self._content + content)

@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from typing import assert_never
 from uuid import UUID, uuid4
 
 from api.modules.ai.errors import AIProviderError
@@ -79,6 +80,8 @@ class GenerationRunner:
                     yield Token(correlation_id=message_id, content=response_event.content)
                 case AIToolCallEvent():
                     raise AIProviderError("Tool call responses are not supported yet")
+                case _ as never:
+                    assert_never(never)
 
         if reasoning_started and not reasoning_completed:
             yield build_reasoning_completed()

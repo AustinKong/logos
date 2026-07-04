@@ -1,3 +1,5 @@
+from typing import assert_never
+
 from api.modules.ai.service import AIService
 from api.modules.sessions.models.sessions import Session
 from api.modules.strategies.history.base import HistoryStrategy
@@ -57,4 +59,5 @@ class StrategyResolver:
                 )
             case NoneResolutionConfig():
                 return NoneResolutionStrategy()
-        raise ValueError(f"Unsupported resolution mode: {config.mode}")
+            case _ as never:
+                assert_never(never)
