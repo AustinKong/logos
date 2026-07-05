@@ -4,7 +4,6 @@ from uuid import UUID
 
 from api.modules.session_configs.models.participants import Participant
 from api.modules.sessions.models.events import Event
-from api.modules.sessions.models.sessions import Session
 
 
 @dataclass(frozen=True, slots=True)
@@ -17,8 +16,13 @@ type EngineOutput = Event | Token
 type EngineOutputStream = AsyncIterator[EngineOutput]
 
 
+# Does not hold `session: Session` to avoid runtime dependencies on session config
+# Instead configs should be passed explicitly via strategy constructors
+# Prompt and seed are included since they are broadly shared across strategies
 @dataclass(slots=True)
 class EngineContext:
-    session: Session
+    session_id: UUID
+    prompt: str
+    seed: int
     participants: list[Participant]
     events: list[Event]

@@ -25,7 +25,6 @@ from api.modules.strategies.validation.base import ValidationStrategy
 from api.modules.strategies.validation.configs import ValidationMode
 
 
-# TODO: Sometimes we just use ctx, other things we feed config in constructor. Lets standardize
 class StrategyResolver:
     def __init__(self, *, ai_service: AIService) -> None:
         self._ai_service = ai_service

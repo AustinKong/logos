@@ -1,3 +1,4 @@
+from api.modules.ai.errors import AIProviderError
 from api.modules.ai.models import AIMessage, AIMessageResponseAction, GenerationOptions, MessageRole
 from api.modules.ai.service import AIService
 from api.modules.engine.models import EngineContext, EngineOutputStream
@@ -36,7 +37,7 @@ class JudgeResolutionStrategy:
                 AIMessage(
                     role=MessageRole.USER,
                     content=_build_judge_user_prompt(
-                        session_prompt=ctx.session.config.prompt,
+                        session_prompt=ctx.prompt,
                         transcript=transcript,
                     ),
                 ),
@@ -48,15 +49,15 @@ class JudgeResolutionStrategy:
         )
 
         if not isinstance(response.action, AIMessageResponseAction):
-            raise ValueError("Unsupported response")
+            raise AIProviderError("AI provider returned an unsupported response action")
 
         resolution = response.action.content
 
         yield ResolutionCreatedEvent(
-            session_id=ctx.session.id,
+            session_id=ctx.session_id,
             resolution=resolution,
         )
-        yield SessionCompletedEvent(session_id=ctx.session.id)
+        yield SessionCompletedEvent(session_id=ctx.session_id)
 
 
 def _build_judge_user_prompt(*, session_prompt: str, transcript: str) -> str:

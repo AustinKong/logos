@@ -33,6 +33,7 @@ class SlidingWindowHistoryFields(Container):
             SCHEMA_FIELDS["SlidingWindowHistoryConfigCreate"]["window_size"]["title"],
             Input(
                 self._initial_state.window_size,
+                type="integer",
                 disabled=self._read_only,
                 id="history-window-size",
             ),

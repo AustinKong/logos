@@ -31,12 +31,14 @@ class EngineService:
         session = self._session_service.get_session(session_id)
         events = self._session_service.list_events(session_id)
         ctx = EngineContext(
-            session=session,
+            session_id=session.id,
+            prompt=session.config.prompt,
+            seed=session.config.seed,
             participants=session.config.participants,
             events=events,
         )
 
-        async for output in self._engine.step(ctx):
+        async for output in self._engine.step(session, ctx):
             if isinstance(output, Event):
                 await self._open_streams_for_event(output)
                 self._session_service.append_events(session_id, [output])

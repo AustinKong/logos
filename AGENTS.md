@@ -85,6 +85,8 @@ Use `XData` names for internal domain data containers that have no identity or l
 
 Strategy configuration should live beside its strategy family in `apps/api/src/api/modules/strategies/<family>/configs.py`. When adding a new strategy mode, update the family `Mode` enum, add a concrete Pydantic config model for that mode, add it to the family config alias/union, and update the resolver mapping or match logic. Keep config modules lightweight and independent of runtime strategy implementation modules.
 
+Keep engine execution context narrow. `EngineContext` should contain runtime step inputs that stages need while executing, such as `session_id`, `prompt`, `seed`, participants, and prior events. Do not put the full ORM `Session` or broad config graph on `EngineContext`; broad context makes strategy dependencies implicit and lets stages reach into unrelated persistence state. The session seed is a shared runtime primitive for deterministic behavior, so consumers may read it from context and choose their own deterministic hashing or ordering scheme. Pass strategy-specific configuration and service dependencies through constructors when the resolver builds the strategy, such as `SlidingWindowHistoryStrategy(config=...)` or `JudgeResolutionStrategy(ai_service=..., config=...)`.
+
 When matching over a closed union or enum, include a `case _ as never: assert_never(never)` fallback so newly added branches fail loudly during static checking or at runtime. Do not use `assert_never` for intentionally partial matches or open base-class dispatch; use an ordinary wildcard branch or domain error there.
 
 ## API Schema Naming

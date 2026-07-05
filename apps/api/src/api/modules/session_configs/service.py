@@ -41,7 +41,7 @@ class SessionConfigService:
         try:
             # TODO: What happens if the default config listed model becomes unavailable?
             config = self.get_config(DEFAULT_SESSION_CONFIG_ID)
-        except:
+        except SessionConfigNotFoundError:
             default_model = self._ai_service.list_available_models()[0].id
             config = self.create_config(
                 id=DEFAULT_SESSION_CONFIG_ID,
@@ -108,7 +108,7 @@ class SessionConfigService:
                 if participant.reasoning_effort is not ReasoningEffort.NONE and not model.supports_reasoning:
                     raise UnsupportedReasoningModelError()
 
-        if not seed:
+        if seed is None:
             seed = secrets.randbelow(MAX_SEED + 1)
 
         config = SessionConfig(

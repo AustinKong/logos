@@ -29,7 +29,7 @@ class GeneralSection(VerticalScroll):
         )
         yield field(
             SCHEMA_FIELDS["SessionConfigCreate"]["seed"]["title"],
-            Input(self._initial_state.seed, disabled=self._read_only, id="seed"),
+            Input(self._initial_state.seed, type="integer", disabled=self._read_only, id="seed"),
             helper_text=SCHEMA_FIELDS["SessionConfigCreate"]["seed"]["description"],
         )
 

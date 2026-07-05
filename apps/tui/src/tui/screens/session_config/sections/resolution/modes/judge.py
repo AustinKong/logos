@@ -50,6 +50,7 @@ class JudgeResolutionFields(Container):
             SCHEMA_FIELDS["JudgeResolutionConfigCreate"]["judge_temperature"]["title"],
             Input(
                 self._initial_state.judge_temperature,
+                type="number",
                 disabled=self._read_only,
                 id="judge-temperature",
             ),

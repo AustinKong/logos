@@ -23,7 +23,7 @@ class ShuffledTurnSelectionStrategy:
         ]
         ordered_participants = sorted(
             eligible_participants,
-            key=lambda participant: (_ordering_key(ctx.session.config.seed, 0, participant.id), str(participant.id)),
+            key=lambda participant: (_ordering_key(ctx.seed, 0, participant.id), str(participant.id)),
         )
 
         for participant in ordered_participants:

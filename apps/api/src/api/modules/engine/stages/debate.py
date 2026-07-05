@@ -24,7 +24,7 @@ class DebateStage:
         match participant:
             case AgentParticipant():
                 async for output in self._generation_runner.run_response(
-                    session_id=ctx.session.id,
+                    session_id=ctx.session_id,
                     sender=participant,
                     messages=_build_debate_messages(
                         ctx=ctx,
@@ -55,7 +55,7 @@ def _build_debate_messages(
         AIMessage(
             role=MessageRole.USER,
             content=(
-                f"Session prompt:\n{ctx.session.config.prompt}\n\n"
+                f"Session prompt:\n{ctx.prompt}\n\n"
                 f"Transcript so far:\n{history or '(none)'}\n\n"
                 f"Respond as {agent.name}."
             ),
