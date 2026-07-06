@@ -75,11 +75,14 @@ class Navigator:
         )
 
     def _push_session_chat(self, params: SessionChatParams) -> None:
+        from tui.screens.session_chat.controllers import SessionChatController
         from tui.screens.session_chat.loaders import SessionChatLoader
         from tui.screens.session_chat.screen import SessionChatScreen
 
+        session_chat_controller = SessionChatController(client=self._client)
         session_chat_loader = SessionChatLoader(client=self._client)
         screen = SessionChatScreen(
+            controller=session_chat_controller,
             loader=session_chat_loader,
             session_id=params.session_id,
         )

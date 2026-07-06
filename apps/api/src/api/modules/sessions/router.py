@@ -20,6 +20,7 @@ from api.modules.sessions.models.events import SessionCompletedEvent
 from api.modules.sessions.schemas.events import EventRead
 from api.modules.sessions.schemas.sessions import (
     SessionCreate,
+    SessionExportResponse,
     SessionRead,
     SessionSummaryRead,
 )
@@ -65,6 +66,15 @@ def get_session(
 ) -> SessionRead:
     session = service.get_session(session_id)
     return session_read_from_session(session)
+
+
+@router.post("/{session_id}/export", operation_id="exportSession", response_model=SessionExportResponse)
+def export_session(
+    session_id: UUID,
+    service: Annotated[SessionService, Depends(get_session_service)],
+) -> SessionExportResponse:
+    export_path = service.export_session(session_id)
+    return SessionExportResponse(path=str(export_path))
 
 
 @router.get("/{session_id}/events", operation_id="listSessionEvents", response_model=list[EventRead])

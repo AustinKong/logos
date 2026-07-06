@@ -13,6 +13,7 @@ from textual.binding import Binding
 from textual.containers import Vertical
 from textual.reactive import reactive
 
+from tui.screens.session_chat.controllers import SessionChatController
 from tui.screens.session_chat.loaders import SessionChatLoader
 from tui.screens.session_chat.widgets.chat_input import ChatInput
 from tui.screens.session_chat.widgets.event_log import EventLog
@@ -29,6 +30,7 @@ class SessionChatScreen(BaseScreen):
 
     BINDINGS = [
         Binding("escape", "app.pop_screen", "Back", key_display="Esc"),
+        Binding("ctrl+e", "export_session", "Export Session", key_display="Ctrl+E"),
     ]
 
     chat_input_shown = reactive(False, recompose=True)
@@ -36,10 +38,12 @@ class SessionChatScreen(BaseScreen):
     def __init__(
         self,
         *,
+        controller: SessionChatController,
         loader: SessionChatLoader,
         session_id: UUID,
     ) -> None:
         super().__init__()
+        self._controller = controller
         self._loader = loader
         self._session_id = session_id
         self._session: SessionRead | None = None
@@ -53,6 +57,9 @@ class SessionChatScreen(BaseScreen):
 
     def on_mount(self) -> None:
         self.load_session()
+
+    def action_export_session(self) -> None:
+        self.export_session()
 
     @work(group="session-load", exclusive=True)
     async def load_session(self) -> None:
@@ -74,6 +81,14 @@ class SessionChatScreen(BaseScreen):
                 self.stream_events(after_event_id=latest_event_id)
         except Exception as exc:
             self.notify(str(exc), title="Failed to load session", severity="error")
+
+    @work(group="session-export", exclusive=True)
+    async def export_session(self) -> None:
+        try:
+            path = await self._controller.export_session(session_id=self._session_id)
+            self.notify(f"Exported session to {path}")
+        except Exception as exc:
+            self.notify(str(exc), title="Failed to export session", severity="error")
 
     @work(group="session-event-stream", exclusive=True)
     async def stream_events(self, *, after_event_id: UUID | None) -> None:

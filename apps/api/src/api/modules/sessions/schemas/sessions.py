@@ -25,3 +25,7 @@ class SessionSummaryRead(BaseModel):
     updated_at: datetime
     participant_count: int
     status: SessionStatus
+
+
+class SessionExportResponse(BaseModel):
+    path: str

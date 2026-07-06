@@ -208,6 +208,47 @@
         }
       }
     },
+    "/sessions/{session_id}/export": {
+      "post": {
+        "tags": ["sessions"],
+        "summary": "Export Session",
+        "operationId": "exportSession",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionExportResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/sessions/{session_id}/events": {
       "get": {
         "tags": ["sessions"],
@@ -1268,6 +1309,17 @@
         "type": "object",
         "required": ["config"],
         "title": "SessionCreate"
+      },
+      "SessionExportResponse": {
+        "properties": {
+          "path": {
+            "type": "string",
+            "title": "Path"
+          }
+        },
+        "type": "object",
+        "required": ["path"],
+        "title": "SessionExportResponse"
       },
       "SessionRead": {
         "properties": {
