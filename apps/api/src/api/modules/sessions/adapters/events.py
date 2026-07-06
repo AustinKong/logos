@@ -2,27 +2,33 @@ from typing import Any
 
 from api.modules.session_configs.adapters.participants import participant_read_from_participant
 from api.modules.sessions.models.events import (
+    DebateRoundCompletedEvent,
+    DebateRoundStartedEvent,
     Event,
     EventType,
     MessageCompletedEvent,
     MessageStartedEvent,
-    ParticipantRemovedEvent,
-    ParticipantVoteEvent,
+    ProposalCompletedEvent,
+    ProposalStartedEvent,
     ReasoningCompletedEvent,
     ReasoningStartedEvent,
-    ResolutionCreatedEvent,
+    ResolutionCompletedEvent,
+    ResolutionStartedEvent,
     SessionCompletedEvent,
     SessionStartedEvent,
 )
 from api.modules.sessions.schemas.events import (
+    DebateRoundCompletedEventRead,
+    DebateRoundStartedEventRead,
     EventRead,
     MessageCompletedEventRead,
     MessageStartedEventRead,
-    ParticipantRemovedEventRead,
-    ParticipantVoteEventRead,
+    ProposalCompletedEventRead,
+    ProposalStartedEventRead,
     ReasoningCompletedEventRead,
     ReasoningStartedEventRead,
-    ResolutionCreatedEventRead,
+    ResolutionCompletedEventRead,
+    ResolutionStartedEventRead,
     SessionCompletedEventRead,
     SessionStartedEventRead,
 )
@@ -60,25 +66,37 @@ def event_read_from_event(event: Event) -> EventRead:
                 reasoning_id=event.reasoning_id,
                 content=event.content,
             )
-        case ParticipantVoteEvent():
-            return ParticipantVoteEventRead(
+        case ProposalStartedEvent():
+            return ProposalStartedEventRead(
                 **event_fields,
-                type=EventType.PARTICIPANT_VOTE,
-                voter=participant_read_from_participant(event.voter),
-                target=participant_read_from_participant(event.target),
-                reason=event.reason,
+                type=EventType.PROPOSAL_STARTED,
             )
-        case ParticipantRemovedEvent():
-            return ParticipantRemovedEventRead(
+        case ProposalCompletedEvent():
+            return ProposalCompletedEventRead(
                 **event_fields,
-                type=EventType.PARTICIPANT_REMOVED,
-                removed=participant_read_from_participant(event.removed),
+                type=EventType.PROPOSAL_COMPLETED,
             )
-        case ResolutionCreatedEvent():
-            return ResolutionCreatedEventRead(
+        case DebateRoundStartedEvent():
+            return DebateRoundStartedEventRead(
                 **event_fields,
-                type=EventType.RESOLUTION_CREATED,
-                resolution=event.resolution,
+                type=EventType.DEBATE_ROUND_STARTED,
+                round_number=event.round_number,
+            )
+        case DebateRoundCompletedEvent():
+            return DebateRoundCompletedEventRead(
+                **event_fields,
+                type=EventType.DEBATE_ROUND_COMPLETED,
+            )
+        case ResolutionStartedEvent():
+            return ResolutionStartedEventRead(
+                **event_fields,
+                type=EventType.RESOLUTION_STARTED,
+            )
+        case ResolutionCompletedEvent():
+            return ResolutionCompletedEventRead(
+                **event_fields,
+                type=EventType.RESOLUTION_COMPLETED,
+                decision=event.decision,
             )
         case SessionCompletedEvent():
             return SessionCompletedEventRead(

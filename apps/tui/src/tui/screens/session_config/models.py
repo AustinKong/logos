@@ -7,14 +7,12 @@ from tui.screens.session_config.sections.history.models import HistoryFormState
 from tui.screens.session_config.sections.participants.models import ParticipantsFormState
 from tui.screens.session_config.sections.resolution.models import ResolutionFormState
 from tui.screens.session_config.sections.turn_selection.models import TurnSelectionFormState
-from tui.screens.session_config.sections.validation.models import ValidationFormState
 
 
 class ConfigSection(StrEnum):
     GENERAL = "general"
     TURN_SELECTION = "turn_selection"
     HISTORY = "history"
-    VALIDATION = "validation"
     RESOLUTION = "resolution"
     PARTICIPANTS = "participants"
 
@@ -25,5 +23,4 @@ class SessionConfigFormState:
     participants: ParticipantsFormState
     turn_selection: TurnSelectionFormState
     history: HistoryFormState
-    validation: ValidationFormState
     resolution: ResolutionFormState

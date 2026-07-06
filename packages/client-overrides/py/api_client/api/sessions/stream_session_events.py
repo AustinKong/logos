@@ -7,14 +7,17 @@ from uuid import UUID
 from httpx_sse import aconnect_sse, connect_sse
 
 from ...client import AuthenticatedClient, Client
+from ...models.debate_round_completed_event_read import DebateRoundCompletedEventRead
+from ...models.debate_round_started_event_read import DebateRoundStartedEventRead
 from ...models.event_read import EventRead
 from ...models.message_completed_event_read import MessageCompletedEventRead
 from ...models.message_started_event_read import MessageStartedEventRead
-from ...models.participant_removed_event_read import ParticipantRemovedEventRead
-from ...models.participant_vote_event_read import ParticipantVoteEventRead
+from ...models.proposal_completed_event_read import ProposalCompletedEventRead
+from ...models.proposal_started_event_read import ProposalStartedEventRead
 from ...models.reasoning_completed_event_read import ReasoningCompletedEventRead
 from ...models.reasoning_started_event_read import ReasoningStartedEventRead
-from ...models.resolution_created_event_read import ResolutionCreatedEventRead
+from ...models.resolution_completed_event_read import ResolutionCompletedEventRead
+from ...models.resolution_started_event_read import ResolutionStartedEventRead
 from ...models.session_completed_event_read import SessionCompletedEventRead
 from ...models.session_started_event_read import SessionStartedEventRead
 
@@ -45,6 +48,18 @@ def _event_from_data(data: str) -> EventRead:
             return SessionStartedEventRead.from_dict(event_data)
         case "session.completed":
             return SessionCompletedEventRead.from_dict(event_data)
+        case "proposal.started":
+            return ProposalStartedEventRead.from_dict(event_data)
+        case "proposal.completed":
+            return ProposalCompletedEventRead.from_dict(event_data)
+        case "debate_round.started":
+            return DebateRoundStartedEventRead.from_dict(event_data)
+        case "debate_round.completed":
+            return DebateRoundCompletedEventRead.from_dict(event_data)
+        case "resolution.started":
+            return ResolutionStartedEventRead.from_dict(event_data)
+        case "resolution.completed":
+            return ResolutionCompletedEventRead.from_dict(event_data)
         case "message.started":
             return MessageStartedEventRead.from_dict(event_data)
         case "message.completed":
@@ -53,12 +68,6 @@ def _event_from_data(data: str) -> EventRead:
             return ReasoningStartedEventRead.from_dict(event_data)
         case "reasoning.completed":
             return ReasoningCompletedEventRead.from_dict(event_data)
-        case "participant.vote":
-            return ParticipantVoteEventRead.from_dict(event_data)
-        case "participant.removed":
-            return ParticipantRemovedEventRead.from_dict(event_data)
-        case "resolution.created":
-            return ResolutionCreatedEventRead.from_dict(event_data)
 
     raise ValueError(f"Unsupported event type: {event_type}")
 

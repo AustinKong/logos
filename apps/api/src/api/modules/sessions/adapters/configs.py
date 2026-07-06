@@ -19,8 +19,6 @@ from api.modules.session_configs.schemas.configs import (
     SlidingWindowHistoryConfigRead,
     TurnSelectionConfigCreate,
     TurnSelectionConfigRead,
-    ValidationConfigCreate,
-    ValidationConfigRead,
 )
 from api.modules.strategies.history.configs import FullHistoryConfig, HistoryConfig, SlidingWindowHistoryConfig
 from api.modules.strategies.resolution.configs import (
@@ -32,7 +30,6 @@ from api.modules.strategies.turn_selection.configs import (
     ShuffledTurnSelectionConfig,
     TurnSelectionConfig,
 )
-from api.modules.strategies.validation.configs import AllowAllValidationConfig, ValidationConfig
 
 
 def turn_selection_config_from_create(
@@ -58,10 +55,6 @@ def history_config_from_create(history_create: HistoryConfigCreate) -> HistoryCo
             )
         case _ as never:
             assert_never(never)
-
-
-def validation_config_from_create(validation_create: ValidationConfigCreate) -> ValidationConfig:
-    return AllowAllValidationConfig(mode=validation_create.mode)
 
 
 def resolution_config_from_create(
@@ -103,10 +96,6 @@ def history_config_read_from_config(history_config: HistoryConfig) -> HistoryCon
             )
         case _ as never:
             assert_never(never)
-
-
-def validation_config_read_from_config(validation_config: ValidationConfig) -> ValidationConfigRead:
-    return ValidationConfigRead(mode=validation_config.mode)
 
 
 def resolution_config_read_from_config(

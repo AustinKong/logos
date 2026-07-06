@@ -41,10 +41,6 @@ const sourceEnumOverrides = [
     name: "TurnSelectionMode",
     source: "apps/api/src/api/modules/strategies/turn_selection/configs.py",
   },
-  {
-    name: "ValidationMode",
-    source: "apps/api/src/api/modules/strategies/validation/configs.py",
-  },
 ];
 
 for (const override of overrides) {

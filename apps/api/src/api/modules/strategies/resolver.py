@@ -20,9 +20,6 @@ from api.modules.strategies.turn_selection.configs import (
 )
 from api.modules.strategies.turn_selection.round_robin import RoundRobinTurnSelectionStrategy
 from api.modules.strategies.turn_selection.shuffled import ShuffledTurnSelectionStrategy
-from api.modules.strategies.validation.allow_all import AllowAllValidationStrategy
-from api.modules.strategies.validation.base import ValidationStrategy
-from api.modules.strategies.validation.configs import ValidationMode
 
 
 class StrategyResolver:
@@ -46,14 +43,6 @@ class StrategyResolver:
                 return FullHistoryStrategy()
             case HistoryMode.SLIDING_WINDOW:
                 return SlidingWindowHistoryStrategy(config=config)
-            case _ as never:
-                assert_never(never)
-
-    def validation(self, session: Session) -> ValidationStrategy:
-        config = session.config.validation_config
-        match config.mode:
-            case ValidationMode.ALLOW_ALL:
-                return AllowAllValidationStrategy()
             case _ as never:
                 assert_never(never)
 

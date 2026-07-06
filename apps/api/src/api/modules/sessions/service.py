@@ -12,14 +12,17 @@ from api.modules.session_configs.models.session_configs import SessionConfig
 from api.modules.session_configs.service import SessionConfigService
 from api.modules.sessions.errors import SessionNotFoundError
 from api.modules.sessions.models.events import (
+    DebateRoundCompletedEvent,
+    DebateRoundStartedEvent,
     Event,
     MessageCompletedEvent,
     MessageStartedEvent,
-    ParticipantRemovedEvent,
-    ParticipantVoteEvent,
+    ProposalCompletedEvent,
+    ProposalStartedEvent,
     ReasoningCompletedEvent,
     ReasoningStartedEvent,
-    ResolutionCreatedEvent,
+    ResolutionCompletedEvent,
+    ResolutionStartedEvent,
     SessionCompletedEvent,
     SessionStartedEvent,
 )
@@ -28,7 +31,6 @@ from api.modules.sessions.repository import SessionRepository
 from api.modules.strategies.history.configs import HistoryConfig
 from api.modules.strategies.resolution.configs import ResolutionConfig
 from api.modules.strategies.turn_selection.configs import TurnSelectionConfig
-from api.modules.strategies.validation.configs import ValidationConfig
 
 
 class SessionService:
@@ -47,19 +49,19 @@ class SessionService:
         *,
         prompt: str,
         seed: int | None,
+        debate_round_count: int,
         agents: list[ParticipantData],
         turn_selection: TurnSelectionConfig,
         history: HistoryConfig,
-        validation: ValidationConfig,
         resolution: ResolutionConfig,
     ) -> Session:
         config = self._session_config_service.create_config(
             prompt=prompt,
             seed=seed,
+            debate_round_count=debate_round_count,
             participants=agents,
             turn_selection=turn_selection,
             history=history,
-            validation=validation,
             resolution=resolution,
             commit=False,
         )
@@ -132,6 +134,16 @@ def _format_session_export(session: Session, events: list[Event]) -> str:
                 lines.extend(["Session started.", ""])
             case SessionCompletedEvent():
                 lines.extend(["Session completed.", ""])
+            case ProposalStartedEvent():
+                lines.extend(["## Proposal", ""])
+            case ProposalCompletedEvent():
+                pass
+            case DebateRoundStartedEvent():
+                lines.extend([f"## Debate round {event.round_number}", ""])
+            case DebateRoundCompletedEvent():
+                pass
+            case ResolutionStartedEvent():
+                lines.extend(["## Resolution", ""])
             case MessageStartedEvent():
                 message_senders[event.message_id] = event.sender.name
             case MessageCompletedEvent():
@@ -142,12 +154,8 @@ def _format_session_export(session: Session, events: list[Event]) -> str:
             case ReasoningCompletedEvent():
                 sender = reasoning_senders.get(event.reasoning_id, "Unknown")
                 lines.extend([f"### {sender} reasoning", "", event.content, ""])
-            case ParticipantVoteEvent():
-                lines.extend([f"{event.voter.name} voted for {event.target.name}: {event.reason}", ""])
-            case ParticipantRemovedEvent():
-                lines.extend([f"{event.removed.name} was removed.", ""])
-            case ResolutionCreatedEvent():
-                lines.extend(["## Resolution", "", event.resolution, ""])
+            case ResolutionCompletedEvent():
+                lines.extend([event.decision, ""])
             case _:
                 lines.extend([f"Unsupported event: {event.type}", ""])
 

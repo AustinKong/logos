@@ -2,10 +2,7 @@ from api.modules.ai.errors import AIProviderError
 from api.modules.ai.models import AIMessage, AIMessageResponseAction, GenerationOptions, MessageRole
 from api.modules.ai.service import AIService
 from api.modules.engine.models import EngineContext, EngineOutputStream
-from api.modules.sessions.models.events import (
-    ResolutionCreatedEvent,
-    SessionCompletedEvent,
-)
+from api.modules.sessions.models.events import ResolutionCompletedEvent
 from api.modules.strategies.history.full import FullHistoryStrategy
 from api.modules.strategies.resolution.configs import JudgeResolutionConfig
 
@@ -28,8 +25,6 @@ class JudgeResolutionStrategy:
 
     async def resolve(self, ctx: EngineContext) -> EngineOutputStream:
         transcript = self._history_strategy.build_history(ctx)
-        if transcript is None:
-            return
 
         response = await self._ai_service.generate_response(
             messages=[
@@ -38,7 +33,7 @@ class JudgeResolutionStrategy:
                     role=MessageRole.USER,
                     content=_build_judge_user_prompt(
                         session_prompt=ctx.prompt,
-                        transcript=transcript,
+                        transcript=transcript or "(none)",
                     ),
                 ),
             ],
@@ -51,13 +46,12 @@ class JudgeResolutionStrategy:
         if not isinstance(response.action, AIMessageResponseAction):
             raise AIProviderError("AI provider returned an unsupported response action")
 
-        resolution = response.action.content
+        decision = response.action.content
 
-        yield ResolutionCreatedEvent(
+        yield ResolutionCompletedEvent(
             session_id=ctx.session_id,
-            resolution=resolution,
+            decision=decision,
         )
-        yield SessionCompletedEvent(session_id=ctx.session_id)
 
 
 def _build_judge_user_prompt(*, session_prompt: str, transcript: str) -> str:

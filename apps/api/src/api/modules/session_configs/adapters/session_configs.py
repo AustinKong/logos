@@ -5,7 +5,6 @@ from api.modules.sessions.adapters.configs import (
     history_config_read_from_config,
     resolution_config_read_from_config,
     turn_selection_config_read_from_config,
-    validation_config_read_from_config,
 )
 
 
@@ -14,11 +13,11 @@ def session_config_read_from_config(config: SessionConfig) -> SessionConfigRead:
         id=config.id,
         prompt=config.prompt,
         seed=config.seed,
+        debate_round_count=config.debate_round_count,
         created_at=config.created_at,
         updated_at=config.updated_at,
         participants=[participant_read_from_participant(participant) for participant in config.participants],
         turn_selection=turn_selection_config_read_from_config(config.turn_selection_config),
         history=history_config_read_from_config(config.history_config),
-        validation=validation_config_read_from_config(config.validation_config),
         resolution=resolution_config_read_from_config(config.resolution_config),
     )

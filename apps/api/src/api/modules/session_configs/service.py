@@ -26,7 +26,6 @@ from api.modules.session_configs.models.session_configs import SessionConfig
 from api.modules.strategies.history.configs import FullHistoryConfig, HistoryConfig
 from api.modules.strategies.resolution.configs import NoneResolutionConfig, ResolutionConfig
 from api.modules.strategies.turn_selection.configs import RoundRobinTurnSelectionConfig, TurnSelectionConfig
-from api.modules.strategies.validation.configs import AllowAllValidationConfig, ValidationConfig
 
 DEFAULT_PROMPT = "Evaluate the best architecture for a terminal-first multi-agent debate workflow."
 MAX_SEED = 2**63 - 1
@@ -67,9 +66,9 @@ class SessionConfigService:
                         reasoning_effort=ReasoningEffort.NONE,
                     ),
                 ],
+                debate_round_count=1,
                 turn_selection=RoundRobinTurnSelectionConfig(),
                 history=FullHistoryConfig(),
-                validation=AllowAllValidationConfig(),
                 resolution=NoneResolutionConfig(),
             )
 
@@ -91,10 +90,10 @@ class SessionConfigService:
         *,
         prompt: str,
         seed: int | None,
+        debate_round_count: int,
         participants: list[ParticipantData],
         turn_selection: TurnSelectionConfig,
         history: HistoryConfig,
-        validation: ValidationConfig,
         resolution: ResolutionConfig,
         id: UUID | None = None,
         commit: bool = True,
@@ -114,9 +113,9 @@ class SessionConfigService:
         config = SessionConfig(
             prompt=prompt,
             seed=seed,
+            debate_round_count=debate_round_count,
             turn_selection_config=turn_selection,
             history_config=history,
-            validation_config=validation,
             resolution_config=resolution,
         )
         if id is not None:

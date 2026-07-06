@@ -32,9 +32,20 @@ class GeneralSection(VerticalScroll):
             Input(self._initial_state.seed, type="integer", disabled=self._read_only, id="seed"),
             helper_text=SCHEMA_FIELDS["SessionConfigCreate"]["seed"]["description"],
         )
+        yield field(
+            SCHEMA_FIELDS["SessionConfigCreate"]["debate_round_count"]["title"],
+            Input(
+                self._initial_state.debate_round_count,
+                type="integer",
+                disabled=self._read_only,
+                id="debate-round-count",
+            ),
+            helper_text=SCHEMA_FIELDS["SessionConfigCreate"]["debate_round_count"]["description"],
+        )
 
     def form_state(self) -> GeneralFormState:
         return GeneralFormState(
             prompt=self.query_one("#prompt", TextArea).text,
             seed=self.query_one("#seed", Input).value,
+            debate_round_count=self.query_one("#debate-round-count", Input).value,
         )

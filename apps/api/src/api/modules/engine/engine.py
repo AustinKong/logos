@@ -2,8 +2,8 @@ from api.modules.engine.generation import GenerationRunner
 from api.modules.engine.models import EngineContext, EngineOutputStream
 from api.modules.engine.stages.base import EngineStage
 from api.modules.engine.stages.debate import DebateStage
+from api.modules.engine.stages.proposal import ProposalStage
 from api.modules.engine.stages.resolution import ResolutionStage
-from api.modules.engine.stages.validation import ValidationStage
 from api.modules.sessions.models.events import SessionCompletedEvent, SessionStartedEvent
 from api.modules.sessions.models.sessions import Session
 from api.modules.strategies.resolver import StrategyResolver
@@ -20,14 +20,18 @@ class Engine:
         self._strategy_resolver = strategy_resolver
 
     def _build_stages(self, session: Session) -> list[EngineStage]:
+        turn_selection_strategy = self._strategy_resolver.turn_selection(session)
+
         return [
-            DebateStage(
-                turn_selection_strategy=self._strategy_resolver.turn_selection(session),
-                history_strategy=self._strategy_resolver.history(session),
+            ProposalStage(
+                turn_selection_strategy=turn_selection_strategy,
                 generation_runner=self._generation_runner,
             ),
-            ValidationStage(
-                validation_strategy=self._strategy_resolver.validation(session),
+            DebateStage(
+                debate_round_count=session.config.debate_round_count,
+                turn_selection_strategy=turn_selection_strategy,
+                history_strategy=self._strategy_resolver.history(session),
+                generation_runner=self._generation_runner,
             ),
             ResolutionStage(
                 resolution_strategy=self._strategy_resolver.resolution(session),

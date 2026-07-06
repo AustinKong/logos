@@ -521,6 +521,81 @@
         ],
         "title": "AgentParticipantRead"
       },
+      "DebateRoundCompletedEventRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "type": {
+            "type": "string",
+            "const": "debate_round.completed",
+            "title": "Type"
+          }
+        },
+        "type": "object",
+        "required": ["id", "session_id", "created_at", "updated_at", "type"],
+        "title": "DebateRoundCompletedEventRead"
+      },
+      "DebateRoundStartedEventRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "type": {
+            "type": "string",
+            "const": "debate_round.started",
+            "title": "Type"
+          },
+          "round_number": {
+            "type": "integer",
+            "title": "Round Number"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "session_id",
+          "created_at",
+          "updated_at",
+          "type",
+          "round_number"
+        ],
+        "title": "DebateRoundStartedEventRead"
+      },
       "EventRead": {
         "oneOf": [
           {
@@ -528,6 +603,24 @@
           },
           {
             "$ref": "#/components/schemas/SessionCompletedEventRead"
+          },
+          {
+            "$ref": "#/components/schemas/ProposalStartedEventRead"
+          },
+          {
+            "$ref": "#/components/schemas/ProposalCompletedEventRead"
+          },
+          {
+            "$ref": "#/components/schemas/DebateRoundStartedEventRead"
+          },
+          {
+            "$ref": "#/components/schemas/DebateRoundCompletedEventRead"
+          },
+          {
+            "$ref": "#/components/schemas/ResolutionStartedEventRead"
+          },
+          {
+            "$ref": "#/components/schemas/ResolutionCompletedEventRead"
           },
           {
             "$ref": "#/components/schemas/MessageStartedEventRead"
@@ -540,27 +633,21 @@
           },
           {
             "$ref": "#/components/schemas/ReasoningCompletedEventRead"
-          },
-          {
-            "$ref": "#/components/schemas/ParticipantVoteEventRead"
-          },
-          {
-            "$ref": "#/components/schemas/ParticipantRemovedEventRead"
-          },
-          {
-            "$ref": "#/components/schemas/ResolutionCreatedEventRead"
           }
         ],
         "discriminator": {
           "propertyName": "type",
           "mapping": {
+            "debate_round.completed": "#/components/schemas/DebateRoundCompletedEventRead",
+            "debate_round.started": "#/components/schemas/DebateRoundStartedEventRead",
             "message.completed": "#/components/schemas/MessageCompletedEventRead",
             "message.started": "#/components/schemas/MessageStartedEventRead",
-            "participant.removed": "#/components/schemas/ParticipantRemovedEventRead",
-            "participant.vote": "#/components/schemas/ParticipantVoteEventRead",
+            "proposal.completed": "#/components/schemas/ProposalCompletedEventRead",
+            "proposal.started": "#/components/schemas/ProposalStartedEventRead",
             "reasoning.completed": "#/components/schemas/ReasoningCompletedEventRead",
             "reasoning.started": "#/components/schemas/ReasoningStartedEventRead",
-            "resolution.created": "#/components/schemas/ResolutionCreatedEventRead",
+            "resolution.completed": "#/components/schemas/ResolutionCompletedEventRead",
+            "resolution.started": "#/components/schemas/ResolutionStartedEventRead",
             "session.completed": "#/components/schemas/SessionCompletedEventRead",
             "session.started": "#/components/schemas/SessionStartedEventRead"
           }
@@ -857,7 +944,7 @@
           }
         }
       },
-      "ParticipantRemovedEventRead": {
+      "ProposalCompletedEventRead": {
         "properties": {
           "id": {
             "type": "string",
@@ -881,25 +968,15 @@
           },
           "type": {
             "type": "string",
-            "const": "participant.removed",
+            "const": "proposal.completed",
             "title": "Type"
-          },
-          "removed": {
-            "$ref": "#/components/schemas/ParticipantRead"
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "session_id",
-          "created_at",
-          "updated_at",
-          "type",
-          "removed"
-        ],
-        "title": "ParticipantRemovedEventRead"
+        "required": ["id", "session_id", "created_at", "updated_at", "type"],
+        "title": "ProposalCompletedEventRead"
       },
-      "ParticipantVoteEventRead": {
+      "ProposalStartedEventRead": {
         "properties": {
           "id": {
             "type": "string",
@@ -923,32 +1000,13 @@
           },
           "type": {
             "type": "string",
-            "const": "participant.vote",
+            "const": "proposal.started",
             "title": "Type"
-          },
-          "voter": {
-            "$ref": "#/components/schemas/ParticipantRead"
-          },
-          "target": {
-            "$ref": "#/components/schemas/ParticipantRead"
-          },
-          "reason": {
-            "type": "string",
-            "title": "Reason"
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "session_id",
-          "created_at",
-          "updated_at",
-          "type",
-          "voter",
-          "target",
-          "reason"
-        ],
-        "title": "ParticipantVoteEventRead"
+        "required": ["id", "session_id", "created_at", "updated_at", "type"],
+        "title": "ProposalStartedEventRead"
       },
       "ReasoningCompletedEventRead": {
         "properties": {
@@ -1052,6 +1110,49 @@
         ],
         "title": "ReasoningStartedEventRead"
       },
+      "ResolutionCompletedEventRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "type": {
+            "type": "string",
+            "const": "resolution.completed",
+            "title": "Type"
+          },
+          "decision": {
+            "type": "string",
+            "title": "Decision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "session_id",
+          "created_at",
+          "updated_at",
+          "type",
+          "decision"
+        ],
+        "title": "ResolutionCompletedEventRead"
+      },
       "ResolutionConfigCreate": {
         "oneOf": [
           {
@@ -1086,7 +1187,7 @@
           }
         }
       },
-      "ResolutionCreatedEventRead": {
+      "ResolutionStartedEventRead": {
         "properties": {
           "id": {
             "type": "string",
@@ -1110,24 +1211,13 @@
           },
           "type": {
             "type": "string",
-            "const": "resolution.created",
+            "const": "resolution.started",
             "title": "Type"
-          },
-          "resolution": {
-            "type": "string",
-            "title": "Resolution"
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "session_id",
-          "created_at",
-          "updated_at",
-          "type",
-          "resolution"
-        ],
-        "title": "ResolutionCreatedEventRead"
+        "required": ["id", "session_id", "created_at", "updated_at", "type"],
+        "title": "ResolutionStartedEventRead"
       },
       "RoundRobinTurnSelectionConfigCreate": {
         "properties": {
@@ -1207,6 +1297,12 @@
             "title": "Seed",
             "description": "Optional deterministic seed for random app behavior. Leave blank to generate one."
           },
+          "debate_round_count": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Debate rounds",
+            "description": "Number of debate rounds to run after independent proposals."
+          },
           "participants": {
             "items": {
               "$ref": "#/components/schemas/ParticipantCreate"
@@ -1221,9 +1317,6 @@
           "history": {
             "$ref": "#/components/schemas/HistoryConfigCreate"
           },
-          "validation": {
-            "$ref": "#/components/schemas/ValidationConfigCreate"
-          },
           "resolution": {
             "$ref": "#/components/schemas/ResolutionConfigCreate"
           }
@@ -1232,10 +1325,10 @@
         "required": [
           "prompt",
           "seed",
+          "debate_round_count",
           "participants",
           "turn_selection",
           "history",
-          "validation",
           "resolution"
         ],
         "title": "SessionConfigCreate"
@@ -1254,6 +1347,10 @@
           "seed": {
             "type": "integer",
             "title": "Seed"
+          },
+          "debate_round_count": {
+            "type": "integer",
+            "title": "Debate Round Count"
           },
           "created_at": {
             "type": "string",
@@ -1278,9 +1375,6 @@
           "history": {
             "$ref": "#/components/schemas/HistoryConfigRead"
           },
-          "validation": {
-            "$ref": "#/components/schemas/ValidationConfigRead"
-          },
           "resolution": {
             "$ref": "#/components/schemas/ResolutionConfigRead"
           }
@@ -1290,12 +1384,12 @@
           "id",
           "prompt",
           "seed",
+          "debate_round_count",
           "created_at",
           "updated_at",
           "participants",
           "turn_selection",
           "history",
-          "validation",
           "resolution"
         ],
         "title": "SessionConfigRead"
@@ -1575,30 +1669,6 @@
         "required": ["id", "name", "created_at", "updated_at"],
         "title": "UserParticipantRead"
       },
-      "ValidationConfigCreate": {
-        "properties": {
-          "mode": {
-            "$ref": "#/components/schemas/ValidationMode",
-            "title": "Allow all",
-            "description": "Allow every participant response without automated validation."
-          }
-        },
-        "type": "object",
-        "required": ["mode"],
-        "title": "ValidationConfigCreate"
-      },
-      "ValidationConfigRead": {
-        "properties": {
-          "mode": {
-            "$ref": "#/components/schemas/ValidationMode",
-            "title": "Allow all",
-            "description": "Allow every participant response without automated validation."
-          }
-        },
-        "type": "object",
-        "required": ["mode"],
-        "title": "ValidationConfigRead"
-      },
       "ValidationError": {
         "properties": {
           "loc": {
@@ -1634,11 +1704,6 @@
         "type": "object",
         "required": ["loc", "msg", "type"],
         "title": "ValidationError"
-      },
-      "ValidationMode": {
-        "type": "string",
-        "enum": ["allow_all"],
-        "title": "ValidationMode"
       }
     }
   }

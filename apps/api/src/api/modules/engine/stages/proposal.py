@@ -3,69 +3,48 @@ from api.modules.engine.generation import GenerationRunner
 from api.modules.engine.models import EngineContext, EngineOutputStream
 from api.modules.session_configs.models.participants import AgentParticipant, Participant, UserParticipant
 from api.modules.sessions.models.events import (
-    DebateRoundCompletedEvent,
-    DebateRoundStartedEvent,
     Event,
     MessageStartedEvent,
     ProposalCompletedEvent,
+    ProposalStartedEvent,
 )
-from api.modules.strategies.history.base import HistoryStrategy
 from api.modules.strategies.turn_selection.base import TurnSelectionStrategy
 from api.shared.iterables import find_last_instance
 
+PROPOSAL_ROUND_NUMBER = 0
 
-class DebateStage:
+
+class ProposalStage:
     def __init__(
         self,
         *,
-        debate_round_count: int,
         turn_selection_strategy: TurnSelectionStrategy,
-        history_strategy: HistoryStrategy,
         generation_runner: GenerationRunner,
     ) -> None:
-        self._debate_round_count = debate_round_count
         self._turn_selection_strategy = turn_selection_strategy
-        self._history_strategy = history_strategy
         self._generation_runner = generation_runner
 
     async def run(self, ctx: EngineContext) -> EngineOutputStream:
-        if not any(isinstance(event, ProposalCompletedEvent) for event in ctx.events):
+        if any(isinstance(event, ProposalCompletedEvent) for event in ctx.events):
             return
 
-        active_round = _get_active_round(ctx.events)
-        if active_round is None:
-            completed_round_count = sum(isinstance(event, DebateRoundCompletedEvent) for event in ctx.events)
-            if completed_round_count >= self._debate_round_count:
-                return
-
-            yield DebateRoundStartedEvent(
-                session_id=ctx.session_id,
-                round_number=completed_round_count + 1,
-            )
+        if not any(isinstance(event, ProposalStartedEvent) for event in ctx.events):
+            yield ProposalStartedEvent(session_id=ctx.session_id)
             return
-
-        active_round_index, active_round_started = active_round
 
         participant = _choose_next_participant(
             participants=self._turn_selection_strategy.order_participants(
                 ctx,
-                round_number=active_round_started.round_number,
+                round_number=PROPOSAL_ROUND_NUMBER,
             ),
             events=ctx.events,
-            active_round_index=active_round_index,
         )
-
         match participant:
             case AgentParticipant():
                 async for output in self._generation_runner.run_response(
                     session_id=ctx.session_id,
                     sender=participant,
-                    messages=_build_debate_messages(
-                        ctx=ctx,
-                        agent=participant,
-                        round_number=active_round_started.round_number,
-                        history=self._history_strategy.build_history(ctx),
-                    ),
+                    messages=_build_proposal_messages(ctx=ctx, agent=participant),
                     options=GenerationOptions(
                         model=participant.model,
                         reasoning_effort=participant.reasoning_effort,
@@ -76,43 +55,28 @@ class DebateStage:
                 # TODO: Add human/system turn handling when those participant types become eligible.
                 return
             case None:
-                yield DebateRoundCompletedEvent(session_id=ctx.session_id)
+                yield ProposalCompletedEvent(session_id=ctx.session_id)
             case _:
                 raise ValueError(f"Unsupported participant type: {participant.type}")
 
 
-def _get_active_round(events: list[Event]) -> tuple[int, DebateRoundStartedEvent] | None:
-    """Returns the index and event of the most recent DebateRoundStartedEvent that has not yet been completed."""
-    round_marker = find_last_instance(events, (DebateRoundStartedEvent, DebateRoundCompletedEvent))
-    if round_marker is None:
+def _choose_next_participant(*, participants: list[Participant], events: list[Event]) -> Participant | None:
+    proposal_started = find_last_instance(events, ProposalStartedEvent)
+    if proposal_started is None:
         return None
 
-    index, event = round_marker
-    if isinstance(event, DebateRoundStartedEvent):
-        return index, event
-
-    return None
-
-
-def _choose_next_participant(
-    *,
-    participants: list[Participant],
-    events: list[Event],
-    active_round_index: int,
-) -> Participant | None:
+    proposal_started_index, _ = proposal_started
     completed_participant_ids = {
-        event.sender_id for event in events[active_round_index + 1 :] if isinstance(event, MessageStartedEvent)
+        event.sender_id for event in events[proposal_started_index + 1 :] if isinstance(event, MessageStartedEvent)
     }
 
     return next((participant for participant in participants if participant.id not in completed_participant_ids), None)
 
 
-def _build_debate_messages(
+def _build_proposal_messages(
     *,
     ctx: EngineContext,
     agent: AgentParticipant,
-    round_number: int,
-    history: str | None,
 ) -> list[AIMessage]:
     return [
         AIMessage(role=MessageRole.SYSTEM, content=agent.system_prompt),
@@ -120,8 +84,7 @@ def _build_debate_messages(
             role=MessageRole.USER,
             content=(
                 f"Session prompt:\n{ctx.prompt}\n\n"
-                f"Debate round: {round_number}\n\n"
-                f"Transcript so far:\n{history or '(none)'}\n\n"
+                "Draft your independent initial proposal. Do not respond to other participants yet.\n\n"
                 f"Respond as {agent.name}."
             ),
         ),

@@ -19,9 +19,12 @@ class EventType(StrEnum):
     MESSAGE_COMPLETED = "message.completed"
     REASONING_STARTED = "reasoning.started"
     REASONING_COMPLETED = "reasoning.completed"
-    PARTICIPANT_VOTE = "participant.vote"
-    PARTICIPANT_REMOVED = "participant.removed"
-    RESOLUTION_CREATED = "resolution.created"
+    PROPOSAL_STARTED = "proposal.started"
+    PROPOSAL_COMPLETED = "proposal.completed"
+    DEBATE_ROUND_STARTED = "debate_round.started"
+    DEBATE_ROUND_COMPLETED = "debate_round.completed"
+    RESOLUTION_STARTED = "resolution.started"
+    RESOLUTION_COMPLETED = "resolution.completed"
 
 
 # Simple events stay in the base events table to avoid unnecessary new tables.
@@ -57,6 +60,30 @@ class SessionStartedEvent(Event):
 class SessionCompletedEvent(Event):
     __mapper_args__ = {
         "polymorphic_identity": EventType.SESSION_COMPLETED,
+    }
+
+
+class ProposalStartedEvent(Event):
+    __mapper_args__ = {
+        "polymorphic_identity": EventType.PROPOSAL_STARTED,
+    }
+
+
+class ProposalCompletedEvent(Event):
+    __mapper_args__ = {
+        "polymorphic_identity": EventType.PROPOSAL_COMPLETED,
+    }
+
+
+class ResolutionStartedEvent(Event):
+    __mapper_args__ = {
+        "polymorphic_identity": EventType.RESOLUTION_STARTED,
+    }
+
+
+class DebateRoundCompletedEvent(Event):
+    __mapper_args__ = {
+        "polymorphic_identity": EventType.DEBATE_ROUND_COMPLETED,
     }
 
 
@@ -112,41 +139,23 @@ class ReasoningCompletedEvent(Event):
     }
 
 
-class ParticipantVoteEvent(Event):
-    __tablename__ = "participant_vote_events"
+class DebateRoundStartedEvent(Event):
+    __tablename__ = "debate_round_started_events"
 
     id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), primary_key=True)
-    voter_id: Mapped[UUID] = mapped_column(ForeignKey("participants.id"), index=True)
-    target_id: Mapped[UUID] = mapped_column(ForeignKey("participants.id"), index=True)
-    reason: Mapped[str] = mapped_column(Text)
-
-    voter: Mapped[Participant] = relationship(Participant, foreign_keys=[voter_id], lazy="joined")
-    target: Mapped[Participant] = relationship(Participant, foreign_keys=[target_id], lazy="joined")
+    round_number: Mapped[int] = mapped_column(index=True)
 
     __mapper_args__ = {
-        "polymorphic_identity": EventType.PARTICIPANT_VOTE,
+        "polymorphic_identity": EventType.DEBATE_ROUND_STARTED,
     }
 
 
-class ParticipantRemovedEvent(Event):
-    __tablename__ = "participant_removed_events"
+class ResolutionCompletedEvent(Event):
+    __tablename__ = "resolution_completed_events"
 
     id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), primary_key=True)
-    removed_id: Mapped[UUID] = mapped_column(ForeignKey("participants.id"), index=True)
-
-    removed: Mapped[Participant] = relationship(Participant, foreign_keys=[removed_id], lazy="joined")
+    decision: Mapped[str] = mapped_column(Text)
 
     __mapper_args__ = {
-        "polymorphic_identity": EventType.PARTICIPANT_REMOVED,
-    }
-
-
-class ResolutionCreatedEvent(Event):
-    __tablename__ = "resolution_events"
-
-    id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), primary_key=True)
-    resolution: Mapped[str] = mapped_column(Text)
-
-    __mapper_args__ = {
-        "polymorphic_identity": EventType.RESOLUTION_CREATED,
+        "polymorphic_identity": EventType.RESOLUTION_COMPLETED,
     }

@@ -10,8 +10,6 @@ from api.modules.session_configs.schemas.configs import (
     ResolutionConfigRead,
     TurnSelectionConfigCreate,
     TurnSelectionConfigRead,
-    ValidationConfigCreate,
-    ValidationConfigRead,
 )
 from api.modules.session_configs.schemas.participants import ParticipantCreate, ParticipantRead
 
@@ -26,10 +24,14 @@ class SessionConfigCreate(BaseModel):
         title="Seed",
         description="Optional deterministic seed for random app behavior. Leave blank to generate one.",
     )
+    debate_round_count: int = Field(
+        ge=1,
+        title="Debate rounds",
+        description="Number of debate rounds to run after independent proposals.",
+    )
     participants: list[ParticipantCreate] = Field(min_length=1)
     turn_selection: TurnSelectionConfigCreate
     history: HistoryConfigCreate
-    validation: ValidationConfigCreate
     resolution: ResolutionConfigCreate
 
 
@@ -37,10 +39,10 @@ class SessionConfigRead(BaseModel):
     id: UUID
     prompt: str
     seed: int
+    debate_round_count: int
     created_at: datetime
     updated_at: datetime
     participants: list[ParticipantRead]
     turn_selection: TurnSelectionConfigRead
     history: HistoryConfigRead
-    validation: ValidationConfigRead
     resolution: ResolutionConfigRead

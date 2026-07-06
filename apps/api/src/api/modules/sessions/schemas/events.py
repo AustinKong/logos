@@ -23,6 +23,32 @@ class SessionCompletedEventRead(EventReadBase):
     type: Literal[EventType.SESSION_COMPLETED]
 
 
+class ProposalStartedEventRead(EventReadBase):
+    type: Literal[EventType.PROPOSAL_STARTED]
+
+
+class ProposalCompletedEventRead(EventReadBase):
+    type: Literal[EventType.PROPOSAL_COMPLETED]
+
+
+class DebateRoundStartedEventRead(EventReadBase):
+    type: Literal[EventType.DEBATE_ROUND_STARTED]
+    round_number: int
+
+
+class DebateRoundCompletedEventRead(EventReadBase):
+    type: Literal[EventType.DEBATE_ROUND_COMPLETED]
+
+
+class ResolutionStartedEventRead(EventReadBase):
+    type: Literal[EventType.RESOLUTION_STARTED]
+
+
+class ResolutionCompletedEventRead(EventReadBase):
+    type: Literal[EventType.RESOLUTION_COMPLETED]
+    decision: str
+
+
 class MessageStartedEventRead(EventReadBase):
     type: Literal[EventType.MESSAGE_STARTED]
     message_id: UUID
@@ -47,33 +73,19 @@ class ReasoningCompletedEventRead(EventReadBase):
     content: str
 
 
-class ParticipantVoteEventRead(EventReadBase):
-    type: Literal[EventType.PARTICIPANT_VOTE]
-    voter: ParticipantRead
-    target: ParticipantRead
-    reason: str
-
-
-class ParticipantRemovedEventRead(EventReadBase):
-    type: Literal[EventType.PARTICIPANT_REMOVED]
-    removed: ParticipantRead
-
-
-class ResolutionCreatedEventRead(EventReadBase):
-    type: Literal[EventType.RESOLUTION_CREATED]
-    resolution: str
-
-
 type EventRead = Annotated[
     SessionStartedEventRead
     | SessionCompletedEventRead
+    | ProposalStartedEventRead
+    | ProposalCompletedEventRead
+    | DebateRoundStartedEventRead
+    | DebateRoundCompletedEventRead
+    | ResolutionStartedEventRead
+    | ResolutionCompletedEventRead
     | MessageStartedEventRead
     | MessageCompletedEventRead
     | ReasoningStartedEventRead
-    | ReasoningCompletedEventRead
-    | ParticipantVoteEventRead
-    | ParticipantRemovedEventRead
-    | ResolutionCreatedEventRead,
+    | ReasoningCompletedEventRead,
     Field(discriminator="type"),
 ]
 

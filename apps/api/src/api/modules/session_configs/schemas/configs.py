@@ -5,7 +5,6 @@ from pydantic import BaseModel, Field
 from api.modules.strategies.history.configs import HistoryMode
 from api.modules.strategies.resolution.configs import ResolutionMode
 from api.modules.strategies.turn_selection.configs import TurnSelectionMode
-from api.modules.strategies.validation.configs import ValidationMode
 
 
 class RoundRobinTurnSelectionConfigBase(BaseModel):
@@ -74,21 +73,6 @@ class SlidingWindowHistoryConfigCreate(SlidingWindowHistoryConfigBase):
 
 
 class SlidingWindowHistoryConfigRead(SlidingWindowHistoryConfigBase):
-    pass
-
-
-class ValidationConfigBase(BaseModel):
-    mode: ValidationMode = Field(
-        title="Allow all",
-        description="Allow every participant response without automated validation.",
-    )
-
-
-class ValidationConfigCreate(ValidationConfigBase):
-    pass
-
-
-class ValidationConfigRead(ValidationConfigBase):
     pass
 
 

@@ -10,7 +10,6 @@ from api.modules.sessions.adapters.configs import (
     history_config_from_create,
     resolution_config_from_create,
     turn_selection_config_from_create,
-    validation_config_from_create,
 )
 from api.modules.sessions.adapters.events import event_read_from_event
 from api.modules.sessions.adapters.sessions import session_read_from_session, session_summary_read_from_summary
@@ -42,10 +41,10 @@ def create_session(
     session = service.create_session(
         prompt=config.prompt,
         seed=config.seed,
+        debate_round_count=config.debate_round_count,
         agents=[participant_data_from_create(participant) for participant in config.participants],
         turn_selection=turn_selection_config_from_create(config.turn_selection),
         history=history_config_from_create(config.history),
-        validation=validation_config_from_create(config.validation),
         resolution=resolution_config_from_create(config.resolution),
     )
     background_tasks.add_task(run_session_until_blocked_background, session.id)

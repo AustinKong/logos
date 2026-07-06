@@ -9,13 +9,11 @@ from tui.screens.session_config.sections.history.section import HistorySection
 from tui.screens.session_config.sections.participants.section import ParticipantsSection
 from tui.screens.session_config.sections.resolution.section import ResolutionSection
 from tui.screens.session_config.sections.turn_selection.section import TurnSelectionSection
-from tui.screens.session_config.sections.validation.section import ValidationSection
 
 SECTION_TAB_IDS = {
     ConfigSection.GENERAL: "general",
     ConfigSection.TURN_SELECTION: "turn-selection",
     ConfigSection.HISTORY: "history",
-    ConfigSection.VALIDATION: "validation",
     ConfigSection.RESOLUTION: "resolution",
     ConfigSection.PARTICIPANTS: "participants",
 }
@@ -74,11 +72,6 @@ class SectionEditor(Container):
                 id=SECTION_TAB_IDS[ConfigSection.HISTORY],
             )
             yield TabPane(
-                "Validation",
-                ValidationSection(initial_state=self._form_state.validation, read_only=self._read_only),
-                id=SECTION_TAB_IDS[ConfigSection.VALIDATION],
-            )
-            yield TabPane(
                 "Resolution",
                 ResolutionSection(
                     initial_state=self._form_state.resolution,
@@ -103,6 +96,5 @@ class SectionEditor(Container):
             participants=self.query_one(ParticipantsSection).form_state(),
             turn_selection=self.query_one(TurnSelectionSection).form_state(),
             history=self.query_one(HistorySection).form_state(),
-            validation=self.query_one(ValidationSection).form_state(),
             resolution=self.query_one(ResolutionSection).form_state(),
         )
