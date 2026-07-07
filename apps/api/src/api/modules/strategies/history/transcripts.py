@@ -16,15 +16,11 @@ def format_message_transcript(
     *,
     limit: int | None = None,
 ) -> str | None:
-    participant_names = {participant.id: participant.name for participant in ctx.participants}
     messages = tuple(iter_message_event_pairs(ctx.events))
     if limit is not None:
         messages = messages[-limit:]
 
-    lines = [
-        f"{participant_names.get(message.started.sender_id, 'Unknown participant')}: {message.completed.content}"
-        for message in messages
-    ]
+    lines = [f"{message.started.sender.name}: {message.completed.content}" for message in messages]
     if not lines:
         return None
 

@@ -1,13 +1,13 @@
-from api_client.models import ResolutionMode
+from api_client.models import ReasoningEffort, ResolutionMode
 from attrs import define
+from textual.widgets import Select
 
-from tui.screens.session_config.sections.state import SelectValue
+from tui.screens.session_config.sections.participants.models import ParticipantFormState
 
 
 @define(frozen=True)
 class JudgeResolutionFormState:
-    judge_model: SelectValue
-    judge_temperature: str
+    judge: ParticipantFormState
     mode: ResolutionMode = ResolutionMode.JUDGE_LLM
 
 
@@ -17,3 +17,13 @@ class NoneResolutionFormState:
 
 
 type ResolutionFormState = JudgeResolutionFormState | NoneResolutionFormState
+
+
+def judge_participant_form_state() -> ParticipantFormState:
+    return ParticipantFormState(
+        name="Judge",
+        model=Select.NULL,
+        reasoning_effort=ReasoningEffort.NONE,
+        temperature="0.2",
+        system_prompt="Resolve the debate neutrally using only the transcript.",
+    )

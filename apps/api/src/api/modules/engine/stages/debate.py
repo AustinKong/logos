@@ -1,7 +1,7 @@
 from api.modules.ai.models import AIMessage, GenerationOptions, MessageRole
 from api.modules.engine.generation import GenerationRunner
 from api.modules.engine.models import EngineContext, EngineOutputStream
-from api.modules.session_configs.models.participants import AgentParticipant, Participant, UserParticipant
+from api.modules.session_configs.models.participants import DebaterParticipant
 from api.modules.sessions.models.events import (
     DebateRoundCompletedEvent,
     DebateRoundStartedEvent,
@@ -55,30 +55,26 @@ class DebateStage:
             active_round_index=active_round_index,
         )
 
-        match participant:
-            case AgentParticipant():
-                async for output in self._generation_runner.run_response(
-                    session_id=ctx.session_id,
-                    sender=participant,
-                    messages=_build_debate_messages(
-                        ctx=ctx,
-                        agent=participant,
-                        round_number=active_round_started.round_number,
-                        history=self._history_strategy.build_history(ctx),
-                    ),
-                    options=GenerationOptions(
-                        model=participant.model,
-                        reasoning_effort=participant.reasoning_effort,
-                    ),
-                ):
-                    yield output
-            case UserParticipant():
-                # TODO: Add human/system turn handling when those participant types become eligible.
-                return
-            case None:
-                yield DebateRoundCompletedEvent(session_id=ctx.session_id)
-            case _:
-                raise ValueError(f"Unsupported participant type: {participant.type}")
+        if not participant:
+            yield DebateRoundCompletedEvent(session_id=ctx.session_id)
+            return
+
+        async for output in self._generation_runner.run_response(
+            session_id=ctx.session_id,
+            sender=participant,
+            messages=_build_debate_messages(
+                ctx=ctx,
+                participant=participant,
+                round_number=active_round_started.round_number,
+                history=self._history_strategy.build_history(ctx),
+            ),
+            options=GenerationOptions(
+                model=participant.model,
+                reasoning_effort=participant.reasoning_effort,
+                temperature=participant.temperature,
+            ),
+        ):
+            yield output
 
 
 def _get_active_round(events: list[Event]) -> tuple[int, DebateRoundStartedEvent] | None:
@@ -96,10 +92,10 @@ def _get_active_round(events: list[Event]) -> tuple[int, DebateRoundStartedEvent
 
 def _choose_next_participant(
     *,
-    participants: list[Participant],
+    participants: list[DebaterParticipant],
     events: list[Event],
     active_round_index: int,
-) -> Participant | None:
+) -> DebaterParticipant | None:
     completed_participant_ids = {
         event.sender_id for event in events[active_round_index + 1 :] if isinstance(event, MessageStartedEvent)
     }
@@ -110,19 +106,19 @@ def _choose_next_participant(
 def _build_debate_messages(
     *,
     ctx: EngineContext,
-    agent: AgentParticipant,
+    participant: DebaterParticipant,
     round_number: int,
     history: str | None,
 ) -> list[AIMessage]:
     return [
-        AIMessage(role=MessageRole.SYSTEM, content=agent.system_prompt),
+        AIMessage(role=MessageRole.SYSTEM, content=participant.system_prompt),
         AIMessage(
             role=MessageRole.USER,
             content=(
                 f"Session prompt:\n{ctx.prompt}\n\n"
                 f"Debate round: {round_number}\n\n"
                 f"Transcript so far:\n{history or '(none)'}\n\n"
-                f"Respond as {agent.name}."
+                f"Respond as {participant.name}."
             ),
         ),
     ]

@@ -1,6 +1,7 @@
 from typing import assert_never
 
 from api_client.models import (
+    JudgeParticipantCreate,
     JudgeResolutionConfigCreate,
     JudgeResolutionConfigRead,
     NoneResolutionConfigCreate,
@@ -9,6 +10,7 @@ from api_client.models import (
 from textual.widgets import Select
 
 from tui.screens.session_config.errors import SessionConfigValidationError
+from tui.screens.session_config.sections.participants.models import ParticipantFormState
 from tui.screens.session_config.sections.resolution.models import (
     JudgeResolutionFormState,
     NoneResolutionFormState,
@@ -22,8 +24,13 @@ def resolution_form_state_from_read(
     match resolution:
         case JudgeResolutionConfigRead():
             return JudgeResolutionFormState(
-                judge_model=resolution.judge_model,
-                judge_temperature=str(resolution.judge_temperature),
+                judge=ParticipantFormState(
+                    name=resolution.judge.name,
+                    model=resolution.judge.model,
+                    reasoning_effort=resolution.judge.reasoning_effort,
+                    temperature=str(resolution.judge.temperature),
+                    system_prompt=resolution.judge.system_prompt,
+                ),
             )
         case NoneResolutionConfigRead():
             return NoneResolutionFormState()
@@ -36,18 +43,28 @@ def resolution_create_from_form_state(
 ) -> JudgeResolutionConfigCreate | NoneResolutionConfigCreate:
     match resolution:
         case JudgeResolutionFormState():
-            if resolution.judge_model == Select.NULL or not str(resolution.judge_model):
+            judge = resolution.judge
+            if not judge.name.strip():
+                raise SessionConfigValidationError("Judge name is required")
+            if judge.model == Select.NULL or not str(judge.model):
                 raise SessionConfigValidationError("Judge model is required")
-            judge_model = str(resolution.judge_model)
+            model = str(judge.model)
+            if not judge.system_prompt.strip():
+                raise SessionConfigValidationError("Judge system prompt is required")
 
             try:
-                judge_temperature = float(resolution.judge_temperature)
+                temperature = float(judge.temperature)
             except ValueError as exc:
                 raise SessionConfigValidationError("Judge temperature must be a number") from exc
 
             return JudgeResolutionConfigCreate(
-                judge_model=judge_model,
-                judge_temperature=judge_temperature,
+                judge=JudgeParticipantCreate(
+                    name=judge.name,
+                    model=model,
+                    reasoning_effort=judge.reasoning_effort,
+                    temperature=temperature,
+                    system_prompt=judge.system_prompt,
+                ),
             )
         case NoneResolutionFormState():
             return NoneResolutionConfigCreate()

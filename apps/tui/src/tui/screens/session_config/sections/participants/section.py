@@ -13,7 +13,7 @@ from tui.screens.session_config.sections.participants.messages import (
 from tui.screens.session_config.sections.participants.models import (
     ParticipantFormState,
     ParticipantsFormState,
-    agent_participant_form_state,
+    participant_form_state,
 )
 from tui.screens.session_config.sections.participants.table import ParticipantsTable
 from tui.shared.textual import on
@@ -104,7 +104,7 @@ class ParticipantsSection(Container):
             return
 
         current_count = len(self._participant_detail_widgets())
-        participant = agent_participant_form_state(current_count)
+        participant = participant_form_state(current_count)
         switcher = self.query_one("#participant-details-switcher", ContentSwitcher)
         await switcher.mount(self._participant_detail(current_count, participant))
 

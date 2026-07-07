@@ -12,7 +12,7 @@ from api.modules.ai.models import (
 )
 from api.modules.ai.service import AIService
 from api.modules.engine.models import EngineOutputStream, Token
-from api.modules.session_configs.models.participants import AgentParticipant
+from api.modules.session_configs.models.participants import Participant
 from api.modules.sessions.models.events import (
     MessageCompletedEvent,
     MessageStartedEvent,
@@ -29,7 +29,7 @@ class GenerationRunner:
         self,
         *,
         session_id: UUID,
-        sender: AgentParticipant,  # TODO: Or judge participant, or jury participant in future. anything but user participant
+        sender: Participant,
         messages: Sequence[AIMessage],
         options: GenerationOptions,
     ) -> EngineOutputStream:

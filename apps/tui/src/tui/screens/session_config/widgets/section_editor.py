@@ -4,6 +4,8 @@ from textual.containers import Container
 from textual.widgets import TabbedContent, TabPane
 
 from tui.screens.session_config.models import ConfigSection, SessionConfigFormState
+from tui.screens.session_config.sections.debate.models import DebateFormState
+from tui.screens.session_config.sections.debate.section import DebateSection
 from tui.screens.session_config.sections.general.section import GeneralSection
 from tui.screens.session_config.sections.history.section import HistorySection
 from tui.screens.session_config.sections.participants.section import ParticipantsSection
@@ -12,6 +14,7 @@ from tui.screens.session_config.sections.turn_selection.section import TurnSelec
 
 SECTION_TAB_IDS = {
     ConfigSection.GENERAL: "general",
+    ConfigSection.DEBATE: "debate",
     ConfigSection.TURN_SELECTION: "turn-selection",
     ConfigSection.HISTORY: "history",
     ConfigSection.RESOLUTION: "resolution",
@@ -62,13 +65,21 @@ class SectionEditor(Container):
                 id=SECTION_TAB_IDS[ConfigSection.GENERAL],
             )
             yield TabPane(
+                "Debate",
+                DebateSection(
+                    initial_state=self._form_state.debate,
+                    read_only=self._read_only,
+                ),
+                id=SECTION_TAB_IDS[ConfigSection.DEBATE],
+            )
+            yield TabPane(
                 "Turn Selection",
-                TurnSelectionSection(initial_state=self._form_state.turn_selection, read_only=self._read_only),
+                TurnSelectionSection(initial_state=self._form_state.debate.turn_selection, read_only=self._read_only),
                 id=SECTION_TAB_IDS[ConfigSection.TURN_SELECTION],
             )
             yield TabPane(
                 "History",
-                HistorySection(initial_state=self._form_state.history, read_only=self._read_only),
+                HistorySection(initial_state=self._form_state.debate.history, read_only=self._read_only),
                 id=SECTION_TAB_IDS[ConfigSection.HISTORY],
             )
             yield TabPane(
@@ -83,7 +94,7 @@ class SectionEditor(Container):
             yield TabPane(
                 "Participants",
                 ParticipantsSection(
-                    initial_state=self._form_state.participants,
+                    initial_state=self._form_state.debate.participants,
                     models=self._models,
                     read_only=self._read_only,
                 ),
@@ -93,8 +104,11 @@ class SectionEditor(Container):
     def form_state(self) -> SessionConfigFormState:
         return SessionConfigFormState(
             general=self.query_one(GeneralSection).form_state(),
-            participants=self.query_one(ParticipantsSection).form_state(),
-            turn_selection=self.query_one(TurnSelectionSection).form_state(),
-            history=self.query_one(HistorySection).form_state(),
+            debate=DebateFormState(
+                round_count=self.query_one(DebateSection).form_state().round_count,
+                participants=self.query_one(ParticipantsSection).form_state(),
+                turn_selection=self.query_one(TurnSelectionSection).form_state(),
+                history=self.query_one(HistorySection).form_state(),
+            ),
             resolution=self.query_one(ResolutionSection).form_state(),
         )

@@ -1,21 +1,16 @@
 from typing import assert_never
 
 from api_client.models import (
-    AgentParticipantCreate,
-    AgentParticipantRead,
-    ParticipantCreate,
+    DebaterParticipantCreate,
+    DebaterParticipantRead,
     ParticipantRead,
-    UserParticipantCreate,
-    UserParticipantRead,
 )
 from textual.widgets import Select
 
 from tui.screens.session_config.errors import SessionConfigValidationError
 from tui.screens.session_config.sections.participants.models import (
-    AgentParticipantFormState,
     ParticipantFormState,
     ParticipantsFormState,
-    UserParticipantFormState,
 )
 
 
@@ -25,46 +20,47 @@ def participants_form_state_from_read(participants: list[ParticipantRead]) -> Pa
     )
 
 
-def participants_create_from_form_state(state: ParticipantsFormState) -> list[ParticipantCreate]:
+def participants_create_from_form_state(state: ParticipantsFormState) -> list[DebaterParticipantCreate]:
     return [participant_create_from_form_state(participant) for participant in state.participants]
 
 
 def participant_form_state_from_read(participant: ParticipantRead) -> ParticipantFormState:
     match participant:
-        case AgentParticipantRead():
-            return AgentParticipantFormState(
+        case DebaterParticipantRead():
+            return ParticipantFormState(
                 name=participant.name,
                 model=participant.model,
                 reasoning_effort=participant.reasoning_effort,
+                temperature=str(participant.temperature),
                 system_prompt=participant.system_prompt,
             )
-        case UserParticipantRead():
-            return UserParticipantFormState(name=participant.name)
         case _ as never:
+            # TODO: Shouldnt assert never
             assert_never(never)
 
 
-def participant_create_from_form_state(participant: ParticipantFormState) -> ParticipantCreate:
+def participant_create_from_form_state(participant: ParticipantFormState) -> DebaterParticipantCreate:
     match participant:
-        case AgentParticipantFormState():
+        case ParticipantFormState():
             if not participant.name.strip():
-                raise SessionConfigValidationError("Agent name is required")
+                raise SessionConfigValidationError("Participant name is required")
             if participant.model == Select.NULL or not str(participant.model):
-                raise SessionConfigValidationError("Agent model is required")
+                raise SessionConfigValidationError("Participant model is required")
             model = str(participant.model)
             if not participant.system_prompt.strip():
-                raise SessionConfigValidationError("Agent system prompt is required")
+                raise SessionConfigValidationError("Participant system prompt is required")
 
-            return AgentParticipantCreate(
+            try:
+                temperature = float(participant.temperature)
+            except ValueError as exc:
+                raise SessionConfigValidationError("Participant temperature must be a number") from exc
+
+            return DebaterParticipantCreate(
                 name=participant.name,
                 model=model,
                 reasoning_effort=participant.reasoning_effort,
+                temperature=temperature,
                 system_prompt=participant.system_prompt,
             )
-        case UserParticipantFormState():
-            if not participant.name.strip():
-                raise SessionConfigValidationError("User name is required")
-
-            return UserParticipantCreate(name=participant.name)
         case _ as never:
             assert_never(never)

@@ -34,7 +34,7 @@ class EngineService:
             session_id=session.id,
             prompt=session.config.prompt,
             seed=session.config.seed,
-            participants=session.config.participants,
+            debaters=session.config.debater_participants,
             events=events,
         )
 

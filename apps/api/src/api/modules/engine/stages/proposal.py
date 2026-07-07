@@ -1,7 +1,7 @@
 from api.modules.ai.models import AIMessage, GenerationOptions, MessageRole
 from api.modules.engine.generation import GenerationRunner
 from api.modules.engine.models import EngineContext, EngineOutputStream
-from api.modules.session_configs.models.participants import AgentParticipant, Participant, UserParticipant
+from api.modules.session_configs.models.participants import DebaterParticipant
 from api.modules.sessions.models.events import (
     Event,
     MessageStartedEvent,
@@ -39,28 +39,27 @@ class ProposalStage:
             ),
             events=ctx.events,
         )
-        match participant:
-            case AgentParticipant():
-                async for output in self._generation_runner.run_response(
-                    session_id=ctx.session_id,
-                    sender=participant,
-                    messages=_build_proposal_messages(ctx=ctx, agent=participant),
-                    options=GenerationOptions(
-                        model=participant.model,
-                        reasoning_effort=participant.reasoning_effort,
-                    ),
-                ):
-                    yield output
-            case UserParticipant():
-                # TODO: Add human/system turn handling when those participant types become eligible.
-                return
-            case None:
-                yield ProposalCompletedEvent(session_id=ctx.session_id)
-            case _:
-                raise ValueError(f"Unsupported participant type: {participant.type}")
+
+        if not participant:
+            yield ProposalCompletedEvent(session_id=ctx.session_id)
+            return
+
+        async for output in self._generation_runner.run_response(
+            session_id=ctx.session_id,
+            sender=participant,
+            messages=_build_proposal_messages(ctx=ctx, participant=participant),
+            options=GenerationOptions(
+                model=participant.model,
+                reasoning_effort=participant.reasoning_effort,
+                temperature=participant.temperature,
+            ),
+        ):
+            yield output
 
 
-def _choose_next_participant(*, participants: list[Participant], events: list[Event]) -> Participant | None:
+def _choose_next_participant(
+    *, participants: list[DebaterParticipant], events: list[Event]
+) -> DebaterParticipant | None:
     proposal_started = find_last_instance(events, ProposalStartedEvent)
     if proposal_started is None:
         return None
@@ -76,16 +75,16 @@ def _choose_next_participant(*, participants: list[Participant], events: list[Ev
 def _build_proposal_messages(
     *,
     ctx: EngineContext,
-    agent: AgentParticipant,
+    participant: DebaterParticipant,
 ) -> list[AIMessage]:
     return [
-        AIMessage(role=MessageRole.SYSTEM, content=agent.system_prompt),
+        AIMessage(role=MessageRole.SYSTEM, content=participant.system_prompt),
         AIMessage(
             role=MessageRole.USER,
             content=(
                 f"Session prompt:\n{ctx.prompt}\n\n"
                 "Draft your independent initial proposal. Do not respond to other participants yet.\n\n"
-                f"Respond as {agent.name}."
+                f"Respond as {participant.name}."
             ),
         ),
     ]

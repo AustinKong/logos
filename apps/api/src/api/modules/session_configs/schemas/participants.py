@@ -8,12 +8,7 @@ from api.modules.ai.models import ReasoningEffort
 from api.modules.session_configs.models.participants import ParticipantType
 
 
-class AgentParticipantCreate(BaseModel):
-    type: Literal[ParticipantType.AGENT] = Field(
-        ParticipantType.AGENT,
-        title="Agent",
-        description="AI participant that responds with the selected model and system prompt.",
-    )
+class ParticipantCreateBase(BaseModel):
     name: str = Field(
         min_length=1,
         title="Name",
@@ -33,47 +28,60 @@ class AgentParticipantCreate(BaseModel):
         title="Reasoning effort",
         description="Model reasoning effort used for this participant's responses.",
     )
-
-
-class UserParticipantCreate(BaseModel):
-    type: Literal[ParticipantType.USER] = Field(
-        ParticipantType.USER,
-        title="User",
-        description="Human participant represented in the session.",
-    )
-    name: str = Field(
-        min_length=1,
-        title="Name",
-        description="Display name for this participant.",
+    temperature: float = Field(
+        title="Temperature",
+        description="Sampling temperature used for this participant's responses.",
     )
 
 
-type ParticipantCreate = Annotated[
-    AgentParticipantCreate | UserParticipantCreate,
-    Field(discriminator="type"),
-]
-
-
-class AgentParticipantRead(BaseModel):
+class ParticipantReadBase(BaseModel):
     id: UUID
-    type: Literal[ParticipantType.AGENT] = ParticipantType.AGENT
     name: str
     created_at: datetime
     updated_at: datetime
     model: str
     system_prompt: str
     reasoning_effort: ReasoningEffort
+    temperature: float
 
 
-class UserParticipantRead(BaseModel):
-    id: UUID
-    type: Literal[ParticipantType.USER] = ParticipantType.USER
-    name: str
-    created_at: datetime
-    updated_at: datetime
+class DebaterParticipantCreate(ParticipantCreateBase):
+    pass
+
+
+class JudgeParticipantCreate(ParticipantCreateBase):
+    pass
+
+
+class JurorParticipantCreate(ParticipantCreateBase):
+    pass
+
+
+class DebaterParticipantRead(ParticipantReadBase):
+    type: Literal[ParticipantType.DEBATER] = Field(
+        ParticipantType.DEBATER,
+        title="Debater",
+        description="Participant that proposes and debates responses.",
+    )
+
+
+class JudgeParticipantRead(ParticipantReadBase):
+    type: Literal[ParticipantType.JUDGE] = Field(
+        ParticipantType.JUDGE,
+        title="Judge",
+        description="Participant that resolves the debate as a neutral judge.",
+    )
+
+
+class JurorParticipantRead(ParticipantReadBase):
+    type: Literal[ParticipantType.JUROR] = Field(
+        ParticipantType.JUROR,
+        title="Juror",
+        description="Participant that contributes one vote in a jury resolution.",
+    )
 
 
 type ParticipantRead = Annotated[
-    AgentParticipantRead | UserParticipantRead,
+    DebaterParticipantRead | JudgeParticipantRead | JurorParticipantRead,
     Field(discriminator="type"),
 ]

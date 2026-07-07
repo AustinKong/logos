@@ -7,10 +7,14 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from api.db.base import Base
 from api.db.mixins import TimestampMixin, UUIDMixin
-from api.modules.session_configs.models.participants import Participant
-from api.modules.strategies.history.configs import HISTORY_CONFIG_ADAPTER, HistoryConfig
+from api.modules.session_configs.models.configs import DebateConfig
+from api.modules.session_configs.models.participants import (
+    DebaterParticipant,
+    JudgeParticipant,
+    JurorParticipant,
+    Participant,
+)
 from api.modules.strategies.resolution.configs import RESOLUTION_CONFIG_ADAPTER, ResolutionConfig
-from api.modules.strategies.turn_selection.configs import TURN_SELECTION_CONFIG_ADAPTER, TurnSelectionConfig
 
 
 class SessionConfig(UUIDMixin, TimestampMixin, Base):
@@ -18,32 +22,38 @@ class SessionConfig(UUIDMixin, TimestampMixin, Base):
 
     prompt: Mapped[str] = mapped_column(Text)
     seed: Mapped[int] = mapped_column(Integer, nullable=False)
-    debate_round_count: Mapped[int] = mapped_column(Integer, nullable=False)
-    _turn_selection_config: Mapped[dict[str, Any]] = mapped_column("turn_selection_config", JSON, nullable=False)
-    _history_config: Mapped[dict[str, Any]] = mapped_column("history_config", JSON, nullable=False)
+    _debate_config: Mapped[dict[str, Any]] = mapped_column("debate_config", JSON, nullable=False)
     _resolution_config: Mapped[dict[str, Any]] = mapped_column("resolution_config", JSON, nullable=False)
 
-    participants: Mapped[list[Participant]] = relationship(
+    # Prefer using typed accessors for participants
+    _participants: Mapped[list[Participant]] = relationship(
         cascade="all, delete-orphan",
         order_by=lambda: Participant.created_at,
         lazy="raise",
     )
 
     @property
-    def turn_selection_config(self) -> TurnSelectionConfig:
-        return TURN_SELECTION_CONFIG_ADAPTER.validate_python(self._turn_selection_config)
+    def debate_config(self) -> DebateConfig:
+        return DebateConfig.model_validate(self._debate_config)
 
-    @turn_selection_config.setter
-    def turn_selection_config(self, config: TurnSelectionConfig) -> None:
-        self._turn_selection_config = config.model_dump(mode="json")
+    @debate_config.setter
+    def debate_config(self, config: DebateConfig) -> None:
+        self._debate_config = config.model_dump(mode="json")
 
     @property
-    def history_config(self) -> HistoryConfig:
-        return HISTORY_CONFIG_ADAPTER.validate_python(self._history_config)
+    def debater_participants(self) -> list[DebaterParticipant]:
+        return [participant for participant in self._participants if isinstance(participant, DebaterParticipant)]
 
-    @history_config.setter
-    def history_config(self, config: HistoryConfig) -> None:
-        self._history_config = config.model_dump(mode="json")
+    @property
+    def judge_participant(self) -> JudgeParticipant:
+        judges = [participant for participant in self._participants if isinstance(participant, JudgeParticipant)]
+        if len(judges) != 1:
+            raise ValueError(f"Expected exactly one JudgeParticipant, found {len(judges)}")
+        return judges[0]
+
+    @property
+    def juror_participants(self) -> list[JurorParticipant]:
+        return [participant for participant in self._participants if isinstance(participant, JurorParticipant)]
 
     @property
     def resolution_config(self) -> ResolutionConfig:

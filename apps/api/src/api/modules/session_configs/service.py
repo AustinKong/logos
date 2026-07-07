@@ -14,18 +14,18 @@ from api.modules.session_configs.errors import (
     UnsupportedParticipantModelError,
     UnsupportedReasoningModelError,
 )
+from api.modules.session_configs.models.configs import DebateConfig
 from api.modules.session_configs.models.participants import (
-    AgentParticipant,
-    AgentParticipantData,
+    DebaterParticipant,
+    JudgeParticipant,
+    JurorParticipant,
     ParticipantData,
     ParticipantType,
-    UserParticipant,
-    UserParticipantData,
 )
 from api.modules.session_configs.models.session_configs import SessionConfig
-from api.modules.strategies.history.configs import FullHistoryConfig, HistoryConfig
+from api.modules.strategies.history.configs import FullHistoryConfig
 from api.modules.strategies.resolution.configs import NoneResolutionConfig, ResolutionConfig
-from api.modules.strategies.turn_selection.configs import RoundRobinTurnSelectionConfig, TurnSelectionConfig
+from api.modules.strategies.turn_selection.configs import RoundRobinTurnSelectionConfig
 
 DEFAULT_PROMPT = "Evaluate the best architecture for a terminal-first multi-agent debate workflow."
 MAX_SEED = 2**63 - 1
@@ -47,36 +47,46 @@ class SessionConfigService:
                 prompt=DEFAULT_PROMPT,
                 seed=None,
                 participants=[
-                    AgentParticipantData(
+                    ParticipantData(
                         name="Analyst",
                         model=default_model,
                         system_prompt="Argue for the strongest practical answer. Call out implementation risks.",
                         reasoning_effort=ReasoningEffort.NONE,
+                        temperature=0.7,
+                        type=ParticipantType.DEBATER,
                     ),
-                    AgentParticipantData(
+                    ParticipantData(
                         name="Critic",
                         model=default_model,
                         system_prompt="Challenge weak assumptions and look for missing edge cases.",
                         reasoning_effort=ReasoningEffort.NONE,
+                        temperature=0.7,
+                        type=ParticipantType.DEBATER,
                     ),
-                    AgentParticipantData(
+                    ParticipantData(
                         name="Synthesizer",
                         model=default_model,
                         system_prompt="Synthesize tradeoffs into a clear recommendation.",
                         reasoning_effort=ReasoningEffort.NONE,
+                        temperature=0.7,
+                        type=ParticipantType.DEBATER,
                     ),
                 ],
-                debate_round_count=1,
-                turn_selection=RoundRobinTurnSelectionConfig(),
-                history=FullHistoryConfig(),
-                resolution=NoneResolutionConfig(),
+                debate_config=DebateConfig(
+                    round_count=1,
+                    turn_selection_config=RoundRobinTurnSelectionConfig(),
+                    history_config=FullHistoryConfig(),
+                ),
+                resolution_config=NoneResolutionConfig(),
             )
 
         return config
 
     def get_config(self, config_id: UUID) -> SessionConfig:
         statement = (
-            select(SessionConfig).where(SessionConfig.id == config_id).options(selectinload(SessionConfig.participants))
+            select(SessionConfig)
+            .where(SessionConfig.id == config_id)
+            .options(selectinload(SessionConfig._participants))
         )
         config = self._db.execute(statement).scalar_one_or_none()
 
@@ -90,22 +100,19 @@ class SessionConfigService:
         *,
         prompt: str,
         seed: int | None,
-        debate_round_count: int,
+        debate_config: DebateConfig,
         participants: list[ParticipantData],
-        turn_selection: TurnSelectionConfig,
-        history: HistoryConfig,
-        resolution: ResolutionConfig,
+        resolution_config: ResolutionConfig,
         id: UUID | None = None,
         commit: bool = True,
     ) -> SessionConfig:
         models_by_id = {model.id: model for model in self._ai_service.list_available_models()}
         for participant in participants:
-            if isinstance(participant, AgentParticipantData):
-                model = models_by_id.get(participant.model)
-                if model is None:
-                    raise UnsupportedParticipantModelError()
-                if participant.reasoning_effort is not ReasoningEffort.NONE and not model.supports_reasoning:
-                    raise UnsupportedReasoningModelError()
+            model = models_by_id.get(participant.model)
+            if model is None:
+                raise UnsupportedParticipantModelError()
+            if participant.reasoning_effort is not ReasoningEffort.NONE and not model.supports_reasoning:
+                raise UnsupportedReasoningModelError()
 
         if seed is None:
             seed = secrets.randbelow(MAX_SEED + 1)
@@ -113,10 +120,8 @@ class SessionConfigService:
         config = SessionConfig(
             prompt=prompt,
             seed=seed,
-            debate_round_count=debate_round_count,
-            turn_selection_config=turn_selection,
-            history_config=history,
-            resolution_config=resolution,
+            debate_config=debate_config,
+            resolution_config=resolution_config,
         )
         if id is not None:
             config.id = id
@@ -125,28 +130,28 @@ class SessionConfigService:
         self._db.flush()
 
         for participant in participants:
-            match participant:
-                case AgentParticipantData():
-                    self._db.add(
-                        AgentParticipant(
-                            config_id=config.id,
-                            type=ParticipantType.AGENT,
-                            name=participant.name,
-                            model=participant.model,
-                            system_prompt=participant.system_prompt,
-                            reasoning_effort=participant.reasoning_effort,
-                        )
-                    )
-                case UserParticipantData():
-                    self._db.add(
-                        UserParticipant(
-                            config_id=config.id,
-                            type=ParticipantType.USER,
-                            name=participant.name,
-                        )
-                    )
+            participant_class = None
+
+            match participant.type:
+                case ParticipantType.DEBATER:
+                    participant_class = DebaterParticipant
+                case ParticipantType.JUDGE:
+                    participant_class = JudgeParticipant
+                case ParticipantType.JUROR:
+                    participant_class = JurorParticipant
                 case _ as never:
                     assert_never(never)
+
+            self._db.add(
+                participant_class(
+                    config_id=config.id,
+                    name=participant.name,
+                    model=participant.model,
+                    system_prompt=participant.system_prompt,
+                    reasoning_effort=participant.reasoning_effort,
+                    temperature=participant.temperature,
+                )
+            )
 
         if commit:
             self._db.commit()

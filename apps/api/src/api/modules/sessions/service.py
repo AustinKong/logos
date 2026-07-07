@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session as SqlAlchemyDb
 from sqlalchemy.orm import selectinload
 
+from api.modules.session_configs.models.configs import DebateConfig
 from api.modules.session_configs.models.participants import ParticipantData
 from api.modules.session_configs.models.session_configs import SessionConfig
 from api.modules.session_configs.service import SessionConfigService
@@ -28,9 +29,7 @@ from api.modules.sessions.models.events import (
 )
 from api.modules.sessions.models.sessions import Session, SessionSummary
 from api.modules.sessions.repository import SessionRepository
-from api.modules.strategies.history.configs import HistoryConfig
 from api.modules.strategies.resolution.configs import ResolutionConfig
-from api.modules.strategies.turn_selection.configs import TurnSelectionConfig
 
 
 class SessionService:
@@ -49,24 +48,20 @@ class SessionService:
         *,
         prompt: str,
         seed: int | None,
-        debate_round_count: int,
-        agents: list[ParticipantData],
-        turn_selection: TurnSelectionConfig,
-        history: HistoryConfig,
-        resolution: ResolutionConfig,
+        debate_config: DebateConfig,
+        participants: list[ParticipantData],
+        resolution_config: ResolutionConfig,
     ) -> Session:
-        config = self._session_config_service.create_config(
+        session_config = self._session_config_service.create_config(
             prompt=prompt,
             seed=seed,
-            debate_round_count=debate_round_count,
-            participants=agents,
-            turn_selection=turn_selection,
-            history=history,
-            resolution=resolution,
+            debate_config=debate_config,
+            participants=participants,
+            resolution_config=resolution_config,
             commit=False,
         )
 
-        session = Session(config_id=config.id)
+        session = Session(config_id=session_config.id)
         self._db.add(session)
         self._db.commit()
 
@@ -76,7 +71,7 @@ class SessionService:
         statement = (
             select(Session)
             .where(Session.id == session_id)
-            .options(selectinload(Session.config).selectinload(SessionConfig.participants))
+            .options(selectinload(Session.config).selectinload(SessionConfig._participants))
         )
         session = self._db.execute(statement).scalar_one_or_none()
         if session is None:

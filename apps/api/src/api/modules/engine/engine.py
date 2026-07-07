@@ -20,6 +20,7 @@ class Engine:
         self._strategy_resolver = strategy_resolver
 
     def _build_stages(self, session: Session) -> list[EngineStage]:
+        debate_config = session.config.debate_config
         turn_selection_strategy = self._strategy_resolver.turn_selection(session)
 
         return [
@@ -28,7 +29,7 @@ class Engine:
                 generation_runner=self._generation_runner,
             ),
             DebateStage(
-                debate_round_count=session.config.debate_round_count,
+                debate_round_count=debate_config.round_count,
                 turn_selection_strategy=turn_selection_strategy,
                 history_strategy=self._strategy_resolver.history(session),
                 generation_runner=self._generation_runner,

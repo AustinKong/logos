@@ -5,14 +5,17 @@ from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from sse_starlette import EventSourceResponse
 
 from api.modules.engine.background import run_session_until_blocked_background
-from api.modules.session_configs.adapters.participants import participant_data_from_create
 from api.modules.sessions.adapters.configs import (
-    history_config_from_create,
+    debate_config_from_create,
+    participant_data_from_debate_create,
+    participant_data_from_resolution_create,
     resolution_config_from_create,
-    turn_selection_config_from_create,
 )
 from api.modules.sessions.adapters.events import event_read_from_event
-from api.modules.sessions.adapters.sessions import session_read_from_session, session_summary_read_from_summary
+from api.modules.sessions.adapters.sessions import (
+    session_read_from_session,
+    session_summary_read_from_summary,
+)
 from api.modules.sessions.adapters.tokens import token_read_from_token
 from api.modules.sessions.deps import get_session_service
 from api.modules.sessions.models.events import SessionCompletedEvent
@@ -41,11 +44,12 @@ def create_session(
     session = service.create_session(
         prompt=config.prompt,
         seed=config.seed,
-        debate_round_count=config.debate_round_count,
-        agents=[participant_data_from_create(participant) for participant in config.participants],
-        turn_selection=turn_selection_config_from_create(config.turn_selection),
-        history=history_config_from_create(config.history),
-        resolution=resolution_config_from_create(config.resolution),
+        debate_config=debate_config_from_create(config.debate),
+        participants=[
+            *participant_data_from_debate_create(config.debate),
+            *participant_data_from_resolution_create(config.resolution),
+        ],
+        resolution_config=resolution_config_from_create(config.resolution),
     )
     background_tasks.add_task(run_session_until_blocked_background, session.id)
     return session_read_from_session(session)

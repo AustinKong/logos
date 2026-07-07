@@ -10,6 +10,7 @@ from tui.screens.session_config.sections.resolution.models import (
     JudgeResolutionFormState,
     NoneResolutionFormState,
     ResolutionFormState,
+    judge_participant_form_state,
 )
 from tui.screens.session_config.sections.resolution.modes.judge import JudgeResolutionFields
 from tui.screens.session_config.sections.state import state_or_default
@@ -71,7 +72,7 @@ class ResolutionSection(VerticalScroll):
                 initial_state=state_or_default(
                     self._initial_state,
                     JudgeResolutionFormState,
-                    JudgeResolutionFormState(judge_model=Select.NULL, judge_temperature=""),
+                    JudgeResolutionFormState(judge=judge_participant_form_state()),
                 ),
                 models=self._models,
                 read_only=self._read_only,

@@ -11,8 +11,6 @@ class ResolutionMode(StrEnum):
 
 class JudgeResolutionConfig(BaseModel):
     mode: Literal[ResolutionMode.JUDGE_LLM] = ResolutionMode.JUDGE_LLM
-    judge_model: str = "openai/gpt-4o-mini"
-    judge_temperature: float = 0.2
 
 
 class NoneResolutionConfig(BaseModel):

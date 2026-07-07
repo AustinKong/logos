@@ -2,6 +2,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
 
+from api.modules.session_configs.schemas.participants import JudgeParticipantCreate, JudgeParticipantRead
 from api.modules.strategies.history.configs import HistoryMode
 from api.modules.strategies.resolution.configs import ResolutionMode
 from api.modules.strategies.turn_selection.configs import TurnSelectionMode
@@ -82,23 +83,14 @@ class JudgeResolutionConfigBase(BaseModel):
         title="Judge LLM",
         description="Use an AI judge to select the final resolution.",
     )
-    judge_model: str = Field(
-        min_length=1,
-        title="Judge model",
-        description="Model used by the AI judge to choose the final resolution.",
-    )
-    judge_temperature: float = Field(
-        title="Judge temperature",
-        description="Sampling temperature used by the AI judge.",
-    )
 
 
 class JudgeResolutionConfigCreate(JudgeResolutionConfigBase):
-    pass
+    judge: JudgeParticipantCreate
 
 
 class JudgeResolutionConfigRead(JudgeResolutionConfigBase):
-    pass
+    judge: JudgeParticipantRead
 
 
 class NoneResolutionConfigBase(BaseModel):

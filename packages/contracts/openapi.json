@@ -433,93 +433,56 @@
         "enum": ["openai", "anthropic", "gemini", "deepseek"],
         "title": "AIProviderName"
       },
-      "AgentParticipantCreate": {
+      "DebateConfigCreate": {
         "properties": {
-          "type": {
-            "type": "string",
-            "const": "agent",
-            "title": "Agent",
-            "description": "AI participant that responds with the selected model and system prompt.",
-            "default": "agent"
+          "round_count": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Debate rounds",
+            "description": "Number of debate rounds to run after independent proposals."
           },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "title": "Name",
-            "description": "Display name for this participant."
+          "debaters": {
+            "items": {
+              "$ref": "#/components/schemas/DebaterParticipantCreate"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Debaters"
           },
-          "model": {
-            "type": "string",
-            "minLength": 1,
-            "title": "Model",
-            "description": "AI model used to generate this participant's responses."
+          "turn_selection": {
+            "$ref": "#/components/schemas/TurnSelectionConfigCreate"
           },
-          "system_prompt": {
-            "type": "string",
-            "minLength": 1,
-            "title": "System prompt",
-            "description": "Instructions that shape how this participant behaves."
-          },
-          "reasoning_effort": {
-            "$ref": "#/components/schemas/ReasoningEffort",
-            "title": "Reasoning effort",
-            "description": "Model reasoning effort used for this participant's responses."
+          "history": {
+            "$ref": "#/components/schemas/HistoryConfigCreate"
           }
         },
         "type": "object",
-        "required": ["name", "model", "system_prompt", "reasoning_effort"],
-        "title": "AgentParticipantCreate"
+        "required": ["round_count", "debaters", "turn_selection", "history"],
+        "title": "DebateConfigCreate"
       },
-      "AgentParticipantRead": {
+      "DebateConfigRead": {
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
+          "round_count": {
+            "type": "integer",
+            "title": "Round Count"
           },
-          "type": {
-            "type": "string",
-            "const": "agent",
-            "title": "Type",
-            "default": "agent"
+          "debaters": {
+            "items": {
+              "$ref": "#/components/schemas/DebaterParticipantRead"
+            },
+            "type": "array",
+            "title": "Debaters"
           },
-          "name": {
-            "type": "string",
-            "title": "Name"
+          "turn_selection": {
+            "$ref": "#/components/schemas/TurnSelectionConfigRead"
           },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated At"
-          },
-          "model": {
-            "type": "string",
-            "title": "Model"
-          },
-          "system_prompt": {
-            "type": "string",
-            "title": "System Prompt"
-          },
-          "reasoning_effort": {
-            "$ref": "#/components/schemas/ReasoningEffort"
+          "history": {
+            "$ref": "#/components/schemas/HistoryConfigRead"
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "name",
-          "created_at",
-          "updated_at",
-          "model",
-          "system_prompt",
-          "reasoning_effort"
-        ],
-        "title": "AgentParticipantRead"
+        "required": ["round_count", "debaters", "turn_selection", "history"],
+        "title": "DebateConfigRead"
       },
       "DebateRoundCompletedEventRead": {
         "properties": {
@@ -595,6 +558,104 @@
           "round_number"
         ],
         "title": "DebateRoundStartedEventRead"
+      },
+      "DebaterParticipantCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Name",
+            "description": "Display name for this participant."
+          },
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Model",
+            "description": "AI model used to generate this participant's responses."
+          },
+          "system_prompt": {
+            "type": "string",
+            "minLength": 1,
+            "title": "System prompt",
+            "description": "Instructions that shape how this participant behaves."
+          },
+          "reasoning_effort": {
+            "$ref": "#/components/schemas/ReasoningEffort",
+            "title": "Reasoning effort",
+            "description": "Model reasoning effort used for this participant's responses."
+          },
+          "temperature": {
+            "type": "number",
+            "title": "Temperature",
+            "description": "Sampling temperature used for this participant's responses."
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "model",
+          "system_prompt",
+          "reasoning_effort",
+          "temperature"
+        ],
+        "title": "DebaterParticipantCreate"
+      },
+      "DebaterParticipantRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "system_prompt": {
+            "type": "string",
+            "title": "System Prompt"
+          },
+          "reasoning_effort": {
+            "$ref": "#/components/schemas/ReasoningEffort"
+          },
+          "temperature": {
+            "type": "number",
+            "title": "Temperature"
+          },
+          "type": {
+            "type": "string",
+            "const": "debater",
+            "title": "Debater",
+            "description": "Participant that proposes and debates responses.",
+            "default": "debater"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "created_at",
+          "updated_at",
+          "model",
+          "system_prompt",
+          "reasoning_effort",
+          "temperature"
+        ],
+        "title": "DebaterParticipantRead"
       },
       "EventRead": {
         "oneOf": [
@@ -737,6 +798,104 @@
           }
         }
       },
+      "JudgeParticipantCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Name",
+            "description": "Display name for this participant."
+          },
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Model",
+            "description": "AI model used to generate this participant's responses."
+          },
+          "system_prompt": {
+            "type": "string",
+            "minLength": 1,
+            "title": "System prompt",
+            "description": "Instructions that shape how this participant behaves."
+          },
+          "reasoning_effort": {
+            "$ref": "#/components/schemas/ReasoningEffort",
+            "title": "Reasoning effort",
+            "description": "Model reasoning effort used for this participant's responses."
+          },
+          "temperature": {
+            "type": "number",
+            "title": "Temperature",
+            "description": "Sampling temperature used for this participant's responses."
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "model",
+          "system_prompt",
+          "reasoning_effort",
+          "temperature"
+        ],
+        "title": "JudgeParticipantCreate"
+      },
+      "JudgeParticipantRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "system_prompt": {
+            "type": "string",
+            "title": "System Prompt"
+          },
+          "reasoning_effort": {
+            "$ref": "#/components/schemas/ReasoningEffort"
+          },
+          "temperature": {
+            "type": "number",
+            "title": "Temperature"
+          },
+          "type": {
+            "type": "string",
+            "const": "judge",
+            "title": "Judge",
+            "description": "Participant that resolves the debate as a neutral judge.",
+            "default": "judge"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "created_at",
+          "updated_at",
+          "model",
+          "system_prompt",
+          "reasoning_effort",
+          "temperature"
+        ],
+        "title": "JudgeParticipantRead"
+      },
       "JudgeResolutionConfigCreate": {
         "properties": {
           "mode": {
@@ -746,20 +905,12 @@
             "description": "Use an AI judge to select the final resolution.",
             "default": "judge_llm"
           },
-          "judge_model": {
-            "type": "string",
-            "minLength": 1,
-            "title": "Judge model",
-            "description": "Model used by the AI judge to choose the final resolution."
-          },
-          "judge_temperature": {
-            "type": "number",
-            "title": "Judge temperature",
-            "description": "Sampling temperature used by the AI judge."
+          "judge": {
+            "$ref": "#/components/schemas/JudgeParticipantCreate"
           }
         },
         "type": "object",
-        "required": ["judge_model", "judge_temperature"],
+        "required": ["judge"],
         "title": "JudgeResolutionConfigCreate"
       },
       "JudgeResolutionConfigRead": {
@@ -771,21 +922,70 @@
             "description": "Use an AI judge to select the final resolution.",
             "default": "judge_llm"
           },
-          "judge_model": {
-            "type": "string",
-            "minLength": 1,
-            "title": "Judge model",
-            "description": "Model used by the AI judge to choose the final resolution."
-          },
-          "judge_temperature": {
-            "type": "number",
-            "title": "Judge temperature",
-            "description": "Sampling temperature used by the AI judge."
+          "judge": {
+            "$ref": "#/components/schemas/JudgeParticipantRead"
           }
         },
         "type": "object",
-        "required": ["judge_model", "judge_temperature"],
+        "required": ["judge"],
         "title": "JudgeResolutionConfigRead"
+      },
+      "JurorParticipantRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "system_prompt": {
+            "type": "string",
+            "title": "System Prompt"
+          },
+          "reasoning_effort": {
+            "$ref": "#/components/schemas/ReasoningEffort"
+          },
+          "temperature": {
+            "type": "number",
+            "title": "Temperature"
+          },
+          "type": {
+            "type": "string",
+            "const": "juror",
+            "title": "Juror",
+            "description": "Participant that contributes one vote in a jury resolution.",
+            "default": "juror"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "created_at",
+          "updated_at",
+          "model",
+          "system_prompt",
+          "reasoning_effort",
+          "temperature"
+        ],
+        "title": "JurorParticipantRead"
       },
       "MessageCompletedEventRead": {
         "properties": {
@@ -910,37 +1110,24 @@
         "type": "object",
         "title": "NoneResolutionConfigRead"
       },
-      "ParticipantCreate": {
-        "oneOf": [
-          {
-            "$ref": "#/components/schemas/AgentParticipantCreate"
-          },
-          {
-            "$ref": "#/components/schemas/UserParticipantCreate"
-          }
-        ],
-        "discriminator": {
-          "propertyName": "type",
-          "mapping": {
-            "agent": "#/components/schemas/AgentParticipantCreate",
-            "user": "#/components/schemas/UserParticipantCreate"
-          }
-        }
-      },
       "ParticipantRead": {
         "oneOf": [
           {
-            "$ref": "#/components/schemas/AgentParticipantRead"
+            "$ref": "#/components/schemas/DebaterParticipantRead"
           },
           {
-            "$ref": "#/components/schemas/UserParticipantRead"
+            "$ref": "#/components/schemas/JudgeParticipantRead"
+          },
+          {
+            "$ref": "#/components/schemas/JurorParticipantRead"
           }
         ],
         "discriminator": {
           "propertyName": "type",
           "mapping": {
-            "agent": "#/components/schemas/AgentParticipantRead",
-            "user": "#/components/schemas/UserParticipantRead"
+            "debater": "#/components/schemas/DebaterParticipantRead",
+            "judge": "#/components/schemas/JudgeParticipantRead",
+            "juror": "#/components/schemas/JurorParticipantRead"
           }
         }
       },
@@ -1297,40 +1484,15 @@
             "title": "Seed",
             "description": "Optional deterministic seed for random app behavior. Leave blank to generate one."
           },
-          "debate_round_count": {
-            "type": "integer",
-            "minimum": 1.0,
-            "title": "Debate rounds",
-            "description": "Number of debate rounds to run after independent proposals."
-          },
-          "participants": {
-            "items": {
-              "$ref": "#/components/schemas/ParticipantCreate"
-            },
-            "type": "array",
-            "minItems": 1,
-            "title": "Participants"
-          },
-          "turn_selection": {
-            "$ref": "#/components/schemas/TurnSelectionConfigCreate"
-          },
-          "history": {
-            "$ref": "#/components/schemas/HistoryConfigCreate"
+          "debate": {
+            "$ref": "#/components/schemas/DebateConfigCreate"
           },
           "resolution": {
             "$ref": "#/components/schemas/ResolutionConfigCreate"
           }
         },
         "type": "object",
-        "required": [
-          "prompt",
-          "seed",
-          "debate_round_count",
-          "participants",
-          "turn_selection",
-          "history",
-          "resolution"
-        ],
+        "required": ["prompt", "seed", "debate", "resolution"],
         "title": "SessionConfigCreate"
       },
       "SessionConfigRead": {
@@ -1348,10 +1510,6 @@
             "type": "integer",
             "title": "Seed"
           },
-          "debate_round_count": {
-            "type": "integer",
-            "title": "Debate Round Count"
-          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -1362,18 +1520,8 @@
             "format": "date-time",
             "title": "Updated At"
           },
-          "participants": {
-            "items": {
-              "$ref": "#/components/schemas/ParticipantRead"
-            },
-            "type": "array",
-            "title": "Participants"
-          },
-          "turn_selection": {
-            "$ref": "#/components/schemas/TurnSelectionConfigRead"
-          },
-          "history": {
-            "$ref": "#/components/schemas/HistoryConfigRead"
+          "debate": {
+            "$ref": "#/components/schemas/DebateConfigRead"
           },
           "resolution": {
             "$ref": "#/components/schemas/ResolutionConfigRead"
@@ -1384,12 +1532,9 @@
           "id",
           "prompt",
           "seed",
-          "debate_round_count",
           "created_at",
           "updated_at",
-          "participants",
-          "turn_selection",
-          "history",
+          "debate",
           "resolution"
         ],
         "title": "SessionConfigRead"
@@ -1616,58 +1761,6 @@
             "shuffled": "#/components/schemas/ShuffledTurnSelectionConfigRead"
           }
         }
-      },
-      "UserParticipantCreate": {
-        "properties": {
-          "type": {
-            "type": "string",
-            "const": "user",
-            "title": "User",
-            "description": "Human participant represented in the session.",
-            "default": "user"
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "title": "Name",
-            "description": "Display name for this participant."
-          }
-        },
-        "type": "object",
-        "required": ["name"],
-        "title": "UserParticipantCreate"
-      },
-      "UserParticipantRead": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
-          },
-          "type": {
-            "type": "string",
-            "const": "user",
-            "title": "Type",
-            "default": "user"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated At"
-          }
-        },
-        "type": "object",
-        "required": ["id", "name", "created_at", "updated_at"],
-        "title": "UserParticipantRead"
       },
       "ValidationError": {
         "properties": {

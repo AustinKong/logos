@@ -2,6 +2,7 @@ from api.modules.ai.errors import AIProviderError
 from api.modules.ai.models import AIMessage, AIMessageResponseAction, GenerationOptions, MessageRole
 from api.modules.ai.service import AIService
 from api.modules.engine.models import EngineContext, EngineOutputStream
+from api.modules.session_configs.models.participants import JudgeParticipant
 from api.modules.sessions.models.events import ResolutionCompletedEvent
 from api.modules.strategies.history.full import FullHistoryStrategy
 from api.modules.strategies.resolution.configs import JudgeResolutionConfig
@@ -18,9 +19,12 @@ class JudgeResolutionStrategy:
         *,
         ai_service: AIService,
         config: JudgeResolutionConfig,
+        # TODO: Should be resolved once we make services can take dtos as judge resolution config will hld judge
+        judge: JudgeParticipant,
     ) -> None:
         self._ai_service = ai_service
         self._config = config
+        self._judge = judge
         self._history_strategy = FullHistoryStrategy()
 
     async def resolve(self, ctx: EngineContext) -> EngineOutputStream:
@@ -28,7 +32,7 @@ class JudgeResolutionStrategy:
 
         response = await self._ai_service.generate_response(
             messages=[
-                AIMessage(role=MessageRole.SYSTEM, content=JUDGE_SYSTEM_PROMPT),
+                AIMessage(role=MessageRole.SYSTEM, content=f"{JUDGE_SYSTEM_PROMPT}\n\n{self._judge.system_prompt}"),
                 AIMessage(
                     role=MessageRole.USER,
                     content=_build_judge_user_prompt(
@@ -38,8 +42,9 @@ class JudgeResolutionStrategy:
                 ),
             ],
             options=GenerationOptions(
-                model=self._config.judge_model,
-                temperature=self._config.judge_temperature,
+                model=self._judge.model,
+                reasoning_effort=self._judge.reasoning_effort,
+                temperature=self._judge.temperature,
             ),
         )
 

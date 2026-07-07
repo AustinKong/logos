@@ -27,7 +27,7 @@ class StrategyResolver:
         self._ai_service = ai_service
 
     def turn_selection(self, session: Session) -> TurnSelectionStrategy:
-        config = session.config.turn_selection_config
+        config = session.config.debate_config.turn_selection_config
         match config:
             case RoundRobinTurnSelectionConfig():
                 return RoundRobinTurnSelectionStrategy()
@@ -37,7 +37,7 @@ class StrategyResolver:
                 assert_never(never)
 
     def history(self, session: Session) -> HistoryStrategy:
-        config = session.config.history_config
+        config = session.config.debate_config.history_config
         match config.mode:
             case HistoryMode.FULL:
                 return FullHistoryStrategy()
@@ -53,6 +53,7 @@ class StrategyResolver:
                 return JudgeResolutionStrategy(
                     ai_service=self._ai_service,
                     config=config,
+                    judge=session.config.judge_participant,
                 )
             case NoneResolutionConfig():
                 return NoneResolutionStrategy()
