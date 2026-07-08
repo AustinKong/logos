@@ -299,7 +299,7 @@ function extractSchemaMetadata(openapi) {
       Object.entries(schema.properties ?? {})
         .map(([propertyName, property]) => [
           propertyName,
-          schemaFieldMetadata(property),
+          schemaFieldMetadata(property, schemas),
         ])
         .filter(([, metadata]) => Object.keys(metadata).length > 0),
     );
@@ -314,14 +314,15 @@ function extractSchemaMetadata(openapi) {
   };
 }
 
-function schemaFieldMetadata(property) {
+function schemaFieldMetadata(property, schemas) {
   return Object.fromEntries(
     [
       [
         "title",
-        typeof property.title === "string" &&
+        // Pydantic can omit a property-level title when a $ref field's title
+        // matches the referenced schema title, so fall back to the component.
         typeof property.description === "string"
-          ? property.title
+          ? (property.title ?? referencedSchemaTitle(property, schemas))
           : undefined,
       ],
       [
@@ -332,6 +333,17 @@ function schemaFieldMetadata(property) {
       ],
     ].filter(([, value]) => typeof value === "string"),
   );
+}
+
+function referencedSchemaTitle(property, schemas) {
+  const ref = property.$ref;
+  if (typeof ref !== "string") {
+    return undefined;
+  }
+
+  const schemaName = componentNameFromRef(ref);
+  const title = schemas[schemaName]?.title;
+  return typeof title === "string" ? title : undefined;
 }
 
 function sortNestedObject(value) {

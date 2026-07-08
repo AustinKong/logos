@@ -1,4 +1,4 @@
-from api_client.models import ReasoningEffort, ResolutionMode
+from api_client.models import ReasoningEffort, ResolutionMode, Verbosity
 from attrs import define
 from textual.widgets import Select
 
@@ -24,6 +24,7 @@ def judge_participant_form_state() -> ParticipantFormState:
         name="Judge",
         model=Select.NULL,
         reasoning_effort=ReasoningEffort.NONE,
+        verbosity=Verbosity.MEDIUM,
         temperature="0.2",
         system_prompt="Resolve the debate neutrally using only the transcript.",
     )

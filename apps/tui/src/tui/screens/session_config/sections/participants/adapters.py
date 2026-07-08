@@ -31,6 +31,7 @@ def participant_form_state_from_read(participant: ParticipantRead) -> Participan
                 name=participant.name,
                 model=participant.model,
                 reasoning_effort=participant.reasoning_effort,
+                verbosity=participant.verbosity,
                 temperature=str(participant.temperature),
                 system_prompt=participant.system_prompt,
             )
@@ -59,6 +60,7 @@ def participant_create_from_form_state(participant: ParticipantFormState) -> Deb
                 name=participant.name,
                 model=model,
                 reasoning_effort=participant.reasoning_effort,
+                verbosity=participant.verbosity,
                 temperature=temperature,
                 system_prompt=participant.system_prompt,
             )

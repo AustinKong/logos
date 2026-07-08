@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from api.modules.ai.models import ReasoningEffort
+from api.modules.ai.models import ReasoningEffort, Verbosity
 from api.modules.session_configs.models.participants import ParticipantType
 
 
@@ -28,6 +28,10 @@ class ParticipantCreateBase(BaseModel):
         title="Reasoning effort",
         description="Model reasoning effort used for this participant's responses.",
     )
+    verbosity: Verbosity = Field(
+        title="Verbosity",
+        description="Output verbosity used for this participant's responses.",
+    )
     temperature: float = Field(
         title="Temperature",
         description="Sampling temperature used for this participant's responses.",
@@ -42,6 +46,7 @@ class ParticipantReadBase(BaseModel):
     model: str
     system_prompt: str
     reasoning_effort: ReasoningEffort
+    verbosity: Verbosity
     temperature: float
 
 

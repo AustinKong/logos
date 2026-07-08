@@ -44,6 +44,7 @@ class JudgeResolutionStrategy:
             options=GenerationOptions(
                 model=self._judge.model,
                 reasoning_effort=self._judge.reasoning_effort,
+                verbosity=self._judge.verbosity,
                 temperature=self._judge.temperature,
             ),
         )
@@ -63,5 +64,5 @@ def _build_judge_user_prompt(*, session_prompt: str, transcript: str) -> str:
     return (
         f"Session prompt:\n{session_prompt}\n\n"
         f"Transcript:\n{transcript}\n\n"
-        "Write a concise verdict. Include the decision first, then the main reason."
+        "Write a verdict. Include the decision first, then the main reason."
     )

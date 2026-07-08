@@ -71,6 +71,7 @@ class DebateStage:
             options=GenerationOptions(
                 model=participant.model,
                 reasoning_effort=participant.reasoning_effort,
+                verbosity=participant.verbosity,
                 temperature=participant.temperature,
             ),
         ):
@@ -118,7 +119,10 @@ def _build_debate_messages(
                 f"Session prompt:\n{ctx.prompt}\n\n"
                 f"Debate round: {round_number}\n\n"
                 f"Transcript so far:\n{history or '(none)'}\n\n"
-                f"Respond as {participant.name}."
+                f"Continue the conversation as {participant.name}. Assume everyone already has the session prompt "
+                "and transcript. Do not restate the whole context or repeat ideas you agree with. Only write what "
+                "you disagree with, what you think was missed, or what changed your mind. Respond directly to the "
+                "previous points, naming other participants when useful."
             ),
         ),
     ]

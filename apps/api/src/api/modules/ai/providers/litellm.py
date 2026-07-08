@@ -15,8 +15,10 @@ from api.modules.ai.models import (
     AIResponse,
     AIResponseEvent,
     GenerationOptions,
+    MessageRole,
     ReasoningEffort,
 )
+from api.modules.ai.prompts import response_prompt_instruction
 from api.modules.ai.providers.base import GeneratedObject
 
 
@@ -80,7 +82,12 @@ class LiteLLMProvider:
     ) -> GeneratedObject:
         try:
             response = await acompletion(
-                **_completion_kwargs(api_key=self._api_key, messages=messages, options=options),
+                **_completion_kwargs(
+                    api_key=self._api_key,
+                    messages=messages,
+                    options=options,
+                    apply_verbosity=False,
+                ),
                 response_format=response_model,
             )
         except Exception as exc:
@@ -94,16 +101,27 @@ class LiteLLMProvider:
             raise AIProviderError("AI provider returned invalid structured output") from exc
 
 
-def _completion_kwargs(*, api_key: str, messages: Sequence[AIMessage], options: GenerationOptions) -> dict[str, Any]:
-    litellm_messages = [{"role": message.role.value, "content": message.content} for message in messages]
+def _completion_kwargs(
+    *,
+    api_key: str,
+    messages: Sequence[AIMessage],
+    options: GenerationOptions,
+    apply_verbosity: bool = True,
+) -> dict[str, Any]:
+    effective_messages = _messages_with_verbosity_instruction(messages, options) if apply_verbosity else messages
+    litellm_messages = [{"role": message.role.value, "content": message.content} for message in effective_messages]
+
     kwargs: dict[str, Any] = {
         "model": _litellm_model_for_options(options),
         "messages": litellm_messages,
         "api_key": api_key,
+        "drop_params": True,
     }
     # Models that do not support reasoning can reject even `reasoning_effort="none"` (from LiteLLM.)
     if options.reasoning_effort is not ReasoningEffort.NONE:
         kwargs["reasoning_effort"] = {"effort": options.reasoning_effort.value, "summary": "detailed"}
+    if apply_verbosity:
+        kwargs["text"] = {"verbosity": options.verbosity.value}
     if options.temperature is not None:
         kwargs["temperature"] = options.temperature
     if options.max_tokens is not None:
@@ -111,12 +129,37 @@ def _completion_kwargs(*, api_key: str, messages: Sequence[AIMessage], options: 
     return kwargs
 
 
+def _messages_with_verbosity_instruction(
+    messages: Sequence[AIMessage],
+    options: GenerationOptions,
+) -> list[AIMessage]:
+    """Prepend a system message with the verbosity instruction to the messages list."""
+    instruction = response_prompt_instruction(options.verbosity)
+    if not messages:
+        return [AIMessage(role=MessageRole.SYSTEM, content=instruction)]
+
+    first_message, *remaining_messages = messages
+    if first_message.role is MessageRole.SYSTEM:
+        return [
+            AIMessage(
+                role=MessageRole.SYSTEM,
+                content=f"{instruction}\n\n{first_message.content}",
+            ),
+            *remaining_messages,
+        ]
+
+    return [
+        AIMessage(role=MessageRole.SYSTEM, content=instruction),
+        *messages,
+    ]
+
+
 def _litellm_model_for_options(options: GenerationOptions) -> str:
     provider, _, model = options.model.partition("/")
-    if provider == AIProviderName.OPENAI.value and model and options.reasoning_effort is not ReasoningEffort.NONE:
-        # LiteLLM currently needs OpenAI reasoning requests routed through its
-        # Responses API bridge to stream reasoning content correctly. Keep this
-        # provider routing detail out of persisted/catalog model IDs.
+    if provider == AIProviderName.OPENAI.value and model:
+        # LiteLLM currently needs OpenAI reasoning/verbosity requests routed
+        # through its Responses API bridge. Keep this provider routing detail
+        # out of persisted/catalog model IDs.
         # Reference: https://github.com/BerriAI/litellm/issues/17428
         return "/".join((provider, "responses", model))
 

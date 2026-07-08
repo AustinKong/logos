@@ -34,6 +34,7 @@ def _participant_data_from_create(
         model=participant.model,
         system_prompt=participant.system_prompt,
         reasoning_effort=participant.reasoning_effort,
+        verbosity=participant.verbosity,
         temperature=participant.temperature,
         type=participant_type,
     )
@@ -61,6 +62,7 @@ def debater_participant_read_from_participant(participant: DebaterParticipant) -
         model=participant.model,
         system_prompt=participant.system_prompt,
         reasoning_effort=participant.reasoning_effort,
+        verbosity=participant.verbosity,
         temperature=participant.temperature,
     )
 
@@ -75,6 +77,7 @@ def judge_participant_read_from_participant(participant: JudgeParticipant) -> Ju
         model=participant.model,
         system_prompt=participant.system_prompt,
         reasoning_effort=participant.reasoning_effort,
+        verbosity=participant.verbosity,
         temperature=participant.temperature,
     )
 
@@ -89,5 +92,6 @@ def juror_participant_read_from_participant(participant: JurorParticipant) -> Ju
         model=participant.model,
         system_prompt=participant.system_prompt,
         reasoning_effort=participant.reasoning_effort,
+        verbosity=participant.verbosity,
         temperature=participant.temperature,
     )

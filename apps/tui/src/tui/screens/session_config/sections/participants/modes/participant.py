@@ -1,6 +1,6 @@
 from typing import cast
 
-from api_client.models import AIModelRead, ReasoningEffort
+from api_client.models import AIModelRead, ReasoningEffort, Verbosity
 from api_client.schema_metadata import SCHEMA_FIELDS
 from textual.app import ComposeResult
 from textual.containers import Container
@@ -16,6 +16,11 @@ REASONING_EFFORT_OPTIONS = [
     ("Low", ReasoningEffort.LOW),
     ("Medium", ReasoningEffort.MEDIUM),
     ("High", ReasoningEffort.HIGH),
+]
+VERBOSITY_OPTIONS = [
+    ("Low", Verbosity.LOW),
+    ("Medium", Verbosity.MEDIUM),
+    ("High", Verbosity.HIGH),
 ]
 
 
@@ -77,6 +82,17 @@ class ParticipantFields(Container):
             helper_text=SCHEMA_FIELDS[self._schema_name]["reasoning_effort"]["description"],
         )
         yield field(
+            SCHEMA_FIELDS[self._schema_name]["verbosity"]["title"],
+            Select(
+                VERBOSITY_OPTIONS,
+                value=self._initial_state.verbosity,
+                allow_blank=False,
+                disabled=self._read_only,
+                classes="participant-verbosity",
+            ),
+            helper_text=SCHEMA_FIELDS[self._schema_name]["verbosity"]["description"],
+        )
+        yield field(
             SCHEMA_FIELDS[self._schema_name]["temperature"]["title"],
             Input(
                 self._initial_state.temperature,
@@ -111,6 +127,7 @@ class ParticipantFields(Container):
             name=self.query_one(".participant-name", Input).value,
             model=cast(SelectValue, model_select.value),
             reasoning_effort=ReasoningEffort(self.query_one(".participant-reasoning-effort", Select).value),
+            verbosity=Verbosity(self.query_one(".participant-verbosity", Select).value),
             temperature=self.query_one(".participant-temperature", Input).value,
             system_prompt=self.query_one(".participant-system-prompt", TextArea).text,
             key=self._initial_state.key,

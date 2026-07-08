@@ -51,6 +51,7 @@ class ProposalStage:
             options=GenerationOptions(
                 model=participant.model,
                 reasoning_effort=participant.reasoning_effort,
+                verbosity=participant.verbosity,
                 temperature=participant.temperature,
             ),
         ):
@@ -83,7 +84,8 @@ def _build_proposal_messages(
             role=MessageRole.USER,
             content=(
                 f"Session prompt:\n{ctx.prompt}\n\n"
-                "Draft your independent initial proposal. Do not respond to other participants yet.\n\n"
+                "Draft your independent initial proposal. Do not respond to other participants yet. "
+                "Write it like the opening turn in a working conversation, not a formal report.\n\n"
                 f"Respond as {participant.name}."
             ),
         ),

@@ -11,7 +11,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from api.db.base import Base
 from api.db.mixins import TimestampMixin, UUIDMixin
 from api.db.types import ShortString
-from api.modules.ai.models import ReasoningEffort
+from api.modules.ai.models import ReasoningEffort, Verbosity
 
 
 class ParticipantType(StrEnum):
@@ -26,6 +26,7 @@ class ParticipantData:
     model: str
     system_prompt: str
     reasoning_effort: ReasoningEffort
+    verbosity: Verbosity
     temperature: float
     type: ParticipantType
 
@@ -51,6 +52,13 @@ class Participant(UUIDMixin, TimestampMixin, Base):
         SQLAlchemyEnum(
             ReasoningEffort,
             name="reasoning_effort",
+            values_callable=lambda enum: [item.value for item in enum],
+        ),
+    )
+    verbosity: Mapped[Verbosity] = mapped_column(
+        SQLAlchemyEnum(
+            Verbosity,
+            name="verbosity",
             values_callable=lambda enum: [item.value for item in enum],
         ),
     )

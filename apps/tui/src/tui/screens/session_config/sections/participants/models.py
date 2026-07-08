@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from api_client.models import ReasoningEffort
+from api_client.models import ReasoningEffort, Verbosity
 from attrs import define, field
 from textual.widgets import Select
 
@@ -12,6 +12,7 @@ class ParticipantFormState:
     name: str
     model: SelectValue
     reasoning_effort: ReasoningEffort
+    verbosity: Verbosity
     temperature: str
     system_prompt: str
     key: str = field(factory=lambda: uuid4().hex)
@@ -27,6 +28,7 @@ def participant_form_state(index: int, *, key: str | None = None) -> Participant
         name=f"Participant {index + 1}",
         model=Select.NULL,
         reasoning_effort=ReasoningEffort.NONE,
+        verbosity=Verbosity.MEDIUM,
         temperature="0.7",
         system_prompt="",
         key=key or uuid4().hex,

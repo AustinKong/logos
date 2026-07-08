@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session as SqlAlchemyDb
 from sqlalchemy.orm import selectinload
 
-from api.modules.ai.models import ReasoningEffort
+from api.modules.ai.models import ReasoningEffort, Verbosity
 from api.modules.ai.service import AIService
 from api.modules.session_configs.constants import DEFAULT_SESSION_CONFIG_ID
 from api.modules.session_configs.errors import (
@@ -52,6 +52,7 @@ class SessionConfigService:
                         model=default_model,
                         system_prompt="Argue for the strongest practical answer. Call out implementation risks.",
                         reasoning_effort=ReasoningEffort.NONE,
+                        verbosity=Verbosity.MEDIUM,
                         temperature=0.7,
                         type=ParticipantType.DEBATER,
                     ),
@@ -60,6 +61,7 @@ class SessionConfigService:
                         model=default_model,
                         system_prompt="Challenge weak assumptions and look for missing edge cases.",
                         reasoning_effort=ReasoningEffort.NONE,
+                        verbosity=Verbosity.MEDIUM,
                         temperature=0.7,
                         type=ParticipantType.DEBATER,
                     ),
@@ -68,6 +70,7 @@ class SessionConfigService:
                         model=default_model,
                         system_prompt="Synthesize tradeoffs into a clear recommendation.",
                         reasoning_effort=ReasoningEffort.NONE,
+                        verbosity=Verbosity.MEDIUM,
                         temperature=0.7,
                         type=ParticipantType.DEBATER,
                     ),
@@ -149,6 +152,7 @@ class SessionConfigService:
                     model=participant.model,
                     system_prompt=participant.system_prompt,
                     reasoning_effort=participant.reasoning_effort,
+                    verbosity=participant.verbosity,
                     temperature=participant.temperature,
                 )
             )

@@ -28,6 +28,12 @@ class ReasoningEffort(StrEnum):
     HIGH = "high"
 
 
+class Verbosity(StrEnum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+
+
 @dataclass(frozen=True, slots=True)
 class AIModel:
     id: str
@@ -96,3 +102,4 @@ class GenerationOptions:
     temperature: float | None = None
     max_tokens: int | None = None
     reasoning_effort: ReasoningEffort = ReasoningEffort.NONE
+    verbosity: Verbosity = Verbosity.MEDIUM
