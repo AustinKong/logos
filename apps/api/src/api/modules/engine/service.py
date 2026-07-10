@@ -14,6 +14,7 @@ from api.modules.sessions.models.events import (
 from api.modules.sessions.service import SessionService
 from api.modules.streaming.deps import SESSION_EVENT_STREAM, TOKEN_STREAM
 from api.modules.streaming.service import StreamingService
+from api.modules.tools.ask_user.state import has_open_ask_user_calls
 
 
 class EngineService:
@@ -73,6 +74,9 @@ class EngineService:
 
     async def run_until_blocked(self, session_id: UUID) -> None:
         while True:
+            if has_open_ask_user_calls(self._session_service.list_events(session_id)):
+                return
+
             has_output = False
             async for output in self.step(session_id):
                 has_output = True

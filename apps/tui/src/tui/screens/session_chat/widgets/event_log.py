@@ -1,6 +1,8 @@
 from uuid import UUID
 
 from api_client.api.sessions.stream_session_tokens import TokenRead
+from api_client.models.ask_user_completed_event_read import AskUserCompletedEventRead
+from api_client.models.ask_user_started_event_read import AskUserStartedEventRead
 from api_client.models.debate_round_started_event_read import DebateRoundStartedEventRead
 from api_client.models.event_read import EventRead
 from api_client.models.message_completed_event_read import MessageCompletedEventRead
@@ -10,6 +12,7 @@ from api_client.models.reasoning_completed_event_read import ReasoningCompletedE
 from api_client.models.reasoning_started_event_read import ReasoningStartedEventRead
 from api_client.models.resolution_started_event_read import ResolutionStartedEventRead
 from textual.containers import VerticalScroll
+from textual.widgets import Static
 
 from tui.screens.session_chat.streamables.base import StreamableWidget
 from tui.screens.session_chat.streamables.message import Message
@@ -58,6 +61,12 @@ class EventLog(VerticalScroll):
             case ReasoningCompletedEventRead():
                 if widget := self._streamable_widgets.get(event.reasoning_id):
                     widget.set_content(event.content)
+            # TODO: Make thse a message type display
+            case AskUserStartedEventRead():
+                await self.mount(Static(f"{event.sender.name} asked: {event.question}"))
+            # TODO: This too
+            case AskUserCompletedEventRead():
+                await self.mount(Static(f"Answer: {event.answer}"))
             case _:
                 pass
 

@@ -13,13 +13,20 @@ class AIAPIKeySettings(BaseModel):
 
 class AISettings(BaseModel):
     api_keys: AIAPIKeySettings = Field(default_factory=AIAPIKeySettings)
+    embedding_model: str = "openai/text-embedding-3-small"
+
+
+class VectorSettings(BaseModel):
+    uri: str = "./lancedb"
 
 
 class Settings(BaseSettings):
     app_name: str = "Logos API"
     environment: str = "development"
+    # TODO: Move this to DatabaseSettings
     database_url: str = "sqlite:///./logos.db"
     ai: AISettings = Field(default_factory=AISettings)
+    vector: VectorSettings = Field(default_factory=VectorSettings)
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", env_nested_delimiter="__")
 

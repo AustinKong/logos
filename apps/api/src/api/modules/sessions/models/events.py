@@ -25,6 +25,9 @@ class EventType(StrEnum):
     DEBATE_ROUND_COMPLETED = "debate_round.completed"
     RESOLUTION_STARTED = "resolution.started"
     RESOLUTION_COMPLETED = "resolution.completed"
+    # TODO: Ask user x events live in tools/ask_user but need to be registered here. Wonder if there is better way like spreading...
+    ASK_USER_STARTED = "ask_user.started"
+    ASK_USER_COMPLETED = "ask_user.completed"
 
 
 # Simple events stay in the base events table to avoid unnecessary new tables.

@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Annotated, Any, Literal
@@ -43,6 +44,13 @@ class AIModel:
 
 
 @dataclass(frozen=True, slots=True)
+class AIEmbeddingModel:
+    id: str
+    label: str
+    provider: AIProviderName
+
+
+@dataclass(frozen=True, slots=True)
 class AIMessage:
     role: MessageRole
     content: str
@@ -51,6 +59,13 @@ class AIMessage:
 class AIToolCall(BaseModel):
     name: str = Field(min_length=1)
     arguments: dict[str, Any]
+
+
+@dataclass(frozen=True, slots=True)
+class AIToolDefinition:
+    name: str
+    description: str
+    parameters: dict[str, Any]
 
 
 class AIMessageResponseAction(BaseModel):
@@ -98,8 +113,18 @@ type AIResponseEvent = Annotated[
 
 @dataclass(frozen=True, slots=True)
 class GenerationOptions:
+    # TODO: Why don't we extract an enum from catalog.
     model: str
+    tools: Sequence[AIToolDefinition] = ()
     temperature: float | None = None
     max_tokens: int | None = None
     reasoning_effort: ReasoningEffort = ReasoningEffort.NONE
     verbosity: Verbosity = Verbosity.MEDIUM
+
+
+@dataclass(frozen=True, slots=True)
+class EmbeddingOptions:
+    model: str
+
+
+type AIEmbedding = list[float]

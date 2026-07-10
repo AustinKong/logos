@@ -1,12 +1,14 @@
+import json
 from collections.abc import AsyncIterable, Sequence
 from typing import Any
 
-from litellm import AsyncIterator, CustomStreamWrapper, ModelResponse, ModelResponseStream, acompletion
-from litellm.types.utils import Delta, Message
+from litellm import AsyncIterator, CustomStreamWrapper, ModelResponse, ModelResponseStream, acompletion, aembedding
+from litellm.types.utils import ChatCompletionDeltaToolCall, Delta, Message
 from pydantic import ValidationError
 
 from api.modules.ai.errors import AIProviderError
 from api.modules.ai.models import (
+    AIEmbedding,
     AIMessage,
     AIMessageDelta,
     AIMessageResponseAction,
@@ -14,6 +16,10 @@ from api.modules.ai.models import (
     AIReasoningDelta,
     AIResponse,
     AIResponseEvent,
+    AIToolCall,
+    AIToolCallEvent,
+    AIToolCallsResponseAction,
+    EmbeddingOptions,
     GenerationOptions,
     MessageRole,
     ReasoningEffort,
@@ -26,6 +32,19 @@ class LiteLLMProvider:
     def __init__(self, api_key: str) -> None:
         self._api_key = api_key
 
+    async def embed(self, *, text: str, options: EmbeddingOptions) -> AIEmbedding:
+        try:
+            response = await aembedding(
+                model=options.model,
+                input=text,
+                api_key=self._api_key,
+                drop_params=True,
+            )
+        except Exception as exc:
+            raise AIProviderError() from exc
+
+        return response.data[0].embedding
+
     async def generate_response(self, *, messages: Sequence[AIMessage], options: GenerationOptions) -> AIResponse:
         try:
             response = await acompletion(
@@ -35,7 +54,12 @@ class LiteLLMProvider:
             raise AIProviderError() from exc
 
         message = _get_response_message(response)
-        _raise_if_tool_calls(message)
+        if tool_calls := _get_tool_calls(message):
+            return AIResponse(
+                reasoning=_get_reasoning_content(message),
+                action=AIToolCallsResponseAction(tool_calls=tool_calls),
+            )
+
         return AIResponse(
             reasoning=_get_reasoning_content(message),
             action=AIMessageResponseAction(content=_get_message_content(message)),
@@ -47,6 +71,13 @@ class LiteLLMProvider:
         messages: Sequence[AIMessage],
         options: GenerationOptions,
     ) -> AsyncIterable[AIResponseEvent]:
+        """Stream response events with tool calls normalized to the end of the turn.
+
+        LiteLLM can stream function arguments as partial tool-call chunks. This
+        provider buffers those chunks until the stream is exhausted and only then emits
+        AIToolCallEvent values. Callers therefore receive forwarded reasoning/message
+        deltas before tool calls, with tool calls ordered by provider tool-call index.
+        """
         try:
             response = await acompletion(
                 **_completion_kwargs(api_key=self._api_key, messages=messages, options=options),
@@ -57,17 +88,25 @@ class LiteLLMProvider:
                 raise AIProviderError("Expected streaming response from AI provider")
 
             async def gen() -> AsyncIterator[AIResponseEvent]:
+                tool_call_chunks: list[ChatCompletionDeltaToolCall] = []
                 async for chunk in response:
                     delta = _get_stream_chunk_delta(chunk)
                     if delta is None:
                         continue
 
-                    _raise_if_tool_calls(delta)
+                    # Tool calls are streamed as chunks, assemble them before parsing
+                    if delta.tool_calls:
+                        tool_call_chunks.extend(delta.tool_calls)
+                        continue
+
                     if reasoning_content := _get_reasoning_content(delta):
                         yield AIReasoningDelta(content=reasoning_content)
 
                     if content := delta.content:
                         yield AIMessageDelta(content=content)
+
+                for tool_call in _tool_calls_from_chunks(tool_call_chunks):
+                    yield AIToolCallEvent(tool_call=tool_call)
 
             return gen()
         except Exception as exc:
@@ -126,6 +165,18 @@ def _completion_kwargs(
         kwargs["temperature"] = options.temperature
     if options.max_tokens is not None:
         kwargs["max_tokens"] = options.max_tokens
+    if options.tools:
+        kwargs["tools"] = [
+            {
+                "type": "function",
+                "function": {
+                    "name": tool.name,
+                    "description": tool.description,
+                    "parameters": tool.parameters,
+                },
+            }
+            for tool in options.tools
+        ]
     return kwargs
 
 
@@ -184,12 +235,48 @@ def _get_stream_chunk_delta(chunk: ModelResponseStream) -> Delta | None:
     return chunk.choices[0].delta
 
 
-def _raise_if_tool_calls(source: Message | Delta) -> None:
-    # TODO: Map LiteLLM tool calls to AIToolCallsResponseAction once app-level tools exist.
-    if getattr(source, "tool_calls", None):
-        raise AIProviderError("AI provider returned tool calls, but tool calls are not supported yet")
-    if getattr(source, "function_call", None):
-        raise AIProviderError("AI provider returned function calls, but tool calls are not supported yet")
+def _get_tool_calls(message: Message) -> list[AIToolCall]:
+    tool_calls = []
+    for tool_call in message.tool_calls or []:
+        if not tool_call.function.name:
+            raise AIProviderError("AI provider returned a tool call without a function name")
+        tool_calls.append(_parse_tool_call(tool_call.function.name, tool_call.function.arguments))
+
+    return tool_calls
+
+
+def _tool_calls_from_chunks(chunks: Sequence[ChatCompletionDeltaToolCall]) -> list[AIToolCall]:
+    parts_by_index: dict[int, tuple[list[str], list[str]]] = {}
+    for chunk in chunks:
+        name_parts, argument_parts = parts_by_index.setdefault(chunk.index, ([], []))
+        if chunk.function.name:
+            name_parts.append(chunk.function.name)
+        if chunk.function.arguments:
+            argument_parts.append(chunk.function.arguments)
+
+    tool_calls: list[AIToolCall] = []
+    for index in sorted(parts_by_index):
+        name_parts, argument_parts = parts_by_index[index]
+        tool_calls.append(_parse_tool_call("".join(name_parts), "".join(argument_parts)))
+
+    return tool_calls
+
+
+def _parse_tool_call(name: str, arguments_str: str) -> AIToolCall:
+    if not name:
+        raise AIProviderError("AI provider returned a tool call without a function name")
+
+    arguments = {}
+    if arguments_str:
+        try:
+            arguments = json.loads(arguments_str)
+        except json.JSONDecodeError as exc:
+            raise AIProviderError("AI provider returned invalid tool call JSON arguments") from exc
+
+    return AIToolCall(
+        name=name,
+        arguments=arguments,
+    )
 
 
 def _get_reasoning_content(source: Message | Delta) -> str | None:

@@ -402,6 +402,67 @@
           }
         }
       }
+    },
+    "/sessions/{session_id}/ask-user/{ask_user_id}/answer": {
+      "post": {
+        "tags": ["ask-user"],
+        "summary": "Answer Ask User",
+        "operationId": "answerAskUser",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "ask_user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Ask User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskUserAnswerRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AskUserCompletedEventRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -432,6 +493,144 @@
         "type": "string",
         "enum": ["openai", "anthropic", "gemini", "deepseek"],
         "title": "AIProviderName"
+      },
+      "AskUserAnswerKind": {
+        "type": "string",
+        "enum": ["option", "free_text"],
+        "title": "AskUserAnswerKind"
+      },
+      "AskUserAnswerRequest": {
+        "properties": {
+          "answer_kind": {
+            "$ref": "#/components/schemas/AskUserAnswerKind"
+          },
+          "answer": {
+            "type": "string",
+            "title": "Answer"
+          }
+        },
+        "type": "object",
+        "required": ["answer_kind", "answer"],
+        "title": "AskUserAnswerRequest"
+      },
+      "AskUserCompletedEventRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "type": {
+            "type": "string",
+            "const": "ask_user.completed",
+            "title": "Type"
+          },
+          "ask_user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Ask User Id"
+          },
+          "answer_kind": {
+            "$ref": "#/components/schemas/AskUserAnswerKind"
+          },
+          "answer": {
+            "type": "string",
+            "title": "Answer"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "session_id",
+          "created_at",
+          "updated_at",
+          "type",
+          "ask_user_id",
+          "answer_kind",
+          "answer"
+        ],
+        "title": "AskUserCompletedEventRead"
+      },
+      "AskUserStartedEventRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "type": {
+            "type": "string",
+            "const": "ask_user.started",
+            "title": "Type"
+          },
+          "ask_user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Ask User Id"
+          },
+          "sender": {
+            "$ref": "#/components/schemas/ParticipantRead"
+          },
+          "question": {
+            "type": "string",
+            "title": "Question"
+          },
+          "options": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Options"
+          },
+          "requires_user_input": {
+            "type": "boolean",
+            "title": "Requires User Input"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "session_id",
+          "created_at",
+          "updated_at",
+          "type",
+          "ask_user_id",
+          "sender",
+          "question",
+          "options",
+          "requires_user_input"
+        ],
+        "title": "AskUserStartedEventRead"
       },
       "DebateConfigCreate": {
         "properties": {
@@ -703,11 +902,19 @@
           },
           {
             "$ref": "#/components/schemas/ReasoningCompletedEventRead"
+          },
+          {
+            "$ref": "#/components/schemas/AskUserStartedEventRead"
+          },
+          {
+            "$ref": "#/components/schemas/AskUserCompletedEventRead"
           }
         ],
         "discriminator": {
           "propertyName": "type",
           "mapping": {
+            "ask_user.completed": "#/components/schemas/AskUserCompletedEventRead",
+            "ask_user.started": "#/components/schemas/AskUserStartedEventRead",
             "debate_round.completed": "#/components/schemas/DebateRoundCompletedEventRead",
             "debate_round.started": "#/components/schemas/DebateRoundStartedEventRead",
             "message.completed": "#/components/schemas/MessageCompletedEventRead",

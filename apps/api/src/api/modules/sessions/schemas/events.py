@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Annotated, Literal
 from uuid import UUID
 
@@ -6,13 +5,8 @@ from pydantic import BaseModel, Field
 
 from api.modules.session_configs.schemas.participants import ParticipantRead
 from api.modules.sessions.models.events import EventType
-
-
-class EventReadBase(BaseModel):
-    id: UUID
-    session_id: UUID
-    created_at: datetime
-    updated_at: datetime
+from api.modules.sessions.schemas.base import EventReadBase
+from api.modules.tools.ask_user.schemas import AskUserCompletedEventRead, AskUserStartedEventRead
 
 
 class SessionStartedEventRead(EventReadBase):
@@ -85,7 +79,9 @@ type EventRead = Annotated[
     | MessageStartedEventRead
     | MessageCompletedEventRead
     | ReasoningStartedEventRead
-    | ReasoningCompletedEventRead,
+    | ReasoningCompletedEventRead
+    | AskUserStartedEventRead
+    | AskUserCompletedEventRead,
     Field(discriminator="type"),
 ]
 

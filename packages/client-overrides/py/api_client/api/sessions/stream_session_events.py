@@ -7,6 +7,8 @@ from uuid import UUID
 from httpx_sse import aconnect_sse, connect_sse
 
 from ...client import AuthenticatedClient, Client
+from ...models.ask_user_completed_event_read import AskUserCompletedEventRead
+from ...models.ask_user_started_event_read import AskUserStartedEventRead
 from ...models.debate_round_completed_event_read import DebateRoundCompletedEventRead
 from ...models.debate_round_started_event_read import DebateRoundStartedEventRead
 from ...models.event_read import EventRead
@@ -68,6 +70,10 @@ def _event_from_data(data: str) -> EventRead:
             return ReasoningStartedEventRead.from_dict(event_data)
         case "reasoning.completed":
             return ReasoningCompletedEventRead.from_dict(event_data)
+        case "ask_user.started":
+            return AskUserStartedEventRead.from_dict(event_data)
+        case "ask_user.completed":
+            return AskUserCompletedEventRead.from_dict(event_data)
 
     raise ValueError(f"Unsupported event type: {event_type}")
 

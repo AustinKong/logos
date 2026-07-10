@@ -13,5 +13,8 @@ def get_ai_provider_resolver(
     return AIProviderResolver(settings=settings)
 
 
-def get_ai_service(provider_resolver: Annotated[AIProviderResolver, Depends(get_ai_provider_resolver)]) -> AIService:
-    return AIService(provider_resolver=provider_resolver)
+def get_ai_service(
+    provider_resolver: Annotated[AIProviderResolver, Depends(get_ai_provider_resolver)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> AIService:
+    return AIService(provider_resolver=provider_resolver, settings=settings)

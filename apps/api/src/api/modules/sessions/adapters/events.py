@@ -1,6 +1,5 @@
-from typing import Any
-
 from api.modules.session_configs.adapters.participants import participant_read_from_participant
+from api.modules.sessions.adapters.base import event_fields
 from api.modules.sessions.models.events import (
     DebateRoundCompletedEvent,
     DebateRoundStartedEvent,
@@ -32,90 +31,90 @@ from api.modules.sessions.schemas.events import (
     SessionCompletedEventRead,
     SessionStartedEventRead,
 )
+from api.modules.tools.ask_user.adapters import (
+    ask_user_completed_event_read_from_event,
+    ask_user_started_event_read_from_event,
+)
+from api.modules.tools.ask_user.models import AskUserCompletedEvent, AskUserStartedEvent
 
 
 def event_read_from_event(event: Event) -> EventRead:
-    event_fields = _event_fields(event)
+    fields = event_fields(event)
 
     match event:
+        case AskUserStartedEvent():
+            return ask_user_started_event_read_from_event(event)
+        case AskUserCompletedEvent():
+            return ask_user_completed_event_read_from_event(event)
         case MessageStartedEvent():
             return MessageStartedEventRead(
-                **event_fields,
+                **fields,
                 type=EventType.MESSAGE_STARTED,
                 message_id=event.message_id,
                 sender=participant_read_from_participant(event.sender),
             )
         case MessageCompletedEvent():
             return MessageCompletedEventRead(
-                **event_fields,
+                **fields,
                 type=EventType.MESSAGE_COMPLETED,
                 message_id=event.message_id,
                 content=event.content,
             )
         case ReasoningStartedEvent():
             return ReasoningStartedEventRead(
-                **event_fields,
+                **fields,
                 type=EventType.REASONING_STARTED,
                 reasoning_id=event.reasoning_id,
                 sender=participant_read_from_participant(event.sender),
             )
         case ReasoningCompletedEvent():
             return ReasoningCompletedEventRead(
-                **event_fields,
+                **fields,
                 type=EventType.REASONING_COMPLETED,
                 reasoning_id=event.reasoning_id,
                 content=event.content,
             )
         case ProposalStartedEvent():
             return ProposalStartedEventRead(
-                **event_fields,
+                **fields,
                 type=EventType.PROPOSAL_STARTED,
             )
         case ProposalCompletedEvent():
             return ProposalCompletedEventRead(
-                **event_fields,
+                **fields,
                 type=EventType.PROPOSAL_COMPLETED,
             )
         case DebateRoundStartedEvent():
             return DebateRoundStartedEventRead(
-                **event_fields,
+                **fields,
                 type=EventType.DEBATE_ROUND_STARTED,
                 round_number=event.round_number,
             )
         case DebateRoundCompletedEvent():
             return DebateRoundCompletedEventRead(
-                **event_fields,
+                **fields,
                 type=EventType.DEBATE_ROUND_COMPLETED,
             )
         case ResolutionStartedEvent():
             return ResolutionStartedEventRead(
-                **event_fields,
+                **fields,
                 type=EventType.RESOLUTION_STARTED,
             )
         case ResolutionCompletedEvent():
             return ResolutionCompletedEventRead(
-                **event_fields,
+                **fields,
                 type=EventType.RESOLUTION_COMPLETED,
                 decision=event.decision,
             )
         case SessionCompletedEvent():
             return SessionCompletedEventRead(
-                **event_fields,
+                **fields,
                 type=EventType.SESSION_COMPLETED,
             )
         case SessionStartedEvent():
             return SessionStartedEventRead(
-                **event_fields,
+                **fields,
                 type=EventType.SESSION_STARTED,
             )
 
     raise ValueError(f"Unsupported event type: {event.type}")
-
-
-def _event_fields(event: Event) -> dict[str, Any]:
-    return {
-        "id": event.id,
-        "session_id": event.session_id,
-        "created_at": event.created_at,
-        "updated_at": event.updated_at,
-    }

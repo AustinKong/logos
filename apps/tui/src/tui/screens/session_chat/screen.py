@@ -1,6 +1,8 @@
 from uuid import UUID
 
 from api_client.models import (
+    AskUserCompletedEventRead,
+    AskUserStartedEventRead,
     MessageStartedEventRead,
     ReasoningStartedEventRead,
     SessionCompletedEventRead,
@@ -13,6 +15,7 @@ from textual.binding import Binding
 from textual.containers import Vertical
 from textual.reactive import reactive
 
+from tui.navigation import AskUserParams, Navigate, Route
 from tui.screens.session_chat.controllers import SessionChatController
 from tui.screens.session_chat.loaders import SessionChatLoader
 from tui.screens.session_chat.widgets.chat_input import ChatInput
@@ -47,6 +50,8 @@ class SessionChatScreen(BaseScreen):
         self._loader = loader
         self._session_id = session_id
         self._session: SessionRead | None = None
+        self._pending_ask_user_events: list[AskUserStartedEventRead] = []
+        self._active_ask_user_event: AskUserStartedEventRead | None = None
 
     def compose_content(self) -> ComposeResult:
         with Vertical(id="session"):
@@ -69,13 +74,22 @@ class SessionChatScreen(BaseScreen):
             events = await self._loader.get_events(session_id=self._session.id)
             latest_event_id: UUID | None = None
             completed = False
+            open_ask_user_events: list[AskUserStartedEventRead] = []
 
             for event in events:
                 latest_event_id = event.id
                 await log.handle_event(event)
 
+                if isinstance(event, AskUserStartedEventRead) and event.requires_user_input:
+                    open_ask_user_events.append(event)
+                elif isinstance(event, AskUserCompletedEventRead):
+                    open_ask_user_events.pop(0)
+
                 if isinstance(event, SessionCompletedEventRead):
                     completed = True
+
+            for event in open_ask_user_events:
+                self._enqueue_ask_user(event)
 
             if not completed:
                 self.stream_events(after_event_id=latest_event_id)
@@ -114,6 +128,15 @@ class SessionChatScreen(BaseScreen):
                             group=f"session-token-stream:{event.reasoning_id}",
                             exclusive=True,
                         )
+                    case AskUserStartedEventRead():
+                        if event.requires_user_input:
+                            self._enqueue_ask_user(event)
+                    case AskUserCompletedEventRead():
+                        self._pending_ask_user_events = [
+                            pending
+                            for pending in self._pending_ask_user_events
+                            if pending.ask_user_id != event.ask_user_id
+                        ]
                     case SessionCompletedEventRead():
                         self.chat_input_shown = False
                         return
@@ -141,3 +164,34 @@ class SessionChatScreen(BaseScreen):
             self.notify(str(exc), title="Token stream failed", severity="error")
         except Exception as exc:
             self.notify(str(exc), title="Token stream failed", severity="error")
+
+    def _enqueue_ask_user(self, event: AskUserStartedEventRead) -> None:
+        if self._active_ask_user_event is not None and self._active_ask_user_event.ask_user_id == event.ask_user_id:
+            return
+
+        if any(pending.ask_user_id == event.ask_user_id for pending in self._pending_ask_user_events):
+            return
+
+        self._pending_ask_user_events.append(event)
+        self._show_next_ask_user()
+
+    def _show_next_ask_user(self) -> None:
+        if self._active_ask_user_event is not None or not self._pending_ask_user_events:
+            return
+
+        event = self._pending_ask_user_events.pop(0)
+        self._active_ask_user_event = event
+        self.post_message(
+            Navigate(
+                Route.ASK_USER,
+                AskUserParams(
+                    session_id=self._session_id,
+                    event=event,
+                    on_close=self._handle_ask_user_modal_closed,
+                ),
+            )
+        )
+
+    def _handle_ask_user_modal_closed(self, _result: None) -> None:
+        self._active_ask_user_event = None
+        self._show_next_ask_user()

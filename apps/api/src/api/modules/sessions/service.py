@@ -30,6 +30,7 @@ from api.modules.sessions.models.events import (
 from api.modules.sessions.models.sessions import Session, SessionSummary
 from api.modules.sessions.repository import SessionRepository
 from api.modules.strategies.resolution.configs import ResolutionConfig
+from api.modules.tools.ask_user.models import AskUserCompletedEvent, AskUserStartedEvent
 
 
 class SessionService:
@@ -151,6 +152,10 @@ def _format_session_export(session: Session, events: list[Event]) -> str:
                 lines.extend([f"### {sender} reasoning", "", event.content, ""])
             case ResolutionCompletedEvent():
                 lines.extend([event.decision, ""])
+            case AskUserStartedEvent():
+                lines.extend(["### Ask user", "", event.question, ""])
+            case AskUserCompletedEvent():
+                lines.extend(["Answer:", "", event.answer, ""])
             case _:
                 lines.extend([f"Unsupported event: {event.type}", ""])
 

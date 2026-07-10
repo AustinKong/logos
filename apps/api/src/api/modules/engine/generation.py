@@ -19,11 +19,15 @@ from api.modules.sessions.models.events import (
     ReasoningCompletedEvent,
     ReasoningStartedEvent,
 )
+from api.modules.tools.base import ToolExecutionContext
+from api.modules.tools.resolver import ToolResolver
 
 
+# TODO: Kinda messy rn, will see if i can simplify abit
 class GenerationRunner:
-    def __init__(self, *, ai_service: AIService) -> None:
+    def __init__(self, *, ai_service: AIService, tool_resolver: ToolResolver) -> None:
         self._ai_service = ai_service
+        self._tool_resolver = tool_resolver
 
     async def run_response(
         self,
@@ -33,10 +37,22 @@ class GenerationRunner:
         messages: Sequence[AIMessage],
         options: GenerationOptions,
     ) -> EngineOutputStream:
-        response_stream = await self._ai_service.stream_response(messages=messages, options=options)
+        response_stream = await self._ai_service.stream_response(
+            messages=messages,
+            options=GenerationOptions(
+                model=options.model,
+                # TODO: Remove list definitions. Not all models should have the same definitions.
+                tools=self._tool_resolver.list_definitions(),
+                temperature=options.temperature,
+                max_tokens=options.max_tokens,
+                reasoning_effort=options.reasoning_effort,
+                verbosity=options.verbosity,
+            ),
+        )
 
         reasoning_id, message_id = uuid4(), uuid4()
         reasoning_started = reasoning_completed = action_started = False
+        tool_action_started = False
         reasoning_parts: list[str] = []
         message_parts: list[str] = []
 
@@ -79,15 +95,32 @@ class GenerationRunner:
                     message_parts.append(response_event.content)
                     yield Token(correlation_id=message_id, content=response_event.content)
                 case AIToolCallEvent():
-                    raise AIProviderError("Tool call responses are not supported yet")
+                    # AI providers must emit tool calls only after all reasoning/message deltas
+                    # for the turn, so the runner handles tool events in arrival order.
+                    if action_started:
+                        raise AIProviderError("AI provider returned tool call after message content")
+
+                    if reasoning_started and not reasoning_completed:
+                        reasoning_completed = True
+                        yield build_reasoning_completed()
+
+                    tool_action_started = True
+                    handler = self._tool_resolver.resolve(response_event.tool_call.name)
+                    for event in await handler.execute(
+                        tool_call=response_event.tool_call,
+                        ctx=ToolExecutionContext(session_id=session_id, sender=sender),
+                    ):
+                        yield event
                 case _ as never:
                     assert_never(never)
+
+        if tool_action_started:
+            return
 
         if reasoning_started and not reasoning_completed:
             yield build_reasoning_completed()
 
         if not action_started:
-            # TODO: In the future with tool calls, no message content is valid
             raise AIProviderError("AI provider returned no message content")
 
         yield MessageCompletedEvent(

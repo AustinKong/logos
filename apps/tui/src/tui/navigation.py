@@ -5,7 +5,7 @@ from typing import assert_never
 from uuid import UUID
 
 from api_client import Client
-from api_client.models import SessionRead
+from api_client.models import AskUserStartedEventRead, SessionRead
 from textual.app import App
 from textual.message import Message
 
@@ -14,6 +14,7 @@ class Route(StrEnum):
     SESSIONS = "sessions"
     SESSION_CONFIG = "session_config"
     SESSION_CHAT = "session_chat"
+    ASK_USER = "ask_user"
 
 
 @dataclass(frozen=True, slots=True)
@@ -25,6 +26,13 @@ class SessionConfigParams:
 @dataclass(frozen=True, slots=True)
 class SessionChatParams:
     session_id: UUID
+
+
+@dataclass(frozen=True, slots=True)
+class AskUserParams:
+    session_id: UUID
+    event: AskUserStartedEventRead
+    on_close: Callable[[None], None]
 
 
 class Navigate(Message):
@@ -47,6 +55,8 @@ class Navigator:
                 self._push_session_config(_expect_params(params, SessionConfigParams))
             case Route.SESSION_CHAT:
                 self._push_session_chat(_expect_params(params, SessionChatParams))
+            case Route.ASK_USER:
+                self._push_ask_user(_expect_params(params, AskUserParams))
             case _ as never:
                 assert_never(never)
 
@@ -88,6 +98,19 @@ class Navigator:
         )
 
         self._app.push_screen(screen)
+
+    def _push_ask_user(self, params: AskUserParams) -> None:
+        from tui.screens.ask_user.controllers import AskUserController
+        from tui.screens.ask_user.screen import AskUserModal
+
+        ask_user_controller = AskUserController(client=self._client)
+        screen = AskUserModal(
+            controller=ask_user_controller,
+            session_id=params.session_id,
+            event=params.event,
+        )
+
+        self._app.push_screen(screen, params.on_close)
 
 
 def _expect_params[Params](params: object | None, params_type: type[Params]) -> Params:

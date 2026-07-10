@@ -1,4 +1,4 @@
-from api.modules.ai.models import AIModel, AIProviderName
+from api.modules.ai.models import AIEmbeddingModel, AIModel, AIProviderName
 
 AI_MODEL_CATALOG = [
     AIModel(
@@ -24,5 +24,13 @@ AI_MODEL_CATALOG = [
         label="Claude 3.5 Haiku",
         provider=AIProviderName.ANTHROPIC,
         supports_reasoning=False,
+    ),
+]
+
+AI_EMBEDDING_MODEL_CATALOG = [
+    AIEmbeddingModel(
+        id="openai/text-embedding-3-small",
+        label="Text Embedding 3 Small",
+        provider=AIProviderName.OPENAI,
     ),
 ]
