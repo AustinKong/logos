@@ -1,4 +1,4 @@
-from api_client.models import AIModelRead
+from api_client.models import AILanguageModelRead
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll
 from textual.widgets import Input
@@ -32,7 +32,7 @@ class ParticipantDetails(VerticalScroll):
         *,
         participant_index: int,
         initial_state: ParticipantFormState,
-        models: list[AIModelRead],
+        models: list[AILanguageModelRead],
         read_only: bool = False,
         id: str | None = None,
     ) -> None:

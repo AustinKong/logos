@@ -9,6 +9,8 @@ from pydantic import ValidationError
 from api.modules.ai.errors import AIProviderError
 from api.modules.ai.models import (
     AIEmbedding,
+    AIEmbeddingModel,
+    AILanguageModel,
     AIMessage,
     AIMessageDelta,
     AIMessageResponseAction,
@@ -31,6 +33,20 @@ from api.modules.ai.providers.base import GeneratedObject
 class LiteLLMProvider:
     def __init__(self, api_key: str) -> None:
         self._api_key = api_key
+
+    # We could use litellm.utils.get_valid_models and get_model_info to list models, but the comprehensive list mixes language, image, and embedding models,
+    # and doesn't provide labels. I.e. a catalog mapping model IDs to labels is still needed. For now, we stick to hardcoded catalog for each provider.
+    # This shall be a future direction if we need better discoverability and/or want to show model specs (token cost etc.)
+    # ```
+    # models = get_valid_models(check_provider_endpoint=True, custom_llm_provider="openai", api_key=api_key)
+    # model_info = get_model_info("gpt-4o")
+    # print(models, model_info)
+    # ```
+    def list_language_models(self) -> list[AILanguageModel]:
+        return []
+
+    def list_embedding_models(self) -> list[AIEmbeddingModel]:
+        return []
 
     async def embed(self, *, text: str, options: EmbeddingOptions) -> AIEmbedding:
         try:

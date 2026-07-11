@@ -1,4 +1,4 @@
-from api.shared.errors import AppError
+from api.shared.errors import AppError, ValidationError
 
 
 class AIProviderError(AppError):
@@ -16,3 +16,13 @@ class NoAvailableAIModelsError(AppError):
     status_code = 503
     code = "no_available_ai_models"
     message = "No AI models are available"
+
+
+class UnsupportedEmbeddingModelError(ValidationError):
+    code = "unsupported_embedding_model"
+    message = "Selected embedding model is not available"
+
+
+class UnsupportedLanguageModelError(ValidationError):
+    code = "unsupported_language_model"
+    message = "Selected language model is not available"

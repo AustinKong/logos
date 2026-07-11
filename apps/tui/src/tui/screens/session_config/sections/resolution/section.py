@@ -1,6 +1,6 @@
 from typing import assert_never
 
-from api_client.models import AIModelRead, ResolutionMode
+from api_client.models import AILanguageModelRead, ResolutionMode
 from api_client.schema_metadata import SCHEMA_FIELDS
 from textual.app import ComposeResult
 from textual.containers import Container, VerticalScroll
@@ -49,7 +49,7 @@ class ResolutionSection(VerticalScroll):
         self,
         *,
         initial_state: ResolutionFormState,
-        models: list[AIModelRead],
+        models: list[AILanguageModelRead],
         read_only: bool = False,
     ) -> None:
         super().__init__()

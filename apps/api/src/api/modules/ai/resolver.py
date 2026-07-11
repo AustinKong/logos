@@ -1,10 +1,12 @@
 from typing import assert_never
 
-from api.modules.ai.catalog import AI_MODEL_CATALOG
-from api.modules.ai.errors import AIProviderMismatchError
-from api.modules.ai.models import AIModel, AIProviderName
+from api.modules.ai.errors import AIProviderMismatchError, UnsupportedEmbeddingModelError, UnsupportedLanguageModelError
+from api.modules.ai.models import AIEmbeddingModel, AILanguageModel, AIProviderName
+from api.modules.ai.providers.anthropic import AnthropicProvider
 from api.modules.ai.providers.base import AIProvider
-from api.modules.ai.providers.litellm import LiteLLMProvider
+from api.modules.ai.providers.deepseek import DeepSeekProvider
+from api.modules.ai.providers.gemini import GeminiProvider
+from api.modules.ai.providers.openai import OpenAIProvider
 from api.settings import Settings
 
 
@@ -12,22 +14,49 @@ class AIProviderResolver:
     def __init__(self, *, settings: Settings) -> None:
         self._settings = settings
 
-    def resolve(self, model: str) -> AIProvider:
-        provider = _parse_model_provider(model)
-        # In future (if/when we drop LiteLLM), route to different providers here.
-        return LiteLLMProvider(self._get_api_key(provider=provider))
+    def list_available_language_models(self) -> list[AILanguageModel]:
+        return [model for provider in self._configured_providers() for model in provider.list_language_models()]
 
-    def list_available_models(self) -> list[AIModel]:
-        available: list[AIModel] = []
-        for model in AI_MODEL_CATALOG:
+    def list_available_embedding_models(self) -> list[AIEmbeddingModel]:
+        return [model for provider in self._configured_providers() for model in provider.list_embedding_models()]
+
+    def resolve_language_model(self, model: str) -> AIProvider:
+        provider = self._provider_for(_parse_model_provider(model))
+        if not any(language_model.id == model for language_model in provider.list_language_models()):
+            raise UnsupportedLanguageModelError()
+
+        return provider
+
+    def resolve_embedding_model(self, model: str) -> AIProvider:
+        provider = self._provider_for(_parse_model_provider(model))
+        if not any(embedding_model.id == model for embedding_model in provider.list_embedding_models()):
+            raise UnsupportedEmbeddingModelError()
+
+        return provider
+
+    def _configured_providers(self) -> list[AIProvider]:
+        providers: list[AIProvider] = []
+        for provider_name in AIProviderName:
             try:
-                self._get_api_key(provider=model.provider)
+                providers.append(self._provider_for(provider_name))
             except AIProviderMismatchError:
                 continue
 
-            available.append(model)
+        return providers
 
-        return available
+    def _provider_for(self, provider: AIProviderName) -> AIProvider:
+        api_key = self._get_api_key(provider=provider)
+        match provider:
+            case AIProviderName.OPENAI:
+                return OpenAIProvider(api_key)
+            case AIProviderName.ANTHROPIC:
+                return AnthropicProvider(api_key)
+            case AIProviderName.GEMINI:
+                return GeminiProvider(api_key)
+            case AIProviderName.DEEPSEEK:
+                return DeepSeekProvider(api_key)
+            case _ as never:
+                assert_never(never)
 
     def _get_api_key(self, provider: AIProviderName) -> str:
         api_keys = self._settings.ai.api_keys

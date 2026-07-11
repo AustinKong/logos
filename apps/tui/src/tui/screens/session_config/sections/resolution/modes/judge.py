@@ -1,4 +1,4 @@
-from api_client.models import AIModelRead
+from api_client.models import AILanguageModelRead
 from textual.app import ComposeResult
 from textual.containers import Container
 
@@ -20,7 +20,7 @@ class JudgeResolutionFields(Container):
         self,
         *,
         initial_state: JudgeResolutionFormState,
-        models: list[AIModelRead],
+        models: list[AILanguageModelRead],
         read_only: bool = False,
         id: str | None = None,
     ) -> None:

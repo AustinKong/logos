@@ -1,4 +1,4 @@
-from api_client.models import AIModelRead
+from api_client.models import AILanguageModelRead
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal
 from textual.reactive import reactive
@@ -59,7 +59,7 @@ class ParticipantsSection(Container):
         self,
         *,
         initial_state: ParticipantsFormState,
-        models: list[AIModelRead],
+        models: list[AILanguageModelRead],
         read_only: bool = False,
     ) -> None:
         super().__init__()

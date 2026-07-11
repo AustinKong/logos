@@ -1,11 +1,11 @@
 from uuid import UUID
 
 from api_client import Client
-from api_client.api.ai.list_ai_models import asyncio as list_ai_models_api
+from api_client.api.ai.list_ai_language_models import asyncio as list_ai_language_models_api
 from api_client.api.session_configs.get_default_session_config import asyncio as get_default_session_config
 from api_client.api.sessions.create_session import asyncio as create_session_api
 from api_client.api.sessions.get_session import asyncio as get_session
-from api_client.models import AIModelRead, SessionConfigRead, SessionRead
+from api_client.models import AILanguageModelRead, SessionConfigRead, SessionRead
 
 from tui.screens.session_config.adapters import session_create_from_form_state
 from tui.screens.session_config.models import SessionConfigFormState
@@ -29,8 +29,8 @@ class SessionConfigController:
 
         return config
 
-    async def list_ai_models(self) -> list[AIModelRead]:
-        models = await list_ai_models_api(client=self._client)
+    async def list_ai_language_models(self) -> list[AILanguageModelRead]:
+        models = await list_ai_language_models_api(client=self._client)
         if not isinstance(models, list):
             raise RuntimeError("API returned an unexpected AI models response")
 

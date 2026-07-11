@@ -36,7 +36,7 @@ class Verbosity(StrEnum):
 
 
 @dataclass(frozen=True, slots=True)
-class AIModel:
+class AILanguageModel:
     id: str
     label: str
     provider: AIProviderName
@@ -113,7 +113,6 @@ type AIResponseEvent = Annotated[
 
 @dataclass(frozen=True, slots=True)
 class GenerationOptions:
-    # TODO: Why don't we extract an enum from catalog.
     model: str
     tools: Sequence[AIToolDefinition] = ()
     temperature: float | None = None

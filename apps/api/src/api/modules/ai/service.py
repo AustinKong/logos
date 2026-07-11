@@ -5,8 +5,9 @@ from pydantic import BaseModel
 
 from api.modules.ai.models import (
     AIEmbedding,
+    AIEmbeddingModel,
+    AILanguageModel,
     AIMessage,
-    AIModel,
     AIResponse,
     AIResponseEvent,
     EmbeddingOptions,
@@ -30,7 +31,7 @@ class AIService:
         options: EmbeddingOptions | None = None,
     ) -> AIEmbedding:
         options = options or EmbeddingOptions(model=self._settings.ai.embedding_model)
-        provider = self._provider_resolver.resolve(options.model)
+        provider = self._provider_resolver.resolve_embedding_model(options.model)
         return await provider.embed(text=text, options=options)
 
     async def generate_response(
@@ -39,7 +40,7 @@ class AIService:
         messages: Sequence[AIMessage],
         options: GenerationOptions,
     ) -> AIResponse:
-        provider = self._provider_resolver.resolve(options.model)
+        provider = self._provider_resolver.resolve_language_model(options.model)
         return await provider.generate_response(messages=messages, options=options)
 
     async def stream_response(
@@ -48,7 +49,7 @@ class AIService:
         messages: Sequence[AIMessage],
         options: GenerationOptions,
     ) -> AsyncIterable[AIResponseEvent]:
-        provider = self._provider_resolver.resolve(options.model)
+        provider = self._provider_resolver.resolve_language_model(options.model)
         return await provider.stream_response(messages=messages, options=options)
 
     async def generate_object(
@@ -58,8 +59,11 @@ class AIService:
         options: GenerationOptions,
         response_model: type[GeneratedObject],
     ) -> GeneratedObject:
-        provider = self._provider_resolver.resolve(options.model)
+        provider = self._provider_resolver.resolve_language_model(options.model)
         return await provider.generate_object(messages=messages, options=options, response_model=response_model)
 
-    def list_available_models(self) -> list[AIModel]:
-        return self._provider_resolver.list_available_models()
+    def list_available_language_models(self) -> list[AILanguageModel]:
+        return self._provider_resolver.list_available_language_models()
+
+    def list_available_embedding_models(self) -> list[AIEmbeddingModel]:
+        return self._provider_resolver.list_available_embedding_models()

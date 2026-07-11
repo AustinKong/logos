@@ -5,6 +5,8 @@ from pydantic import BaseModel
 
 from api.modules.ai.models import (
     AIEmbedding,
+    AIEmbeddingModel,
+    AILanguageModel,
     AIMessage,
     AIResponse,
     AIResponseEvent,
@@ -17,6 +19,10 @@ GeneratedObject = TypeVar("GeneratedObject", bound=BaseModel)
 
 
 class AIProvider(Protocol):
+    def list_language_models(self) -> list[AILanguageModel]: ...
+
+    def list_embedding_models(self) -> list[AIEmbeddingModel]: ...
+
     async def embed(self, *, text: str, options: EmbeddingOptions) -> AIEmbedding: ...
 
     async def generate_response(self, *, messages: Sequence[AIMessage], options: GenerationOptions) -> AIResponse: ...

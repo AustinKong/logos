@@ -1,4 +1,4 @@
-from api_client.models import AIModelRead
+from api_client.models import AILanguageModelRead
 from textual.app import ComposeResult
 from textual.containers import Container
 from textual.widgets import TabbedContent, TabPane
@@ -49,7 +49,7 @@ class SectionEditor(Container):
         self,
         *,
         form_state: SessionConfigFormState,
-        models: list[AIModelRead],
+        models: list[AILanguageModelRead],
         read_only: bool = False,
     ) -> None:
         super().__init__(id="session-config")

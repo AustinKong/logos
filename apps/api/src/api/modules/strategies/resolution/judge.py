@@ -6,6 +6,7 @@ from api.modules.engine.timeline.messages import InternalEventVisibility, TurnMe
 from api.modules.engine.timeline.turns import turns_from_events
 from api.modules.session_configs.models.participants import JudgeParticipant
 from api.modules.sessions.models.events import ResolutionCompletedEvent
+from api.modules.strategies.resolution.configs import JudgeResolutionConfig
 
 JUDGE_SYSTEM_PROMPT = (
     "You are a neutral judge resolving a structured debate. "
@@ -21,11 +22,11 @@ class JudgeResolutionStrategy:
         self,
         *,
         ai_service: AIService,
-        # FIXME: IDK wtf im talking abt here ngl
-        # TODO: Should be resolved once we make services can take dtos as judge resolution config will hld judge
+        config: JudgeResolutionConfig,
         judge: JudgeParticipant,
     ) -> None:
         self._ai_service = ai_service
+        self._config = config
         self._judge = judge
 
     async def resolve(self, ctx: EngineContext) -> EngineOutputStream:

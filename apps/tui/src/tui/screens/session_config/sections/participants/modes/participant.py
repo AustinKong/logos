@@ -1,6 +1,6 @@
 from typing import cast
 
-from api_client.models import AIModelRead, ReasoningEffort, Verbosity
+from api_client.models import AILanguageModelRead, ReasoningEffort, Verbosity
 from api_client.schema_metadata import SCHEMA_FIELDS
 from textual.app import ComposeResult
 from textual.containers import Container
@@ -42,7 +42,7 @@ class ParticipantFields(Container):
         self,
         *,
         initial_state: ParticipantFormState,
-        models: list[AIModelRead],
+        models: list[AILanguageModelRead],
         schema_name: str,
         read_only: bool = False,
         id: str | None = None,

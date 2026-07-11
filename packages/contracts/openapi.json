@@ -5,11 +5,11 @@
     "version": "0.1.0"
   },
   "paths": {
-    "/ai/models": {
+    "/ai/language-models": {
       "get": {
         "tags": ["ai"],
-        "summary": "List Ai Models",
-        "operationId": "listAIModels",
+        "summary": "List Ai Language Models",
+        "operationId": "listAILanguageModels",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -17,10 +17,33 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/AIModelRead"
+                    "$ref": "#/components/schemas/AILanguageModelRead"
                   },
                   "type": "array",
-                  "title": "Response Listaimodels"
+                  "title": "Response Listailanguagemodels"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/embedding-models": {
+      "get": {
+        "tags": ["ai"],
+        "summary": "List Ai Embedding Models",
+        "operationId": "listAIEmbeddingModels",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AIEmbeddingModelRead"
+                  },
+                  "type": "array",
+                  "title": "Response Listaiembeddingmodels"
                 }
               }
             }
@@ -467,7 +490,25 @@
   },
   "components": {
     "schemas": {
-      "AIModelRead": {
+      "AIEmbeddingModelRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/AIProviderName"
+          }
+        },
+        "type": "object",
+        "required": ["id", "label", "provider"],
+        "title": "AIEmbeddingModelRead"
+      },
+      "AILanguageModelRead": {
         "properties": {
           "id": {
             "type": "string",
@@ -487,7 +528,7 @@
         },
         "type": "object",
         "required": ["id", "label", "provider", "supports_reasoning"],
-        "title": "AIModelRead"
+        "title": "AILanguageModelRead"
       },
       "AIProviderName": {
         "type": "string",

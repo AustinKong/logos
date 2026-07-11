@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from api_client.models import AIModelRead, SessionRead
+from api_client.models import AILanguageModelRead, SessionRead
 from textual import work
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -23,7 +23,7 @@ class SessionConfigModal(BaseModalScreen[SessionRead | None]):
     ]
 
     initial_state = reactive[SessionConfigFormState | None](None, recompose=True)
-    models = reactive[list[AIModelRead]](list)
+    models = reactive[list[AILanguageModelRead]](list)
 
     def __init__(
         self,
@@ -70,7 +70,7 @@ class SessionConfigModal(BaseModalScreen[SessionRead | None]):
     @work(group="session-config", exclusive=True)
     async def load_config(self) -> None:
         try:
-            models = await self._controller.list_ai_models()
+            models = await self._controller.list_ai_language_models()
             if self._session_id is not None:
                 session = await self._controller.get_session(session_id=self._session_id)
                 form_state = form_state_from_session_read(session)

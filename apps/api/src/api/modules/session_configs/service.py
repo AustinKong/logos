@@ -41,7 +41,7 @@ class SessionConfigService:
             # TODO: What happens if the default config listed model becomes unavailable?
             config = self.get_config(DEFAULT_SESSION_CONFIG_ID)
         except SessionConfigNotFoundError:
-            default_model = self._ai_service.list_available_models()[0].id
+            default_model = self._ai_service.list_available_language_models()[0].id
             config = self.create_config(
                 id=DEFAULT_SESSION_CONFIG_ID,
                 prompt=DEFAULT_PROMPT,
@@ -109,7 +109,7 @@ class SessionConfigService:
         id: UUID | None = None,
         commit: bool = True,
     ) -> SessionConfig:
-        models_by_id = {model.id: model for model in self._ai_service.list_available_models()}
+        models_by_id = {model.id: model for model in self._ai_service.list_available_language_models()}
         for participant in participants:
             model = models_by_id.get(participant.model)
             if model is None:

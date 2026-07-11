@@ -52,9 +52,10 @@ class StrategyResolver:
             case JudgeResolutionConfig():
                 return JudgeResolutionStrategy(
                     ai_service=self._ai_service,
+                    config=config,
                     judge=session.config.judge_participant,
                 )
             case NoneResolutionConfig():
-                return NoneResolutionStrategy()
+                return NoneResolutionStrategy(config=config)
             case _ as never:
                 assert_never(never)
