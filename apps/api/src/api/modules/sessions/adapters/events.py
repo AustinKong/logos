@@ -1,6 +1,9 @@
+from typing import Any
+
 from api.modules.session_configs.adapters.participants import participant_read_from_participant
-from api.modules.sessions.adapters.base import event_fields
 from api.modules.sessions.models.events import (
+    AskUserCompletedEvent,
+    AskUserStartedEvent,
     DebateRoundCompletedEvent,
     DebateRoundStartedEvent,
     Event,
@@ -19,6 +22,8 @@ from api.modules.sessions.models.events import (
     TurnStartedEvent,
 )
 from api.modules.sessions.schemas.events import (
+    AskUserCompletedEventRead,
+    AskUserStartedEventRead,
     DebateRoundCompletedEventRead,
     DebateRoundStartedEventRead,
     EventRead,
@@ -35,15 +40,10 @@ from api.modules.sessions.schemas.events import (
     TurnCompletedEventRead,
     TurnStartedEventRead,
 )
-from api.modules.tools.ask_user.adapters import (
-    ask_user_completed_event_read_from_event,
-    ask_user_started_event_read_from_event,
-)
-from api.modules.tools.ask_user.models import AskUserCompletedEvent, AskUserStartedEvent
 
 
 def event_read_from_event(event: Event) -> EventRead:
-    fields = event_fields(event)
+    fields = _event_fields(event)
 
     match event:
         case TurnStartedEvent():
@@ -58,7 +58,14 @@ def event_read_from_event(event: Event) -> EventRead:
                 type=EventType.TURN_COMPLETED,
             )
         case AskUserStartedEvent():
-            return ask_user_started_event_read_from_event(event)
+            return AskUserStartedEventRead(
+                **fields,
+                type=EventType.ASK_USER_STARTED,
+                ask_user_id=event.ask_user_id,
+                question=event.question,
+                options=event.options,
+                requires_user_input=event.cache_entry_id is None,
+            )
         case AskUserCompletedEvent():
             return ask_user_completed_event_read_from_event(event)
         case MessageStartedEvent():
@@ -131,3 +138,22 @@ def event_read_from_event(event: Event) -> EventRead:
             )
 
     raise ValueError(f"Unsupported event type: {event.type}")
+
+
+def _event_fields(event: Event) -> dict[str, Any]:
+    return {
+        "id": event.id,
+        "session_id": event.session_id,
+        "created_at": event.created_at,
+        "updated_at": event.updated_at,
+    }
+
+
+def ask_user_completed_event_read_from_event(event: AskUserCompletedEvent) -> AskUserCompletedEventRead:
+    return AskUserCompletedEventRead(
+        **_event_fields(event),
+        type=EventType.ASK_USER_COMPLETED,
+        ask_user_id=event.ask_user_id,
+        answer_kind=event.answer_kind,
+        answer=event.answer,
+    )

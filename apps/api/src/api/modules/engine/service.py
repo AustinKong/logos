@@ -3,6 +3,8 @@ from uuid import UUID
 from api.modules.engine.engine import Engine
 from api.modules.engine.models import EngineContext, EngineOutputStream
 from api.modules.sessions.models.events import (
+    AskUserCompletedEvent,
+    AskUserStartedEvent,
     Event,
     MessageCompletedEvent,
     MessageStartedEvent,
@@ -14,7 +16,6 @@ from api.modules.sessions.models.events import (
 from api.modules.sessions.service import SessionService
 from api.modules.streaming.deps import SESSION_EVENT_STREAM, TOKEN_STREAM
 from api.modules.streaming.service import StreamingService
-from api.modules.tools.ask_user.models import AskUserCompletedEvent, AskUserStartedEvent
 
 
 class EngineService:

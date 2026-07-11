@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Annotated, Literal
 from uuid import UUID
 
@@ -5,8 +6,14 @@ from pydantic import BaseModel, Field
 
 from api.modules.session_configs.schemas.participants import ParticipantRead
 from api.modules.sessions.models.events import EventType
-from api.modules.sessions.schemas.base import EventReadBase
-from api.modules.tools.ask_user.schemas import AskUserCompletedEventRead, AskUserStartedEventRead
+from api.modules.tools.ask_user.models import AskUserAnswerKind
+
+
+class EventReadBase(BaseModel):
+    id: UUID
+    session_id: UUID
+    created_at: datetime
+    updated_at: datetime
 
 
 class SessionStartedEventRead(EventReadBase):
@@ -74,6 +81,21 @@ class ReasoningCompletedEventRead(EventReadBase):
     content: str
 
 
+class AskUserStartedEventRead(EventReadBase):
+    type: Literal[EventType.ASK_USER_STARTED]
+    ask_user_id: UUID
+    question: str
+    options: list[str]
+    requires_user_input: bool
+
+
+class AskUserCompletedEventRead(EventReadBase):
+    type: Literal[EventType.ASK_USER_COMPLETED]
+    ask_user_id: UUID
+    answer_kind: AskUserAnswerKind
+    answer: str
+
+
 type EventRead = Annotated[
     SessionStartedEventRead
     | SessionCompletedEventRead
@@ -93,8 +115,3 @@ type EventRead = Annotated[
     | AskUserCompletedEventRead,
     Field(discriminator="type"),
 ]
-
-
-class TokenRead(BaseModel):
-    correlation_id: UUID
-    content: str

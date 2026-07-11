@@ -4,11 +4,12 @@ from uuid import UUID
 from fastapi import APIRouter, BackgroundTasks, Depends
 
 from api.modules.engine.background import run_session_until_blocked_background
+from api.modules.sessions.adapters.events import ask_user_completed_event_read_from_event
+from api.modules.sessions.schemas.events import AskUserCompletedEventRead
 from api.modules.streaming.deps import SESSION_EVENT_STREAM, get_streaming_service
 from api.modules.streaming.service import StreamingService
-from api.modules.tools.ask_user.adapters import ask_user_completed_event_read_from_event
 from api.modules.tools.ask_user.deps import get_ask_user_service
-from api.modules.tools.ask_user.schemas import AskUserAnswerRequest, AskUserCompletedEventRead
+from api.modules.tools.ask_user.schemas import AskUserAnswerRequest
 from api.modules.tools.ask_user.service import AskUserService
 
 router = APIRouter(prefix="/sessions/{session_id}/ask-user", tags=["ask-user"])

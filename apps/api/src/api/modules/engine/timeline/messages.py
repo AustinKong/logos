@@ -5,8 +5,12 @@ from uuid import UUID
 
 from api.modules.ai.models import AIMessage, MessageRole
 from api.modules.engine.timeline.turns import Turn
-from api.modules.sessions.models.events import MessageCompletedEvent, ReasoningCompletedEvent
-from api.modules.tools.ask_user.models import AskUserCompletedEvent, AskUserStartedEvent
+from api.modules.sessions.models.events import (
+    AskUserCompletedEvent,
+    AskUserStartedEvent,
+    MessageCompletedEvent,
+    ReasoningCompletedEvent,
+)
 
 
 class TurnMessageMode(StrEnum):

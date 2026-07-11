@@ -3,13 +3,14 @@ from __future__ import annotations
 from enum import StrEnum
 from uuid import UUID
 
+from sqlalchemy import JSON, ForeignKey, Text, Uuid
 from sqlalchemy import Enum as SQLAlchemyEnum
-from sqlalchemy import ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from api.db.base import Base
 from api.db.mixins import TimestampMixin, UUIDMixin
 from api.modules.session_configs.models.participants import Participant
+from api.modules.tools.ask_user.models import AskUserAnswerKind
 
 
 class EventType(StrEnum):
@@ -27,7 +28,6 @@ class EventType(StrEnum):
     DEBATE_ROUND_COMPLETED = "debate_round.completed"
     RESOLUTION_STARTED = "resolution.started"
     RESOLUTION_COMPLETED = "resolution.completed"
-    # TODO: Ask user x events live in tools/ask_user but need to be registered here. Wonder if there is better way like spreading...
     ASK_USER_STARTED = "ask_user.started"
     ASK_USER_COMPLETED = "ask_user.completed"
 
@@ -177,4 +177,38 @@ class ResolutionCompletedEvent(Event):
 
     __mapper_args__ = {
         "polymorphic_identity": EventType.RESOLUTION_COMPLETED,
+    }
+
+
+class AskUserStartedEvent(Event):
+    __tablename__ = "ask_user_started_events"
+
+    id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), primary_key=True)
+    ask_user_id: Mapped[UUID] = mapped_column(index=True, unique=True)
+    question: Mapped[str] = mapped_column(Text)
+    options: Mapped[list[str]] = mapped_column(JSON)
+    cache_entry_id: Mapped[UUID | None] = mapped_column(Uuid, index=True)
+
+    __mapper_args__ = {
+        "polymorphic_identity": EventType.ASK_USER_STARTED,
+    }
+
+
+class AskUserCompletedEvent(Event):
+    __tablename__ = "ask_user_completed_events"
+
+    id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), primary_key=True)
+    ask_user_id: Mapped[UUID] = mapped_column(index=True, unique=True)
+    answer_kind: Mapped[AskUserAnswerKind] = mapped_column(
+        SQLAlchemyEnum(
+            AskUserAnswerKind,
+            name="ask_user_answer_kind",
+            values_callable=lambda enum: [item.value for item in enum],
+        ),
+        index=True,
+    )
+    answer: Mapped[str] = mapped_column(Text)
+
+    __mapper_args__ = {
+        "polymorphic_identity": EventType.ASK_USER_COMPLETED,
     }

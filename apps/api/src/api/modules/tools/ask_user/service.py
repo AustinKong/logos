@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session as SqlAlchemyDb
 
 from api.modules.ai.service import AIService
-from api.modules.sessions.models.events import Event
+from api.modules.sessions.models.events import AskUserCompletedEvent, AskUserStartedEvent, Event
 from api.modules.sessions.service import SessionService
 from api.modules.tools.ask_user.cache import AskUserCacheRepository
 from api.modules.tools.ask_user.errors import (
@@ -12,12 +12,7 @@ from api.modules.tools.ask_user.errors import (
     AskUserStartedEventNotFoundError,
     InvalidAskUserAnswerError,
 )
-from api.modules.tools.ask_user.models import (
-    AskUserAnswerKind,
-    AskUserCacheEntryData,
-    AskUserCompletedEvent,
-    AskUserStartedEvent,
-)
+from api.modules.tools.ask_user.models import AskUserAnswerKind, AskUserCacheEntryData
 
 ASK_USER_CACHE_MAX_DISTANCE = 0.25
 

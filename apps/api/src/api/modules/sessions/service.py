@@ -13,6 +13,8 @@ from api.modules.session_configs.models.session_configs import SessionConfig
 from api.modules.session_configs.service import SessionConfigService
 from api.modules.sessions.errors import SessionNotFoundError
 from api.modules.sessions.models.events import (
+    AskUserCompletedEvent,
+    AskUserStartedEvent,
     DebateRoundCompletedEvent,
     DebateRoundStartedEvent,
     Event,
@@ -30,7 +32,6 @@ from api.modules.sessions.models.events import (
 from api.modules.sessions.models.sessions import Session, SessionSummary
 from api.modules.sessions.repository import SessionRepository
 from api.modules.strategies.resolution.configs import ResolutionConfig
-from api.modules.tools.ask_user.models import AskUserCompletedEvent, AskUserStartedEvent
 
 
 class SessionService:

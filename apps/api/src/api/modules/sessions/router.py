@@ -4,6 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from sse_starlette import EventSourceResponse
 
+from api.modules.engine.adapters import token_read_from_token
 from api.modules.engine.background import run_session_until_blocked_background
 from api.modules.sessions.adapters.configs import (
     debate_config_from_create,
@@ -16,7 +17,6 @@ from api.modules.sessions.adapters.sessions import (
     session_read_from_session,
     session_summary_read_from_summary,
 )
-from api.modules.sessions.adapters.tokens import token_read_from_token
 from api.modules.sessions.deps import get_session_service
 from api.modules.sessions.models.events import SessionCompletedEvent
 from api.modules.sessions.schemas.events import EventRead
