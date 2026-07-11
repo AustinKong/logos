@@ -40,7 +40,6 @@ class AskUserService:
         self,
         *,
         session_id: UUID,
-        sender_id: UUID,
         question: str,
         options: list[str],
     ) -> list[Event]:
@@ -51,7 +50,6 @@ class AskUserService:
                 AskUserStartedEvent(
                     session_id=session_id,
                     ask_user_id=ask_user_id,
-                    sender_id=sender_id,
                     question=question,
                     options=options,
                     cache_entry_id=cache_entry_id,
@@ -68,7 +66,6 @@ class AskUserService:
             AskUserStartedEvent(
                 session_id=session_id,
                 ask_user_id=ask_user_id,
-                sender_id=sender_id,
                 question=question,
                 options=options,
                 cache_entry_id=None,

@@ -1,7 +1,8 @@
-from api.modules.engine.models import EngineContext
-from api.modules.strategies.history.transcripts import format_message_transcript
+from collections.abc import Sequence
+
+from api.modules.engine.timeline.turns import Turn
 
 
 class FullHistoryStrategy:
-    def build_history(self, ctx: EngineContext) -> str | None:
-        return format_message_transcript(ctx)
+    def select_turns(self, turns: Sequence[Turn]) -> list[Turn]:
+        return list(turns)

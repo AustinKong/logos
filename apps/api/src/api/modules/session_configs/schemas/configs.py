@@ -43,8 +43,8 @@ class ShuffledTurnSelectionConfigRead(ShuffledTurnSelectionConfigBase):
 class FullHistoryConfigBase(BaseModel):
     mode: Literal[HistoryMode.FULL] = Field(
         HistoryMode.FULL,
-        title="Full transcript",
-        description="Include the full session transcript when generating the next response.",
+        title="Full history",
+        description="Include every completed turn when generating the next response.",
     )
 
 
@@ -60,12 +60,12 @@ class SlidingWindowHistoryConfigBase(BaseModel):
     mode: Literal[HistoryMode.SLIDING_WINDOW] = Field(
         HistoryMode.SLIDING_WINDOW,
         title="Sliding window",
-        description="Include only the most recent participant messages when generating the next response.",
+        description="Include only the most recent completed turns when generating the next response.",
     )
     window_size: int = Field(
         ge=1,
         title="Window size",
-        description="Number of recent completed messages to include.",
+        description="Number of recent completed turns to include.",
     )
 
 

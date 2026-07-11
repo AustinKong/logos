@@ -6,9 +6,8 @@ from uuid import UUID
 
 from sqlalchemy import JSON, ForeignKey, Text, Uuid
 from sqlalchemy import Enum as SQLAlchemyEnum
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
-from api.modules.session_configs.models.participants import Participant
 from api.modules.sessions.models.events import Event, EventType
 
 
@@ -36,12 +35,9 @@ class AskUserStartedEvent(Event):
 
     id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), primary_key=True)
     ask_user_id: Mapped[UUID] = mapped_column(index=True, unique=True)
-    sender_id: Mapped[UUID] = mapped_column(ForeignKey("participants.id"), index=True)
     question: Mapped[str] = mapped_column(Text)
     options: Mapped[list[str]] = mapped_column(JSON)
     cache_entry_id: Mapped[UUID | None] = mapped_column(Uuid, index=True)
-
-    sender: Mapped[Participant] = relationship(Participant, foreign_keys=[sender_id], lazy="joined")
 
     __mapper_args__ = {
         "polymorphic_identity": EventType.ASK_USER_STARTED,

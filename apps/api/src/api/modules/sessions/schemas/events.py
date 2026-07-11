@@ -17,6 +17,15 @@ class SessionCompletedEventRead(EventReadBase):
     type: Literal[EventType.SESSION_COMPLETED]
 
 
+class TurnStartedEventRead(EventReadBase):
+    type: Literal[EventType.TURN_STARTED]
+    sender: ParticipantRead
+
+
+class TurnCompletedEventRead(EventReadBase):
+    type: Literal[EventType.TURN_COMPLETED]
+
+
 class ProposalStartedEventRead(EventReadBase):
     type: Literal[EventType.PROPOSAL_STARTED]
 
@@ -46,7 +55,6 @@ class ResolutionCompletedEventRead(EventReadBase):
 class MessageStartedEventRead(EventReadBase):
     type: Literal[EventType.MESSAGE_STARTED]
     message_id: UUID
-    sender: ParticipantRead
 
 
 class MessageCompletedEventRead(EventReadBase):
@@ -58,7 +66,6 @@ class MessageCompletedEventRead(EventReadBase):
 class ReasoningStartedEventRead(EventReadBase):
     type: Literal[EventType.REASONING_STARTED]
     reasoning_id: UUID
-    sender: ParticipantRead
 
 
 class ReasoningCompletedEventRead(EventReadBase):
@@ -70,6 +77,8 @@ class ReasoningCompletedEventRead(EventReadBase):
 type EventRead = Annotated[
     SessionStartedEventRead
     | SessionCompletedEventRead
+    | TurnStartedEventRead
+    | TurnCompletedEventRead
     | ProposalStartedEventRead
     | ProposalCompletedEventRead
     | DebateRoundStartedEventRead

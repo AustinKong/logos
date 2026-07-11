@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from api_client.api.sessions.stream_session_tokens import TokenRead
 from api_client.models.ask_user_completed_event_read import AskUserCompletedEventRead
 from api_client.models.ask_user_started_event_read import AskUserStartedEventRead
@@ -11,13 +9,15 @@ from api_client.models.proposal_started_event_read import ProposalStartedEventRe
 from api_client.models.reasoning_completed_event_read import ReasoningCompletedEventRead
 from api_client.models.reasoning_started_event_read import ReasoningStartedEventRead
 from api_client.models.resolution_started_event_read import ResolutionStartedEventRead
+from api_client.models.turn_completed_event_read import TurnCompletedEventRead
+from api_client.models.turn_started_event_read import TurnStartedEventRead
 from textual.containers import VerticalScroll
 from textual.widgets import Static
 
-from tui.screens.session_chat.streamables.base import StreamableWidget
 from tui.screens.session_chat.streamables.message import Message
 from tui.screens.session_chat.streamables.reasoning import Reasoning
 from tui.screens.session_chat.widgets.divider import Divider
+from tui.screens.session_chat.widgets.turn import Turn
 
 
 class EventLog(VerticalScroll):
@@ -37,7 +37,7 @@ class EventLog(VerticalScroll):
         self,
     ) -> None:
         super().__init__()
-        self._streamable_widgets: dict[UUID, StreamableWidget] = {}
+        self._active_turn: Turn | None = None
 
     async def handle_event(self, event: EventRead) -> None:
         match event:
@@ -47,35 +47,64 @@ class EventLog(VerticalScroll):
                 await self.mount(Divider(f"Debate round {event.round_number}"))
             case ResolutionStartedEventRead():
                 await self.mount(Divider("Resolution"))
+            case TurnStartedEventRead():
+                turn = Turn(event=event)
+                self._active_turn = turn
+                await self.mount(turn)
+            case TurnCompletedEventRead():
+                if self._active_turn is not None:
+                    self._active_turn.touch(event.created_at)
+                self._active_turn = None
             case MessageStartedEventRead():
-                message = Message(event=event)
-                self._streamable_widgets[event.message_id] = message
-                await self.mount(message)
+                if self._active_turn is not None:
+                    await self._active_turn.add(
+                        Message(),
+                        created_at=event.created_at,
+                        stream_id=event.message_id,
+                    )
             case MessageCompletedEventRead():
-                if widget := self._streamable_widgets.get(event.message_id):
-                    widget.set_content(event.content)
+                if self._active_turn is not None:
+                    self._active_turn.set_content(
+                        event.message_id,
+                        event.content,
+                        created_at=event.created_at,
+                    )
             case ReasoningStartedEventRead():
-                reasoning = Reasoning(event=event)
-                self._streamable_widgets[event.reasoning_id] = reasoning
-                await self.mount(reasoning)
+                if self._active_turn is not None:
+                    await self._active_turn.add(
+                        Reasoning(),
+                        created_at=event.created_at,
+                        stream_id=event.reasoning_id,
+                    )
             case ReasoningCompletedEventRead():
-                if widget := self._streamable_widgets.get(event.reasoning_id):
-                    widget.set_content(event.content)
-            # TODO: Make thse a message type display
+                if self._active_turn is not None:
+                    self._active_turn.set_content(
+                        event.reasoning_id,
+                        event.content,
+                        created_at=event.created_at,
+                    )
             case AskUserStartedEventRead():
-                await self.mount(Static(f"{event.sender.name} asked: {event.question}"))
-            # TODO: This too
+                # TODO: Extract these into their own widgets.
+                if self._active_turn is not None:
+                    await self._active_turn.add(
+                        Static(f"Asked: {event.question}"),
+                        created_at=event.created_at,
+                    )
             case AskUserCompletedEventRead():
-                await self.mount(Static(f"Answer: {event.answer}"))
+                if self._active_turn is not None:
+                    await self._active_turn.add(
+                        Static(f"Answer: {event.answer}"),
+                        created_at=event.created_at,
+                    )
             case _:
                 pass
 
         self.scroll_end(animate=True)
 
     def handle_token(self, token: TokenRead) -> None:
-        widget = self._streamable_widgets.get(token.correlation_id)
-        if widget is None:
+        if self._active_turn is None:
             return
 
-        widget.append_content(token.content)
+        # TODO: Only forcefully scroll end if user is already at the bottom of the log. Otherwise, don't scroll down and let them read the log
+        self._active_turn.append_content(token.correlation_id, token.content)
         self.scroll_end(animate=True)

@@ -15,6 +15,8 @@ from api.modules.sessions.models.events import (
     ResolutionStartedEvent,
     SessionCompletedEvent,
     SessionStartedEvent,
+    TurnCompletedEvent,
+    TurnStartedEvent,
 )
 from api.modules.sessions.schemas.events import (
     DebateRoundCompletedEventRead,
@@ -30,6 +32,8 @@ from api.modules.sessions.schemas.events import (
     ResolutionStartedEventRead,
     SessionCompletedEventRead,
     SessionStartedEventRead,
+    TurnCompletedEventRead,
+    TurnStartedEventRead,
 )
 from api.modules.tools.ask_user.adapters import (
     ask_user_completed_event_read_from_event,
@@ -42,6 +46,17 @@ def event_read_from_event(event: Event) -> EventRead:
     fields = event_fields(event)
 
     match event:
+        case TurnStartedEvent():
+            return TurnStartedEventRead(
+                **fields,
+                type=EventType.TURN_STARTED,
+                sender=participant_read_from_participant(event.sender),
+            )
+        case TurnCompletedEvent():
+            return TurnCompletedEventRead(
+                **fields,
+                type=EventType.TURN_COMPLETED,
+            )
         case AskUserStartedEvent():
             return ask_user_started_event_read_from_event(event)
         case AskUserCompletedEvent():
@@ -51,7 +66,6 @@ def event_read_from_event(event: Event) -> EventRead:
                 **fields,
                 type=EventType.MESSAGE_STARTED,
                 message_id=event.message_id,
-                sender=participant_read_from_participant(event.sender),
             )
         case MessageCompletedEvent():
             return MessageCompletedEventRead(
@@ -65,7 +79,6 @@ def event_read_from_event(event: Event) -> EventRead:
                 **fields,
                 type=EventType.REASONING_STARTED,
                 reasoning_id=event.reasoning_id,
-                sender=participant_read_from_participant(event.sender),
             )
         case ReasoningCompletedEvent():
             return ReasoningCompletedEventRead(

@@ -58,7 +58,6 @@ class AskUserTool:
 
         return await self._ask_user_service.start(
             session_id=ctx.session_id,
-            sender_id=ctx.sender.id,
             question=tool_input.question,
             options=tool_input.options,
         )

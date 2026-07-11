@@ -15,6 +15,8 @@ from api.modules.session_configs.models.participants import Participant
 class EventType(StrEnum):
     SESSION_STARTED = "session.started"
     SESSION_COMPLETED = "session.completed"
+    TURN_STARTED = "turn.started"
+    TURN_COMPLETED = "turn.completed"
     MESSAGE_STARTED = "message.started"
     MESSAGE_COMPLETED = "message.completed"
     REASONING_STARTED = "reasoning.started"
@@ -66,6 +68,26 @@ class SessionCompletedEvent(Event):
     }
 
 
+class TurnStartedEvent(Event):
+    __tablename__ = "turn_started_events"
+
+    id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), primary_key=True)
+    # TODO: Rename to a better name than "sender". turn participant might not even send anything
+    sender_id: Mapped[UUID] = mapped_column(ForeignKey("participants.id"), index=True)
+
+    sender: Mapped[Participant] = relationship(Participant, foreign_keys=[sender_id], lazy="joined")
+
+    __mapper_args__ = {
+        "polymorphic_identity": EventType.TURN_STARTED,
+    }
+
+
+class TurnCompletedEvent(Event):
+    __mapper_args__ = {
+        "polymorphic_identity": EventType.TURN_COMPLETED,
+    }
+
+
 class ProposalStartedEvent(Event):
     __mapper_args__ = {
         "polymorphic_identity": EventType.PROPOSAL_STARTED,
@@ -95,9 +117,6 @@ class MessageStartedEvent(Event):
 
     id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), primary_key=True)
     message_id: Mapped[UUID] = mapped_column(index=True, unique=True)
-    sender_id: Mapped[UUID] = mapped_column(ForeignKey("participants.id"), index=True)
-
-    sender: Mapped[Participant] = relationship(Participant, foreign_keys=[sender_id], lazy="joined")
 
     __mapper_args__ = {
         "polymorphic_identity": EventType.MESSAGE_STARTED,
@@ -121,9 +140,6 @@ class ReasoningStartedEvent(Event):
 
     id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), primary_key=True)
     reasoning_id: Mapped[UUID] = mapped_column(index=True, unique=True)
-    sender_id: Mapped[UUID] = mapped_column(ForeignKey("participants.id"), index=True)
-
-    sender: Mapped[Participant] = relationship(Participant, foreign_keys=[sender_id], lazy="joined")
 
     __mapper_args__ = {
         "polymorphic_identity": EventType.REASONING_STARTED,

@@ -2,14 +2,17 @@ from api.modules.ai.errors import AIProviderError
 from api.modules.ai.models import AIMessage, AIMessageResponseAction, GenerationOptions, MessageRole
 from api.modules.ai.service import AIService
 from api.modules.engine.models import EngineContext, EngineOutputStream
+from api.modules.engine.timeline.messages import InternalEventVisibility, TurnMessageMode, ai_messages_from_turns
+from api.modules.engine.timeline.turns import turns_from_events
 from api.modules.session_configs.models.participants import JudgeParticipant
 from api.modules.sessions.models.events import ResolutionCompletedEvent
-from api.modules.strategies.history.full import FullHistoryStrategy
-from api.modules.strategies.resolution.configs import JudgeResolutionConfig
 
 JUDGE_SYSTEM_PROMPT = (
     "You are a neutral judge resolving a structured debate. "
     "Decide the strongest answer to the session prompt using only the transcript."
+)
+JUDGE_USER_PROMPT = (
+    "Session prompt:\n{session_prompt}\n\nWrite a verdict. Include the decision first, then the main reason."
 )
 
 
@@ -18,27 +21,27 @@ class JudgeResolutionStrategy:
         self,
         *,
         ai_service: AIService,
-        config: JudgeResolutionConfig,
+        # FIXME: IDK wtf im talking abt here ngl
         # TODO: Should be resolved once we make services can take dtos as judge resolution config will hld judge
         judge: JudgeParticipant,
     ) -> None:
         self._ai_service = ai_service
-        self._config = config
         self._judge = judge
-        self._history_strategy = FullHistoryStrategy()
 
     async def resolve(self, ctx: EngineContext) -> EngineOutputStream:
-        transcript = self._history_strategy.build_history(ctx)
+        completed_turns, _ = turns_from_events(ctx.events)
 
         response = await self._ai_service.generate_response(
             messages=[
                 AIMessage(role=MessageRole.SYSTEM, content=f"{JUDGE_SYSTEM_PROMPT}\n\n{self._judge.system_prompt}"),
                 AIMessage(
                     role=MessageRole.USER,
-                    content=_build_judge_user_prompt(
-                        session_prompt=ctx.prompt,
-                        transcript=transcript or "(none)",
-                    ),
+                    content=JUDGE_USER_PROMPT.format(session_prompt=ctx.prompt),
+                ),
+                *ai_messages_from_turns(
+                    completed_turns,
+                    mode=TurnMessageMode.HISTORY,
+                    include_internal_events_from=InternalEventVisibility.NONE,
                 ),
             ],
             options=GenerationOptions(
@@ -58,11 +61,3 @@ class JudgeResolutionStrategy:
             session_id=ctx.session_id,
             decision=decision,
         )
-
-
-def _build_judge_user_prompt(*, session_prompt: str, transcript: str) -> str:
-    return (
-        f"Session prompt:\n{session_prompt}\n\n"
-        f"Transcript:\n{transcript}\n\n"
-        "Write a verdict. Include the decision first, then the main reason."
-    )

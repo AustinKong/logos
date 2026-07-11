@@ -22,6 +22,8 @@ from ...models.resolution_completed_event_read import ResolutionCompletedEventRe
 from ...models.resolution_started_event_read import ResolutionStartedEventRead
 from ...models.session_completed_event_read import SessionCompletedEventRead
 from ...models.session_started_event_read import SessionStartedEventRead
+from ...models.turn_completed_event_read import TurnCompletedEventRead
+from ...models.turn_started_event_read import TurnStartedEventRead
 
 
 def _get_kwargs(session_id: UUID, *, after_event_id: UUID | None = None) -> dict[str, Any]:
@@ -50,6 +52,10 @@ def _event_from_data(data: str) -> EventRead:
             return SessionStartedEventRead.from_dict(event_data)
         case "session.completed":
             return SessionCompletedEventRead.from_dict(event_data)
+        case "turn.started":
+            return TurnStartedEventRead.from_dict(event_data)
+        case "turn.completed":
+            return TurnCompletedEventRead.from_dict(event_data)
         case "proposal.started":
             return ProposalStartedEventRead.from_dict(event_data)
         case "proposal.completed":

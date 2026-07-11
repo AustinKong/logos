@@ -17,15 +17,15 @@ from api.modules.sessions.models.events import (
     DebateRoundStartedEvent,
     Event,
     MessageCompletedEvent,
-    MessageStartedEvent,
     ProposalCompletedEvent,
     ProposalStartedEvent,
     ReasoningCompletedEvent,
-    ReasoningStartedEvent,
     ResolutionCompletedEvent,
     ResolutionStartedEvent,
     SessionCompletedEvent,
     SessionStartedEvent,
+    TurnCompletedEvent,
+    TurnStartedEvent,
 )
 from api.modules.sessions.models.sessions import Session, SessionSummary
 from api.modules.sessions.repository import SessionRepository
@@ -121,11 +121,22 @@ def _format_session_export(session: Session, events: list[Event]) -> str:
         "## Transcript",
         "",
     ]
-    message_senders: dict[UUID, str] = {}
-    reasoning_senders: dict[UUID, str] = {}
+    turn_sender: str | None = None
 
     for event in events:
         match event:
+            case TurnStartedEvent():
+                turn_sender = event.sender.name
+            case TurnCompletedEvent():
+                turn_sender = None
+            case AskUserStartedEvent():
+                lines.extend([f"### {turn_sender or 'Unknown'} asks user", "", event.question, ""])
+            case AskUserCompletedEvent():
+                lines.extend(["Answer:", "", event.answer, ""])
+            case MessageCompletedEvent():
+                lines.extend([f"### {turn_sender or 'Unknown'}", "", event.content, ""])
+            case ReasoningCompletedEvent():
+                lines.extend([f"### {turn_sender or 'Unknown'} reasoning", "", event.content, ""])
             case SessionStartedEvent():
                 lines.extend(["Session started.", ""])
             case SessionCompletedEvent():
@@ -140,23 +151,9 @@ def _format_session_export(session: Session, events: list[Event]) -> str:
                 pass
             case ResolutionStartedEvent():
                 lines.extend(["## Resolution", ""])
-            case MessageStartedEvent():
-                message_senders[event.message_id] = event.sender.name
-            case MessageCompletedEvent():
-                sender = message_senders.get(event.message_id, "Unknown")
-                lines.extend([f"### {sender}", "", event.content, ""])
-            case ReasoningStartedEvent():
-                reasoning_senders[event.reasoning_id] = event.sender.name
-            case ReasoningCompletedEvent():
-                sender = reasoning_senders.get(event.reasoning_id, "Unknown")
-                lines.extend([f"### {sender} reasoning", "", event.content, ""])
             case ResolutionCompletedEvent():
                 lines.extend([event.decision, ""])
-            case AskUserStartedEvent():
-                lines.extend(["### Ask user", "", event.question, ""])
-            case AskUserCompletedEvent():
-                lines.extend(["Answer:", "", event.answer, ""])
             case _:
-                lines.extend([f"Unsupported event: {event.type}", ""])
+                pass
 
     return "\n".join(lines).strip() + "\n"

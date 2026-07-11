@@ -1,17 +1,25 @@
-from api.modules.ai.models import AIMessage, GenerationOptions, MessageRole
+from api.modules.ai.models import AIMessage, MessageRole
 from api.modules.engine.generation import GenerationRunner
 from api.modules.engine.models import EngineContext, EngineOutputStream
-from api.modules.session_configs.models.participants import DebaterParticipant
+from api.modules.engine.timeline.debate_rounds import debate_rounds_from_events
+from api.modules.engine.timeline.messages import InternalEventVisibility, TurnMessageMode, ai_messages_from_turns
+from api.modules.engine.timeline.turns import next_participant, turns_from_events
 from api.modules.sessions.models.events import (
     DebateRoundCompletedEvent,
     DebateRoundStartedEvent,
-    Event,
-    MessageStartedEvent,
     ProposalCompletedEvent,
+    TurnStartedEvent,
 )
 from api.modules.strategies.history.base import HistoryStrategy
 from api.modules.strategies.turn_selection.base import TurnSelectionStrategy
-from api.shared.iterables import find_last_instance
+
+DEBATE_PROMPT = (
+    "Session prompt:\n{prompt}\n\n"
+    "Debate round: {round_number}\n\n"
+    "Continue the conversation as {participant_name}. Do not restate the whole context or repeat ideas you agree "
+    "with. Only write what you disagree with, what you think was missed, or what changed your mind. Respond "
+    "directly to the previous points, naming other participants when useful."
+)
 
 
 class DebateStage:
@@ -32,97 +40,64 @@ class DebateStage:
         if not any(isinstance(event, ProposalCompletedEvent) for event in ctx.events):
             return
 
-        active_round = _get_active_round(ctx.events)
-        if active_round is None:
-            completed_round_count = sum(isinstance(event, DebateRoundCompletedEvent) for event in ctx.events)
-            if completed_round_count >= self._debate_round_count:
+        completed_rounds, open_round = debate_rounds_from_events(ctx.events)
+        if open_round is None:
+            if len(completed_rounds) >= self._debate_round_count:
                 return
 
             yield DebateRoundStartedEvent(
                 session_id=ctx.session_id,
-                round_number=completed_round_count + 1,
+                round_number=len(completed_rounds) + 1,
             )
             return
 
-        active_round_index, active_round_started = active_round
+        completed_turns, _ = turns_from_events(ctx.events)
+        if open_round.open_turn is None:
+            participant = next_participant(
+                participants=self._turn_selection_strategy.order_participants(
+                    ctx,
+                    round_number=open_round.started.round_number,
+                ),
+                completed_turns=open_round.completed_turns,
+            )
 
-        participant = _choose_next_participant(
-            participants=self._turn_selection_strategy.order_participants(
-                ctx,
-                round_number=active_round_started.round_number,
-            ),
-            events=ctx.events,
-            active_round_index=active_round_index,
-        )
+            if not participant:
+                yield DebateRoundCompletedEvent(session_id=ctx.session_id)
+                return
 
-        if not participant:
-            yield DebateRoundCompletedEvent(session_id=ctx.session_id)
+            yield TurnStartedEvent(session_id=ctx.session_id, sender_id=participant.id)
             return
 
-        async for output in self._generation_runner.run_response(
+        participant = next(
+            (participant for participant in ctx.debaters if participant.id == open_round.open_turn.started.sender.id),
+            None,
+        )
+        if participant is None:
+            raise ValueError("Open agent turn has no debater participant")
+
+        async for output in self._generation_runner.run_turn(
             session_id=ctx.session_id,
             sender=participant,
-            messages=_build_debate_messages(
-                ctx=ctx,
-                participant=participant,
-                round_number=active_round_started.round_number,
-                history=self._history_strategy.build_history(ctx),
-            ),
-            options=GenerationOptions(
-                model=participant.model,
-                reasoning_effort=participant.reasoning_effort,
-                verbosity=participant.verbosity,
-                temperature=participant.temperature,
-            ),
+            messages=[
+                AIMessage(role=MessageRole.SYSTEM, content=participant.system_prompt),
+                AIMessage(
+                    role=MessageRole.USER,
+                    content=DEBATE_PROMPT.format(
+                        prompt=ctx.prompt,
+                        round_number=open_round.started.round_number,
+                        participant_name=participant.name,
+                    ),
+                ),
+                *ai_messages_from_turns(
+                    self._history_strategy.select_turns(completed_turns),
+                    mode=TurnMessageMode.HISTORY,
+                    include_internal_events_from=InternalEventVisibility.NONE,
+                ),
+                *ai_messages_from_turns(
+                    [open_round.open_turn],
+                    mode=TurnMessageMode.CONTINUATION,
+                    include_internal_events_from={participant.id},
+                ),
+            ],
         ):
             yield output
-
-
-def _get_active_round(events: list[Event]) -> tuple[int, DebateRoundStartedEvent] | None:
-    """Returns the index and event of the most recent DebateRoundStartedEvent that has not yet been completed."""
-    round_marker = find_last_instance(events, (DebateRoundStartedEvent, DebateRoundCompletedEvent))
-    if round_marker is None:
-        return None
-
-    index, event = round_marker
-    if isinstance(event, DebateRoundStartedEvent):
-        return index, event
-
-    return None
-
-
-def _choose_next_participant(
-    *,
-    participants: list[DebaterParticipant],
-    events: list[Event],
-    active_round_index: int,
-) -> DebaterParticipant | None:
-    completed_participant_ids = {
-        event.sender_id for event in events[active_round_index + 1 :] if isinstance(event, MessageStartedEvent)
-    }
-
-    return next((participant for participant in participants if participant.id not in completed_participant_ids), None)
-
-
-def _build_debate_messages(
-    *,
-    ctx: EngineContext,
-    participant: DebaterParticipant,
-    round_number: int,
-    history: str | None,
-) -> list[AIMessage]:
-    return [
-        AIMessage(role=MessageRole.SYSTEM, content=participant.system_prompt),
-        AIMessage(
-            role=MessageRole.USER,
-            content=(
-                f"Session prompt:\n{ctx.prompt}\n\n"
-                f"Debate round: {round_number}\n\n"
-                f"Transcript so far:\n{history or '(none)'}\n\n"
-                f"Continue the conversation as {participant.name}. Assume everyone already has the session prompt "
-                "and transcript. Do not restate the whole context or repeat ideas you agree with. Only write what "
-                "you disagree with, what you think was missed, or what changed your mind. Respond directly to the "
-                "previous points, naming other participants when useful."
-            ),
-        ),
-    ]

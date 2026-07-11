@@ -14,7 +14,7 @@ from api.modules.sessions.models.events import (
 from api.modules.sessions.service import SessionService
 from api.modules.streaming.deps import SESSION_EVENT_STREAM, TOKEN_STREAM
 from api.modules.streaming.service import StreamingService
-from api.modules.tools.ask_user.state import has_open_ask_user_calls
+from api.modules.tools.ask_user.models import AskUserCompletedEvent, AskUserStartedEvent
 
 
 class EngineService:
@@ -74,7 +74,7 @@ class EngineService:
 
     async def run_until_blocked(self, session_id: UUID) -> None:
         while True:
-            if has_open_ask_user_calls(self._session_service.list_events(session_id)):
+            if self._has_blocking_events_open(self._session_service.list_events(session_id)):
                 return
 
             has_output = False
@@ -85,3 +85,12 @@ class EngineService:
 
             if not has_output:
                 return
+
+    def _has_blocking_events_open(self, events: list[Event]) -> bool:
+        started_ask_user_ids = {event.ask_user_id for event in events if isinstance(event, AskUserStartedEvent)}
+        completed_ask_user_ids = {event.ask_user_id for event in events if isinstance(event, AskUserCompletedEvent)}
+        if bool(started_ask_user_ids - completed_ask_user_ids):
+            return True
+
+        # Chain future blocking event checks here as needed
+        return False

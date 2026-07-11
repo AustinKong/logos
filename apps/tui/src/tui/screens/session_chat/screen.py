@@ -128,9 +128,8 @@ class SessionChatScreen(BaseScreen):
                             group=f"session-token-stream:{event.reasoning_id}",
                             exclusive=True,
                         )
-                    case AskUserStartedEventRead():
-                        if event.requires_user_input:
-                            self._enqueue_ask_user(event)
+                    case AskUserStartedEventRead() if event.requires_user_input:
+                        self._enqueue_ask_user(event)
                     case AskUserCompletedEventRead():
                         self._pending_ask_user_events = [
                             pending

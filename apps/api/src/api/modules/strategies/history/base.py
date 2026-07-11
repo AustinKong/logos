@@ -1,7 +1,8 @@
+from collections.abc import Sequence
 from typing import Protocol
 
-from api.modules.engine.models import EngineContext
+from api.modules.engine.timeline.turns import Turn
 
 
 class HistoryStrategy(Protocol):
-    def build_history(self, ctx: EngineContext) -> str | None: ...
+    def select_turns(self, turns: Sequence[Turn]) -> list[Turn]: ...

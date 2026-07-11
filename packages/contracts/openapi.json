@@ -598,9 +598,6 @@
             "format": "uuid",
             "title": "Ask User Id"
           },
-          "sender": {
-            "$ref": "#/components/schemas/ParticipantRead"
-          },
           "question": {
             "type": "string",
             "title": "Question"
@@ -625,7 +622,6 @@
           "updated_at",
           "type",
           "ask_user_id",
-          "sender",
           "question",
           "options",
           "requires_user_input"
@@ -874,6 +870,12 @@
             "$ref": "#/components/schemas/SessionCompletedEventRead"
           },
           {
+            "$ref": "#/components/schemas/TurnStartedEventRead"
+          },
+          {
+            "$ref": "#/components/schemas/TurnCompletedEventRead"
+          },
+          {
             "$ref": "#/components/schemas/ProposalStartedEventRead"
           },
           {
@@ -926,7 +928,9 @@
             "resolution.completed": "#/components/schemas/ResolutionCompletedEventRead",
             "resolution.started": "#/components/schemas/ResolutionStartedEventRead",
             "session.completed": "#/components/schemas/SessionCompletedEventRead",
-            "session.started": "#/components/schemas/SessionStartedEventRead"
+            "session.started": "#/components/schemas/SessionStartedEventRead",
+            "turn.completed": "#/components/schemas/TurnCompletedEventRead",
+            "turn.started": "#/components/schemas/TurnStartedEventRead"
           }
         }
       },
@@ -935,8 +939,8 @@
           "mode": {
             "type": "string",
             "const": "full",
-            "title": "Full transcript",
-            "description": "Include the full session transcript when generating the next response.",
+            "title": "Full history",
+            "description": "Include every completed turn when generating the next response.",
             "default": "full"
           }
         },
@@ -948,8 +952,8 @@
           "mode": {
             "type": "string",
             "const": "full",
-            "title": "Full transcript",
-            "description": "Include the full session transcript when generating the next response.",
+            "title": "Full history",
+            "description": "Include every completed turn when generating the next response.",
             "default": "full"
           }
         },
@@ -1296,9 +1300,6 @@
             "type": "string",
             "format": "uuid",
             "title": "Message Id"
-          },
-          "sender": {
-            "$ref": "#/components/schemas/ParticipantRead"
           }
         },
         "type": "object",
@@ -1308,8 +1309,7 @@
           "created_at",
           "updated_at",
           "type",
-          "message_id",
-          "sender"
+          "message_id"
         ],
         "title": "MessageStartedEventRead"
       },
@@ -1509,9 +1509,6 @@
             "type": "string",
             "format": "uuid",
             "title": "Reasoning Id"
-          },
-          "sender": {
-            "$ref": "#/components/schemas/ParticipantRead"
           }
         },
         "type": "object",
@@ -1521,8 +1518,7 @@
           "created_at",
           "updated_at",
           "type",
-          "reasoning_id",
-          "sender"
+          "reasoning_id"
         ],
         "title": "ReasoningStartedEventRead"
       },
@@ -1923,14 +1919,14 @@
             "type": "string",
             "const": "sliding_window",
             "title": "Sliding window",
-            "description": "Include only the most recent participant messages when generating the next response.",
+            "description": "Include only the most recent completed turns when generating the next response.",
             "default": "sliding_window"
           },
           "window_size": {
             "type": "integer",
             "minimum": 1.0,
             "title": "Window size",
-            "description": "Number of recent completed messages to include."
+            "description": "Number of recent completed turns to include."
           }
         },
         "type": "object",
@@ -1943,19 +1939,51 @@
             "type": "string",
             "const": "sliding_window",
             "title": "Sliding window",
-            "description": "Include only the most recent participant messages when generating the next response.",
+            "description": "Include only the most recent completed turns when generating the next response.",
             "default": "sliding_window"
           },
           "window_size": {
             "type": "integer",
             "minimum": 1.0,
             "title": "Window size",
-            "description": "Number of recent completed messages to include."
+            "description": "Number of recent completed turns to include."
           }
         },
         "type": "object",
         "required": ["window_size"],
         "title": "SlidingWindowHistoryConfigRead"
+      },
+      "TurnCompletedEventRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "type": {
+            "type": "string",
+            "const": "turn.completed",
+            "title": "Type"
+          }
+        },
+        "type": "object",
+        "required": ["id", "session_id", "created_at", "updated_at", "type"],
+        "title": "TurnCompletedEventRead"
       },
       "TurnSelectionConfigCreate": {
         "oneOf": [
@@ -1990,6 +2018,48 @@
             "shuffled": "#/components/schemas/ShuffledTurnSelectionConfigRead"
           }
         }
+      },
+      "TurnStartedEventRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "type": {
+            "type": "string",
+            "const": "turn.started",
+            "title": "Type"
+          },
+          "sender": {
+            "$ref": "#/components/schemas/ParticipantRead"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "session_id",
+          "created_at",
+          "updated_at",
+          "type",
+          "sender"
+        ],
+        "title": "TurnStartedEventRead"
       },
       "ValidationError": {
         "properties": {

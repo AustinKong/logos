@@ -1,4 +1,3 @@
-from api.modules.session_configs.adapters.participants import participant_read_from_participant
 from api.modules.sessions.adapters.base import event_fields
 from api.modules.sessions.models.events import EventType
 from api.modules.tools.ask_user.models import AskUserCompletedEvent, AskUserStartedEvent
@@ -10,7 +9,6 @@ def ask_user_started_event_read_from_event(event: AskUserStartedEvent) -> AskUse
         **event_fields(event),
         type=EventType.ASK_USER_STARTED,
         ask_user_id=event.ask_user_id,
-        sender=participant_read_from_participant(event.sender),
         question=event.question,
         options=event.options,
         requires_user_input=event.cache_entry_id is None,

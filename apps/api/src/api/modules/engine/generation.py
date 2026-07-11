@@ -18,6 +18,7 @@ from api.modules.sessions.models.events import (
     MessageStartedEvent,
     ReasoningCompletedEvent,
     ReasoningStartedEvent,
+    TurnCompletedEvent,
 )
 from api.modules.tools.base import ToolExecutionContext
 from api.modules.tools.resolver import ToolResolver
@@ -74,7 +75,6 @@ class GenerationRunner:
                         yield ReasoningStartedEvent(
                             session_id=session_id,
                             reasoning_id=reasoning_id,
-                            sender_id=sender.id,
                         )
 
                     reasoning_parts.append(response_event.content)
@@ -89,7 +89,6 @@ class GenerationRunner:
                         yield MessageStartedEvent(
                             session_id=session_id,
                             message_id=message_id,
-                            sender_id=sender.id,
                         )
 
                     message_parts.append(response_event.content)
@@ -128,3 +127,30 @@ class GenerationRunner:
             message_id=message_id,
             content="".join(message_parts),
         )
+
+    async def run_turn(
+        self,
+        *,
+        session_id: UUID,
+        sender: Participant,
+        messages: Sequence[AIMessage],
+    ) -> EngineOutputStream:
+        completed = False
+        async for output in self.run_response(
+            session_id=session_id,
+            sender=sender,
+            messages=messages,
+            options=GenerationOptions(
+                model=sender.model,
+                reasoning_effort=sender.reasoning_effort,
+                verbosity=sender.verbosity,
+                temperature=sender.temperature,
+            ),
+        ):
+            if isinstance(output, MessageCompletedEvent):
+                completed = True
+            yield output
+
+        # TODO: Message completion may not be the only way to complete a turn.
+        if completed:
+            yield TurnCompletedEvent(session_id=session_id)
