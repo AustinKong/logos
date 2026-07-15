@@ -315,22 +315,23 @@ function extractSchemaMetadata(openapi) {
 }
 
 function schemaFieldMetadata(property, schemas) {
+  const hasDescription = typeof property.description === "string";
+  const hasExplicitReferenceTitle =
+    typeof property.$ref === "string" && typeof property.title === "string";
+
   return Object.fromEntries(
     [
       [
         "title",
         // Pydantic can omit a property-level title when a $ref field's title
         // matches the referenced schema title, so fall back to the component.
-        typeof property.description === "string"
+        hasDescription
           ? (property.title ?? referencedSchemaTitle(property, schemas))
-          : undefined,
+          : hasExplicitReferenceTitle
+            ? property.title
+            : undefined,
       ],
-      [
-        "description",
-        typeof property.description === "string"
-          ? property.description
-          : undefined,
-      ],
+      ["description", hasDescription ? property.description : undefined],
     ].filter(([, value]) => typeof value === "string"),
   );
 }

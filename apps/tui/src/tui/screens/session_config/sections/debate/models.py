@@ -1,7 +1,7 @@
 from attrs import define
-from tui.screens.session_config.sections.history.models import HistoryFormState
+from tui.screens.session_config.sections.debate.history.models import HistoryFormState
+from tui.screens.session_config.sections.debate.turn_selection.models import TurnSelectionFormState
 from tui.screens.session_config.sections.participants.models import ParticipantsFormState
-from tui.screens.session_config.sections.turn_selection.models import TurnSelectionFormState
 
 
 # TODO: Move turn selection, history etc. into debate tab?
@@ -11,3 +11,4 @@ class DebateFormState:
     participants: ParticipantsFormState
     turn_selection: TurnSelectionFormState
     history: HistoryFormState
+    tools: list[str]

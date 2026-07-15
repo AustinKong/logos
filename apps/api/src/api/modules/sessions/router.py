@@ -10,6 +10,7 @@ from api.modules.sessions.adapters.configs import (
     debate_config_from_create,
     participant_data_from_debate_create,
     participant_data_from_resolution_create,
+    proposal_config_from_create,
     resolution_config_from_create,
 )
 from api.modules.sessions.adapters.events import event_read_from_event
@@ -44,6 +45,7 @@ def create_session(
     session = service.create_session(
         prompt=config.prompt,
         seed=config.seed,
+        proposal_config=proposal_config_from_create(config.proposal),
         debate_config=debate_config_from_create(config.debate),
         participants=[
             *participant_data_from_debate_create(config.debate),

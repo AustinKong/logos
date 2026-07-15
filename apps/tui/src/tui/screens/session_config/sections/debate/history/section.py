@@ -3,15 +3,14 @@ from typing import assert_never
 from api_client.models import HistoryMode
 from api_client.schema_metadata import SCHEMA_FIELDS
 from textual.app import ComposeResult
-from textual.containers import Container, VerticalScroll
+from textual.containers import Container, VerticalGroup
 from textual.widgets import ContentSwitcher, Select
-
-from tui.screens.session_config.sections.history.models import (
+from tui.screens.session_config.sections.debate.history.models import (
     FullHistoryFormState,
     HistoryFormState,
     SlidingWindowHistoryFormState,
 )
-from tui.screens.session_config.sections.history.modes.sliding_window import SlidingWindowHistoryFields
+from tui.screens.session_config.sections.debate.history.modes.sliding_window import SlidingWindowHistoryFields
 from tui.screens.session_config.sections.state import state_or_default
 from tui.shared.textual import on
 from tui.widgets.forms.select_field import SelectField, SelectOption
@@ -34,7 +33,14 @@ HISTORY_MODE_CONTENT_IDS = {
 }
 
 
-class HistorySection(VerticalScroll):
+class HistorySection(Container):
+    DEFAULT_CSS = """
+    HistorySection {
+        height: auto;
+        width: 100%;
+    }
+    """
+
     can_focus = False
 
     def __init__(self, *, initial_state: HistoryFormState, read_only: bool = False) -> None:
@@ -44,7 +50,7 @@ class HistorySection(VerticalScroll):
 
     def compose(self) -> ComposeResult:
         yield SelectField(
-            "History mode",
+            SCHEMA_FIELDS["DebateConfigCreate"]["history"]["title"],
             options=HISTORY_MODE_OPTIONS,
             value=self._initial_state.mode,
             allow_blank=False,
@@ -52,7 +58,7 @@ class HistorySection(VerticalScroll):
             select_id="history-mode",
         )
         yield ContentSwitcher(
-            Container(id=HISTORY_MODE_CONTENT_IDS[HistoryMode.FULL]),
+            VerticalGroup(id=HISTORY_MODE_CONTENT_IDS[HistoryMode.FULL]),
             SlidingWindowHistoryFields(
                 initial_state=state_or_default(
                     self._initial_state,

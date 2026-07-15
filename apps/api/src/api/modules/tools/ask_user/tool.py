@@ -6,8 +6,11 @@ from api.modules.tools.ask_user.service import AskUserService
 from api.modules.tools.base import ToolExecutionContext
 from api.modules.tools.errors import InvalidToolArgumentsError
 
+ASK_USER_TOOL_NAME = "ask_user"
+ASK_USER_TOOL_TITLE = "Ask user"
+
 ASK_USER_TOOL_DEFINITION = AIToolDefinition(
-    name="ask_user",
+    name=ASK_USER_TOOL_NAME,
     description=(
         "Ask the user a question when their input is needed to continue. "
         "Provide concise multiple-choice options when there are clear choices."
@@ -45,6 +48,14 @@ class AskUserTool:
         ask_user_service: AskUserService,
     ) -> None:
         self._ask_user_service = ask_user_service
+
+    @property
+    def name(self) -> str:
+        return ASK_USER_TOOL_NAME
+
+    @property
+    def title(self) -> str:
+        return ASK_USER_TOOL_TITLE
 
     @property
     def definition(self) -> AIToolDefinition:

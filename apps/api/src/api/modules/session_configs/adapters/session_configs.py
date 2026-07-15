@@ -2,6 +2,7 @@ from api.modules.session_configs.models.session_configs import SessionConfig
 from api.modules.session_configs.schemas.session_configs import SessionConfigRead
 from api.modules.sessions.adapters.configs import (
     debate_config_read_from_config,
+    proposal_config_read_from_config,
     resolution_config_read_from_config,
 )
 from api.modules.strategies.resolution.configs import JudgeResolutionConfig
@@ -15,6 +16,7 @@ def session_config_read_from_config(config: SessionConfig) -> SessionConfigRead:
         seed=config.seed,
         created_at=config.created_at,
         updated_at=config.updated_at,
+        proposal=proposal_config_read_from_config(config.proposal_config),
         debate=debate_config_read_from_config(config.debate_config, config.debater_participants),
         resolution=resolution_config_read_from_config(
             resolution_config,

@@ -686,14 +686,30 @@
             "title": "Debaters"
           },
           "turn_selection": {
-            "$ref": "#/components/schemas/TurnSelectionConfigCreate"
+            "$ref": "#/components/schemas/TurnSelectionConfigCreate",
+            "title": "Turn selection"
           },
           "history": {
-            "$ref": "#/components/schemas/HistoryConfigCreate"
+            "$ref": "#/components/schemas/HistoryConfigCreate",
+            "title": "History"
+          },
+          "tools": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Debate tools",
+            "description": "Tools available while participants respond during debate rounds."
           }
         },
         "type": "object",
-        "required": ["round_count", "debaters", "turn_selection", "history"],
+        "required": [
+          "round_count",
+          "debaters",
+          "turn_selection",
+          "history",
+          "tools"
+        ],
         "title": "DebateConfigCreate"
       },
       "DebateConfigRead": {
@@ -714,10 +730,23 @@
           },
           "history": {
             "$ref": "#/components/schemas/HistoryConfigRead"
+          },
+          "tools": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tools"
           }
         },
         "type": "object",
-        "required": ["round_count", "debaters", "turn_selection", "history"],
+        "required": [
+          "round_count",
+          "debaters",
+          "turn_selection",
+          "history",
+          "tools"
+        ],
         "title": "DebateConfigRead"
       },
       "DebateRoundCompletedEventRead": {
@@ -1433,6 +1462,35 @@
         "required": ["id", "session_id", "created_at", "updated_at", "type"],
         "title": "ProposalCompletedEventRead"
       },
+      "ProposalConfigCreate": {
+        "properties": {
+          "tools": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Proposal tools",
+            "description": "Tools available while participants write their initial proposals."
+          }
+        },
+        "type": "object",
+        "required": ["tools"],
+        "title": "ProposalConfigCreate"
+      },
+      "ProposalConfigRead": {
+        "properties": {
+          "tools": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tools"
+          }
+        },
+        "type": "object",
+        "required": ["tools"],
+        "title": "ProposalConfigRead"
+      },
       "ProposalStartedEventRead": {
         "properties": {
           "id": {
@@ -1750,6 +1808,9 @@
             "title": "Seed",
             "description": "Optional deterministic seed for random app behavior. Leave blank to generate one."
           },
+          "proposal": {
+            "$ref": "#/components/schemas/ProposalConfigCreate"
+          },
           "debate": {
             "$ref": "#/components/schemas/DebateConfigCreate"
           },
@@ -1758,7 +1819,7 @@
           }
         },
         "type": "object",
-        "required": ["prompt", "seed", "debate", "resolution"],
+        "required": ["prompt", "seed", "proposal", "debate", "resolution"],
         "title": "SessionConfigCreate"
       },
       "SessionConfigRead": {
@@ -1786,6 +1847,9 @@
             "format": "date-time",
             "title": "Updated At"
           },
+          "proposal": {
+            "$ref": "#/components/schemas/ProposalConfigRead"
+          },
           "debate": {
             "$ref": "#/components/schemas/DebateConfigRead"
           },
@@ -1800,6 +1864,7 @@
           "seed",
           "created_at",
           "updated_at",
+          "proposal",
           "debate",
           "resolution"
         ],

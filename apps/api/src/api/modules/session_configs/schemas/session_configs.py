@@ -14,6 +14,17 @@ from api.modules.session_configs.schemas.configs import (
 from api.modules.session_configs.schemas.participants import DebaterParticipantCreate, DebaterParticipantRead
 
 
+class ProposalConfigCreate(BaseModel):
+    tools: list[str] = Field(
+        title="Proposal tools",
+        description="Tools available while participants write their initial proposals.",
+    )
+
+
+class ProposalConfigRead(BaseModel):
+    tools: list[str]
+
+
 class DebateConfigCreate(BaseModel):
     round_count: int = Field(
         ge=1,
@@ -21,8 +32,12 @@ class DebateConfigCreate(BaseModel):
         description="Number of debate rounds to run after independent proposals.",
     )
     debaters: list[DebaterParticipantCreate] = Field(min_length=1)
-    turn_selection: TurnSelectionConfigCreate
-    history: HistoryConfigCreate
+    turn_selection: TurnSelectionConfigCreate = Field(title="Turn selection")
+    history: HistoryConfigCreate = Field(title="History")
+    tools: list[str] = Field(
+        title="Debate tools",
+        description="Tools available while participants respond during debate rounds.",
+    )
 
 
 class DebateConfigRead(BaseModel):
@@ -30,6 +45,7 @@ class DebateConfigRead(BaseModel):
     debaters: list[DebaterParticipantRead]
     turn_selection: TurnSelectionConfigRead
     history: HistoryConfigRead
+    tools: list[str]
 
 
 class SessionConfigCreate(BaseModel):
@@ -42,6 +58,7 @@ class SessionConfigCreate(BaseModel):
         title="Seed",
         description="Optional deterministic seed for random app behavior. Leave blank to generate one.",
     )
+    proposal: ProposalConfigCreate
     debate: DebateConfigCreate
     resolution: ResolutionConfigCreate
 
@@ -52,5 +69,6 @@ class SessionConfigRead(BaseModel):
     seed: int
     created_at: datetime
     updated_at: datetime
+    proposal: ProposalConfigRead
     debate: DebateConfigRead
     resolution: ResolutionConfigRead

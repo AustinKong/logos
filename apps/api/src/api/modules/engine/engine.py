@@ -7,6 +7,7 @@ from api.modules.engine.stages.resolution import ResolutionStage
 from api.modules.sessions.models.events import SessionCompletedEvent, SessionStartedEvent
 from api.modules.sessions.models.sessions import Session
 from api.modules.strategies.resolver import StrategyResolver
+from api.modules.tools.resolver import ToolResolver
 
 
 class Engine:
@@ -15,24 +16,30 @@ class Engine:
         *,
         generation_runner: GenerationRunner,
         strategy_resolver: StrategyResolver,
+        tool_resolver: ToolResolver,
     ) -> None:
         self._generation_runner = generation_runner
         self._strategy_resolver = strategy_resolver
+        self._tool_resolver = tool_resolver
 
     def _build_stages(self, session: Session) -> list[EngineStage]:
         debate_config = session.config.debate_config
+        proposal_config = session.config.proposal_config
         turn_selection_strategy = self._strategy_resolver.turn_selection(session)
 
         return [
             ProposalStage(
+                config=proposal_config,
                 turn_selection_strategy=turn_selection_strategy,
                 generation_runner=self._generation_runner,
+                tools=self._tool_resolver.get_tools(proposal_config.tools),
             ),
             DebateStage(
-                debate_round_count=debate_config.round_count,
+                config=debate_config,
                 turn_selection_strategy=turn_selection_strategy,
                 history_strategy=self._strategy_resolver.history(session),
                 generation_runner=self._generation_runner,
+                tools=self._tool_resolver.get_tools(debate_config.tools),
             ),
             ResolutionStage(
                 resolution_strategy=self._strategy_resolver.resolution(session),

@@ -81,6 +81,8 @@ Widgets should stay presentational when practical. They should receive plain dat
 
 Prefer widget-scoped `DEFAULT_CSS` for Textual styling. If a screen's CSS becomes very large, move it into a colocated `styles.tcss` file for that screen.
 
+For an empty branch in a `ContentSwitcher`, use `VerticalGroup`, not `Container`. `Container` defaults to `height: 1fr`, so an empty visible branch can reserve the remaining vertical space and create misleading whitespace. `VerticalGroup` is content-sized. If a user asks to use `Container` instead, explain this layout difference before changing it.
+
 Use a tiny global text convention instead of introducing wrapper widgets by default. Use `.label` for short structural labels such as field labels, key/value labels, and table-like labels; it should be bold and use the main text color. Use `.muted` for helper text, timestamps, low-priority metadata, and empty-state hints; it should use `$text-muted` and should not add bold styling. Body text should usually have no class and use the default foreground color. Keep layout-specific classes widget-local, and combine them with these semantic classes when needed, such as `classes="field-label label"` or `classes="field-helper muted"`. Avoid generic variant-like global class names such as `.secondary`, because they can collide with Textual or widget-specific styling.
 
 When a visible border is used as a panel boundary, give the panel a meaningful `border_title` instead of rendering an in-content heading for that same panel. Do not force border titles onto control borders, such as an input composer border, where the border is part of the control rather than a panel container.

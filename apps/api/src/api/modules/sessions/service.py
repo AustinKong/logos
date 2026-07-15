@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session as SqlAlchemyDb
 from sqlalchemy.orm import selectinload
 
-from api.modules.session_configs.models.configs import DebateConfig
+from api.modules.session_configs.models.configs import DebateConfig, ProposalConfig
 from api.modules.session_configs.models.participants import ParticipantData
 from api.modules.session_configs.models.session_configs import SessionConfig
 from api.modules.session_configs.service import SessionConfigService
@@ -50,6 +50,7 @@ class SessionService:
         *,
         prompt: str,
         seed: int | None,
+        proposal_config: ProposalConfig,
         debate_config: DebateConfig,
         participants: list[ParticipantData],
         resolution_config: ResolutionConfig,
@@ -57,6 +58,7 @@ class SessionService:
         session_config = self._session_config_service.create_config(
             prompt=prompt,
             seed=seed,
+            proposal_config=proposal_config,
             debate_config=debate_config,
             participants=participants,
             resolution_config=resolution_config,

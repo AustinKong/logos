@@ -8,8 +8,7 @@ from api_client.models import (
     TurnSelectionConfigCreate,
     TurnSelectionConfigRead,
 )
-
-from tui.screens.session_config.sections.turn_selection.models import (
+from tui.screens.session_config.sections.debate.turn_selection.models import (
     RoundRobinTurnSelectionFormState,
     ShuffledTurnSelectionFormState,
     TurnSelectionFormState,

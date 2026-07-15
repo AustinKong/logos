@@ -8,9 +8,8 @@ from api_client.models import (
     SlidingWindowHistoryConfigCreate,
     SlidingWindowHistoryConfigRead,
 )
-
 from tui.screens.session_config.errors import SessionConfigValidationError
-from tui.screens.session_config.sections.history.models import (
+from tui.screens.session_config.sections.debate.history.models import (
     FullHistoryFormState,
     HistoryFormState,
     SlidingWindowHistoryFormState,

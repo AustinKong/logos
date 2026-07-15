@@ -3,7 +3,7 @@ from typing import assert_never
 from api_client.models import AILanguageModelRead, ResolutionMode
 from api_client.schema_metadata import SCHEMA_FIELDS
 from textual.app import ComposeResult
-from textual.containers import Container, VerticalScroll
+from textual.containers import VerticalGroup, VerticalScroll
 from textual.widgets import ContentSwitcher, Select
 
 from tui.screens.session_config.sections.resolution.models import (
@@ -67,7 +67,7 @@ class ResolutionSection(VerticalScroll):
             select_id="resolution-mode",
         )
         yield ContentSwitcher(
-            Container(id=RESOLUTION_MODE_CONTENT_IDS[ResolutionMode.NONE]),
+            VerticalGroup(id=RESOLUTION_MODE_CONTENT_IDS[ResolutionMode.NONE]),
             JudgeResolutionFields(
                 initial_state=state_or_default(
                     self._initial_state,

@@ -3,10 +3,9 @@ from typing import assert_never
 from api_client.models import TurnSelectionMode
 from api_client.schema_metadata import SCHEMA_FIELDS
 from textual.app import ComposeResult
-from textual.containers import VerticalScroll
+from textual.containers import Container
 from textual.widgets import Select
-
-from tui.screens.session_config.sections.turn_selection.models import (
+from tui.screens.session_config.sections.debate.turn_selection.models import (
     RoundRobinTurnSelectionFormState,
     ShuffledTurnSelectionFormState,
     TurnSelectionFormState,
@@ -27,7 +26,14 @@ TURN_SELECTION_MODE_OPTIONS = [
 ]
 
 
-class TurnSelectionSection(VerticalScroll):
+class TurnSelectionSection(Container):
+    DEFAULT_CSS = """
+    TurnSelectionSection {
+        height: auto;
+        width: 100%;
+    }
+    """
+
     can_focus = False
 
     def __init__(self, *, initial_state: TurnSelectionFormState, read_only: bool = False) -> None:
@@ -37,7 +43,7 @@ class TurnSelectionSection(VerticalScroll):
 
     def compose(self) -> ComposeResult:
         yield SelectField(
-            "Mode",
+            SCHEMA_FIELDS["DebateConfigCreate"]["turn_selection"]["title"],
             options=TURN_SELECTION_MODE_OPTIONS,
             value=self._initial_state.mode,
             allow_blank=False,

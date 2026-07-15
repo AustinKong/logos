@@ -9,6 +9,10 @@ from tui.screens.session_config.sections.general.adapters import (
     general_create_from_form_state,
     general_form_state_from_read,
 )
+from tui.screens.session_config.sections.proposal.adapters import (
+    proposal_create_from_form_state,
+    proposal_form_state_from_read,
+)
 from tui.screens.session_config.sections.resolution.adapters import (
     resolution_create_from_form_state,
     resolution_form_state_from_read,
@@ -20,6 +24,7 @@ def form_state_from_config_read(config: SessionConfigRead, *, blank_seed: bool =
     seed = "" if blank_seed else str(config.seed)
     return SessionConfigFormState(
         general=general_form_state_from_read(config.prompt, seed),
+        proposal=proposal_form_state_from_read(config.proposal),
         debate=debate_form_state_from_read(config.debate),
         resolution=resolution_form_state_from_read(config.resolution),
     )
@@ -35,6 +40,7 @@ def session_create_from_form_state(form_state: SessionConfigFormState) -> Sessio
         config=SessionConfigCreate(
             prompt=general.prompt,
             seed=general.seed,
+            proposal=proposal_create_from_form_state(form_state.proposal),
             debate=debate_create_from_form_state(form_state.debate),
             resolution=resolution_create_from_form_state(form_state.resolution),
         )

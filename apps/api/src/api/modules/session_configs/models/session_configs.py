@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from api.db.base import Base
 from api.db.mixins import TimestampMixin, UUIDMixin
-from api.modules.session_configs.models.configs import DebateConfig
+from api.modules.session_configs.models.configs import DebateConfig, ProposalConfig
 from api.modules.session_configs.models.participants import (
     DebaterParticipant,
     JudgeParticipant,
@@ -22,6 +22,7 @@ class SessionConfig(UUIDMixin, TimestampMixin, Base):
 
     prompt: Mapped[str] = mapped_column(Text)
     seed: Mapped[int] = mapped_column(Integer, nullable=False)
+    _proposal_config: Mapped[dict[str, Any]] = mapped_column("proposal_config", JSON, nullable=False)
     _debate_config: Mapped[dict[str, Any]] = mapped_column("debate_config", JSON, nullable=False)
     _resolution_config: Mapped[dict[str, Any]] = mapped_column("resolution_config", JSON, nullable=False)
 
@@ -31,6 +32,14 @@ class SessionConfig(UUIDMixin, TimestampMixin, Base):
         order_by=lambda: Participant.created_at,
         lazy="raise",
     )
+
+    @property
+    def proposal_config(self) -> ProposalConfig:
+        return ProposalConfig.model_validate(self._proposal_config)
+
+    @proposal_config.setter
+    def proposal_config(self, config: ProposalConfig) -> None:
+        self._proposal_config = config.model_dump(mode="json")
 
     @property
     def debate_config(self) -> DebateConfig:

@@ -32,15 +32,17 @@ async def run_session_until_blocked_background(session_id: UUID) -> None:
             cache_repository=ask_user_cache_repository,
         )
         strategy_resolver = StrategyResolver(ai_service=ai_service)
-        generation_runner = GenerationRunner(
-            ai_service=ai_service,
-            tool_resolver=ToolResolver(
-                ask_user_service=ask_user_service,
-            ),
+        tool_resolver = ToolResolver(
+            ask_user_service=ask_user_service,
         )
+        generation_runner = GenerationRunner(ai_service=ai_service)
         engine_service = EngineService(
             session_service=session_service,
-            engine=Engine(generation_runner=generation_runner, strategy_resolver=strategy_resolver),
+            engine=Engine(
+                generation_runner=generation_runner,
+                strategy_resolver=strategy_resolver,
+                tool_resolver=tool_resolver,
+            ),
             streaming_service=get_streaming_service(),
         )
         await engine_service.run_until_blocked(session_id)

@@ -1,9 +1,12 @@
+from collections.abc import Sequence
+
 from api.modules.ai.models import AIMessage, MessageRole
 from api.modules.engine.generation import GenerationRunner
 from api.modules.engine.models import EngineContext, EngineOutputStream
 from api.modules.engine.timeline.debate_rounds import debate_rounds_from_events
 from api.modules.engine.timeline.messages import InternalEventVisibility, TurnMessageMode, ai_messages_from_turns
 from api.modules.engine.timeline.turns import next_participant, turns_from_events
+from api.modules.session_configs.models.configs import DebateConfig
 from api.modules.sessions.models.events import (
     DebateRoundCompletedEvent,
     DebateRoundStartedEvent,
@@ -12,6 +15,7 @@ from api.modules.sessions.models.events import (
 )
 from api.modules.strategies.history.base import HistoryStrategy
 from api.modules.strategies.turn_selection.base import TurnSelectionStrategy
+from api.modules.tools.base import Tool
 
 DEBATE_PROMPT = (
     "Session prompt:\n{prompt}\n\n"
@@ -26,15 +30,17 @@ class DebateStage:
     def __init__(
         self,
         *,
-        debate_round_count: int,
+        config: DebateConfig,
         turn_selection_strategy: TurnSelectionStrategy,
         history_strategy: HistoryStrategy,
         generation_runner: GenerationRunner,
+        tools: Sequence[Tool],
     ) -> None:
-        self._debate_round_count = debate_round_count
+        self._config = config
         self._turn_selection_strategy = turn_selection_strategy
         self._history_strategy = history_strategy
         self._generation_runner = generation_runner
+        self._tools = tools
 
     async def run(self, ctx: EngineContext) -> EngineOutputStream:
         if not any(isinstance(event, ProposalCompletedEvent) for event in ctx.events):
@@ -42,7 +48,7 @@ class DebateStage:
 
         completed_rounds, open_round = debate_rounds_from_events(ctx.events)
         if open_round is None:
-            if len(completed_rounds) >= self._debate_round_count:
+            if len(completed_rounds) >= self._config.round_count:
                 return
 
             yield DebateRoundStartedEvent(
@@ -99,5 +105,6 @@ class DebateStage:
                     include_internal_events_from={participant.id},
                 ),
             ],
+            tools=self._tools,
         ):
             yield output

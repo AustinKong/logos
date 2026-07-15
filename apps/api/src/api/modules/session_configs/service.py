@@ -14,7 +14,7 @@ from api.modules.session_configs.errors import (
     UnsupportedParticipantModelError,
     UnsupportedReasoningModelError,
 )
-from api.modules.session_configs.models.configs import DebateConfig
+from api.modules.session_configs.models.configs import DebateConfig, ProposalConfig
 from api.modules.session_configs.models.participants import (
     DebaterParticipant,
     JudgeParticipant,
@@ -79,7 +79,9 @@ class SessionConfigService:
                     round_count=1,
                     turn_selection_config=RoundRobinTurnSelectionConfig(),
                     history_config=FullHistoryConfig(),
+                    tools=["ask_user"],
                 ),
+                proposal_config=ProposalConfig(tools=["ask_user"]),
                 resolution_config=NoneResolutionConfig(),
             )
 
@@ -103,6 +105,7 @@ class SessionConfigService:
         *,
         prompt: str,
         seed: int | None,
+        proposal_config: ProposalConfig,
         debate_config: DebateConfig,
         participants: list[ParticipantData],
         resolution_config: ResolutionConfig,
@@ -123,6 +126,7 @@ class SessionConfigService:
         config = SessionConfig(
             prompt=prompt,
             seed=seed,
+            proposal_config=proposal_config,
             debate_config=debate_config,
             resolution_config=resolution_config,
         )

@@ -20,15 +20,13 @@ from api.modules.sessions.models.events import (
     ReasoningStartedEvent,
     TurnCompletedEvent,
 )
-from api.modules.tools.base import ToolExecutionContext
-from api.modules.tools.resolver import ToolResolver
+from api.modules.tools.base import Tool, ToolExecutionContext
 
 
 # TODO: Kinda messy rn, will see if i can simplify abit
 class GenerationRunner:
-    def __init__(self, *, ai_service: AIService, tool_resolver: ToolResolver) -> None:
+    def __init__(self, *, ai_service: AIService) -> None:
         self._ai_service = ai_service
-        self._tool_resolver = tool_resolver
 
     async def run_response(
         self,
@@ -37,13 +35,14 @@ class GenerationRunner:
         sender: Participant,
         messages: Sequence[AIMessage],
         options: GenerationOptions,
+        tools: Sequence[Tool],
     ) -> EngineOutputStream:
+        tools_by_name = {tool.name: tool for tool in tools}
         response_stream = await self._ai_service.stream_response(
             messages=messages,
             options=GenerationOptions(
                 model=options.model,
-                # TODO: Remove list definitions. Not all models should have the same definitions.
-                tools=self._tool_resolver.list_definitions(),
+                tools=[tool.definition for tool in tools],
                 temperature=options.temperature,
                 max_tokens=options.max_tokens,
                 reasoning_effort=options.reasoning_effort,
@@ -104,7 +103,12 @@ class GenerationRunner:
                         yield build_reasoning_completed()
 
                     tool_action_started = True
-                    handler = self._tool_resolver.resolve(response_event.tool_call.name)
+                    try:
+                        handler: Tool = tools_by_name[response_event.tool_call.name]
+                    except KeyError as exc:
+                        raise AIProviderError(
+                            f"AI provider requested an unavailable tool: {response_event.tool_call.name}"
+                        ) from exc
                     for event in await handler.execute(
                         tool_call=response_event.tool_call,
                         ctx=ToolExecutionContext(session_id=session_id, sender=sender),
@@ -134,12 +138,14 @@ class GenerationRunner:
         session_id: UUID,
         sender: Participant,
         messages: Sequence[AIMessage],
+        tools: Sequence[Tool],
     ) -> EngineOutputStream:
         completed = False
         async for output in self.run_response(
             session_id=session_id,
             sender=sender,
             messages=messages,
+            tools=tools,
             options=GenerationOptions(
                 model=sender.model,
                 reasoning_effort=sender.reasoning_effort,

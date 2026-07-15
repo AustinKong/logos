@@ -19,16 +19,20 @@ from api.modules.tools.resolver import ToolResolver
 
 def get_generation_runner(
     ai_service: Annotated[AIService, Depends(get_ai_service)],
-    tool_resolver: Annotated[ToolResolver, Depends(get_tool_resolver)],
 ) -> GenerationRunner:
-    return GenerationRunner(ai_service=ai_service, tool_resolver=tool_resolver)
+    return GenerationRunner(ai_service=ai_service)
 
 
 def get_engine(
     generation_runner: Annotated[GenerationRunner, Depends(get_generation_runner)],
     strategy_resolver: Annotated[StrategyResolver, Depends(get_strategy_resolver)],
+    tool_resolver: Annotated[ToolResolver, Depends(get_tool_resolver)],
 ) -> Engine:
-    return Engine(generation_runner=generation_runner, strategy_resolver=strategy_resolver)
+    return Engine(
+        generation_runner=generation_runner,
+        strategy_resolver=strategy_resolver,
+        tool_resolver=tool_resolver,
+    )
 
 
 def get_engine_service(

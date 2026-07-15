@@ -6,7 +6,7 @@ from api.modules.session_configs.adapters.participants import (
     judge_participant_data_from_create,
     judge_participant_read_from_participant,
 )
-from api.modules.session_configs.models.configs import DebateConfig
+from api.modules.session_configs.models.configs import DebateConfig, ProposalConfig
 from api.modules.session_configs.models.participants import (
     DebaterParticipant,
     JudgeParticipant,
@@ -32,7 +32,12 @@ from api.modules.session_configs.schemas.configs import (
     TurnSelectionConfigCreate,
     TurnSelectionConfigRead,
 )
-from api.modules.session_configs.schemas.session_configs import DebateConfigCreate, DebateConfigRead
+from api.modules.session_configs.schemas.session_configs import (
+    DebateConfigCreate,
+    DebateConfigRead,
+    ProposalConfigCreate,
+    ProposalConfigRead,
+)
 from api.modules.strategies.history.configs import FullHistoryConfig, HistoryConfig, SlidingWindowHistoryConfig
 from api.modules.strategies.resolution.configs import (
     JudgeResolutionConfig,
@@ -70,11 +75,16 @@ def history_config_from_create(history_create: HistoryConfigCreate) -> HistoryCo
             assert_never(never)
 
 
+def proposal_config_from_create(proposal_create: ProposalConfigCreate) -> ProposalConfig:
+    return ProposalConfig(tools=proposal_create.tools)
+
+
 def debate_config_from_create(debate_create: DebateConfigCreate) -> DebateConfig:
     return DebateConfig(
         round_count=debate_create.round_count,
         turn_selection_config=turn_selection_config_from_create(debate_create.turn_selection),
         history_config=history_config_from_create(debate_create.history),
+        tools=debate_create.tools,
     )
 
 
@@ -131,6 +141,10 @@ def history_config_read_from_config(history_config: HistoryConfig) -> HistoryCon
             assert_never(never)
 
 
+def proposal_config_read_from_config(proposal_config: ProposalConfig) -> ProposalConfigRead:
+    return ProposalConfigRead(tools=proposal_config.tools)
+
+
 def debate_config_read_from_config(
     debate_config: DebateConfig,
     debaters: list[DebaterParticipant],
@@ -140,6 +154,7 @@ def debate_config_read_from_config(
         debaters=[debater_participant_read_from_participant(debater) for debater in debaters],
         turn_selection=turn_selection_config_read_from_config(debate_config.turn_selection_config),
         history=history_config_read_from_config(debate_config.history_config),
+        tools=debate_config.tools,
     )
 
 
