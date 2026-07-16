@@ -5,9 +5,11 @@ from typing import assert_never
 from uuid import UUID
 
 from api_client import Client
-from api_client.models import AskUserStartedEventRead, SessionRead
+from api_client.models import AILanguageModelRead, AskUserStartedEventRead, SessionRead
 from textual.app import App
 from textual.message import Message
+
+from tui.screens.participant_editor.models import ParticipantFormState
 
 
 class Route(StrEnum):
@@ -15,6 +17,7 @@ class Route(StrEnum):
     SESSION_CONFIG = "session_config"
     SESSION_CHAT = "session_chat"
     ASK_USER = "ask_user"
+    PARTICIPANT_EDITOR = "participant_editor"
 
 
 @dataclass(frozen=True, slots=True)
@@ -33,6 +36,14 @@ class AskUserParams:
     session_id: UUID
     event: AskUserStartedEventRead
     on_close: Callable[[None], None]
+
+
+@dataclass(frozen=True, slots=True)
+class ParticipantEditorParams:
+    initial_state: ParticipantFormState
+    models: list[AILanguageModelRead]
+    read_only: bool
+    on_close: Callable[[ParticipantFormState], None]
 
 
 class Navigate(Message):
@@ -57,6 +68,8 @@ class Navigator:
                 self._push_session_chat(_expect_params(params, SessionChatParams))
             case Route.ASK_USER:
                 self._push_ask_user(_expect_params(params, AskUserParams))
+            case Route.PARTICIPANT_EDITOR:
+                self._push_participant_editor(_expect_params(params, ParticipantEditorParams))
             case _ as never:
                 assert_never(never)
 
@@ -111,6 +124,24 @@ class Navigator:
         )
 
         self._app.push_screen(screen, params.on_close)
+
+    def _push_participant_editor(self, params: ParticipantEditorParams) -> None:
+        from tui.screens.participant_editor.screen import ParticipantEditorModal
+
+        screen = ParticipantEditorModal(
+            initial_state=params.initial_state,
+            models=params.models,
+            read_only=params.read_only,
+        )
+
+        def handle_closed(
+            participant: ParticipantFormState | None,
+            on_close: Callable[[ParticipantFormState], None],
+        ) -> None:
+            if participant is not None:
+                on_close(participant)
+
+        self._app.push_screen(screen, lambda result: handle_closed(result, params.on_close))
 
 
 def _expect_params[Params](params: object | None, params_type: type[Params]) -> Params:

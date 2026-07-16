@@ -2,7 +2,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
 
-from api.modules.session_configs.schemas.participants import JudgeParticipantCreate, JudgeParticipantRead
+from api.modules.session_configs.schemas.participants import ParticipantCreate, ParticipantRead
 from api.modules.strategies.history.configs import HistoryMode
 from api.modules.strategies.resolution.configs import ResolutionMode
 from api.modules.strategies.turn_selection.configs import TurnSelectionMode
@@ -86,11 +86,14 @@ class JudgeResolutionConfigBase(BaseModel):
 
 
 class JudgeResolutionConfigCreate(JudgeResolutionConfigBase):
-    judge: JudgeParticipantCreate
+    judge: ParticipantCreate = Field(
+        title="Judge",
+        description="Agent that resolves the debate after the final round.",
+    )
 
 
 class JudgeResolutionConfigRead(JudgeResolutionConfigBase):
-    judge: JudgeParticipantRead
+    judge: ParticipantRead
 
 
 class NoneResolutionConfigBase(BaseModel):

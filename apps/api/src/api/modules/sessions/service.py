@@ -7,9 +7,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session as SqlAlchemyDb
 from sqlalchemy.orm import selectinload
 
-from api.modules.session_configs.models.configs import DebateConfig, ProposalConfig
 from api.modules.session_configs.models.participants import ParticipantData
-from api.modules.session_configs.models.session_configs import SessionConfig
+from api.modules.session_configs.models.session_configs import DebateConfig, ProposalConfig, SessionConfig
 from api.modules.session_configs.service import SessionConfigService
 from api.modules.sessions.errors import SessionNotFoundError
 from api.modules.sessions.models.events import (

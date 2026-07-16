@@ -12,7 +12,6 @@ class ConfigSection(StrEnum):
     GENERAL = "general"
     PROPOSAL = "proposal"
     DEBATE = "debate"
-    PARTICIPANTS = "participants"
     RESOLUTION = "resolution"
 
 

@@ -1,17 +1,16 @@
 from typing import assert_never
 
 from api.modules.session_configs.adapters.participants import (
-    debater_participant_data_from_create,
-    debater_participant_read_from_participant,
-    judge_participant_data_from_create,
-    judge_participant_read_from_participant,
+    participant_data_from_create,
+    participant_read_from_participant,
 )
-from api.modules.session_configs.models.configs import DebateConfig, ProposalConfig
 from api.modules.session_configs.models.participants import (
     DebaterParticipant,
     JudgeParticipant,
     ParticipantData,
+    ParticipantType,
 )
+from api.modules.session_configs.models.session_configs import DebateConfig, ProposalConfig
 from api.modules.session_configs.schemas.configs import (
     FullHistoryConfigCreate,
     FullHistoryConfigRead,
@@ -105,7 +104,7 @@ def resolution_config_from_create(
 def participant_data_from_resolution_create(resolution_create: ResolutionConfigCreate) -> list[ParticipantData]:
     match resolution_create:
         case JudgeResolutionConfigCreate():
-            return [judge_participant_data_from_create(resolution_create.judge)]
+            return [participant_data_from_create(resolution_create.judge, participant_type=ParticipantType.JUDGE)]
         case NoneResolutionConfigCreate():
             return []
         case _ as never:
@@ -113,7 +112,10 @@ def participant_data_from_resolution_create(resolution_create: ResolutionConfigC
 
 
 def participant_data_from_debate_create(debate_create: DebateConfigCreate) -> list[ParticipantData]:
-    return [debater_participant_data_from_create(debater) for debater in debate_create.debaters]
+    return [
+        participant_data_from_create(debater, participant_type=ParticipantType.DEBATER)
+        for debater in debate_create.debaters
+    ]
 
 
 def turn_selection_config_read_from_config(
@@ -151,7 +153,7 @@ def debate_config_read_from_config(
 ) -> DebateConfigRead:
     return DebateConfigRead(
         round_count=debate_config.round_count,
-        debaters=[debater_participant_read_from_participant(debater) for debater in debaters],
+        debaters=[participant_read_from_participant(debater) for debater in debaters],
         turn_selection=turn_selection_config_read_from_config(debate_config.turn_selection_config),
         history=history_config_read_from_config(debate_config.history_config),
         tools=debate_config.tools,
@@ -168,7 +170,7 @@ def resolution_config_read_from_config(
                 raise ValueError("Expected judge participant for judge resolution config")
             return JudgeResolutionConfigRead(
                 mode=resolution_config.mode,
-                judge=judge_participant_read_from_participant(judge),
+                judge=participant_read_from_participant(judge),
             )
         case NoneResolutionConfig():
             return NoneResolutionConfigRead(mode=resolution_config.mode)

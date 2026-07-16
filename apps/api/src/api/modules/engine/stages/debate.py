@@ -6,7 +6,7 @@ from api.modules.engine.models import EngineContext, EngineOutputStream
 from api.modules.engine.timeline.debate_rounds import debate_rounds_from_events
 from api.modules.engine.timeline.messages import InternalEventVisibility, TurnMessageMode, ai_messages_from_turns
 from api.modules.engine.timeline.turns import next_participant, turns_from_events
-from api.modules.session_configs.models.configs import DebateConfig
+from api.modules.session_configs.models.session_configs import DebateConfig
 from api.modules.sessions.models.events import (
     DebateRoundCompletedEvent,
     DebateRoundStartedEvent,

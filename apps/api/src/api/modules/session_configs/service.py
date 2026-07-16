@@ -14,7 +14,6 @@ from api.modules.session_configs.errors import (
     UnsupportedParticipantModelError,
     UnsupportedReasoningModelError,
 )
-from api.modules.session_configs.models.configs import DebateConfig, ProposalConfig
 from api.modules.session_configs.models.participants import (
     DebaterParticipant,
     JudgeParticipant,
@@ -22,7 +21,7 @@ from api.modules.session_configs.models.participants import (
     ParticipantData,
     ParticipantType,
 )
-from api.modules.session_configs.models.session_configs import SessionConfig
+from api.modules.session_configs.models.session_configs import DebateConfig, ProposalConfig, SessionConfig
 from api.modules.strategies.history.configs import FullHistoryConfig
 from api.modules.strategies.resolution.configs import NoneResolutionConfig, ResolutionConfig
 from api.modules.strategies.turn_selection.configs import RoundRobinTurnSelectionConfig

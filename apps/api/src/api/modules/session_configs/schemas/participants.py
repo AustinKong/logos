@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Annotated, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -8,7 +7,7 @@ from api.modules.ai.models import ReasoningEffort, Verbosity
 from api.modules.session_configs.models.participants import ParticipantType
 
 
-class ParticipantCreateBase(BaseModel):
+class ParticipantCreate(BaseModel):
     name: str = Field(
         min_length=1,
         title="Name",
@@ -38,7 +37,7 @@ class ParticipantCreateBase(BaseModel):
     )
 
 
-class ParticipantReadBase(BaseModel):
+class ParticipantRead(BaseModel):
     id: UUID
     name: str
     created_at: datetime
@@ -48,45 +47,7 @@ class ParticipantReadBase(BaseModel):
     reasoning_effort: ReasoningEffort
     verbosity: Verbosity
     temperature: float
-
-
-class DebaterParticipantCreate(ParticipantCreateBase):
-    pass
-
-
-class JudgeParticipantCreate(ParticipantCreateBase):
-    pass
-
-
-class JurorParticipantCreate(ParticipantCreateBase):
-    pass
-
-
-class DebaterParticipantRead(ParticipantReadBase):
-    type: Literal[ParticipantType.DEBATER] = Field(
-        ParticipantType.DEBATER,
-        title="Debater",
-        description="Participant that proposes and debates responses.",
+    type: ParticipantType = Field(
+        title="Role",
+        description="Role this participant has in the session.",
     )
-
-
-class JudgeParticipantRead(ParticipantReadBase):
-    type: Literal[ParticipantType.JUDGE] = Field(
-        ParticipantType.JUDGE,
-        title="Judge",
-        description="Participant that resolves the debate as a neutral judge.",
-    )
-
-
-class JurorParticipantRead(ParticipantReadBase):
-    type: Literal[ParticipantType.JUROR] = Field(
-        ParticipantType.JUROR,
-        title="Juror",
-        description="Participant that contributes one vote in a jury resolution.",
-    )
-
-
-type ParticipantRead = Annotated[
-    DebaterParticipantRead | JudgeParticipantRead | JurorParticipantRead,
-    Field(discriminator="type"),
-]

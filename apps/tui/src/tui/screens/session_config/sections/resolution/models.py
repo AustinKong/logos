@@ -2,7 +2,7 @@ from api_client.models import ReasoningEffort, ResolutionMode, Verbosity
 from attrs import define
 from textual.widgets import Select
 
-from tui.screens.session_config.sections.participants.models import ParticipantFormState
+from tui.screens.participant_editor.models import ParticipantFormState
 
 
 @define(frozen=True)

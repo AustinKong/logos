@@ -1,9 +1,12 @@
 from api_client.models import AILanguageModelRead
+from api_client.schema_metadata import SCHEMA_FIELDS
 from textual.app import ComposeResult
 from textual.containers import Container
 
-from tui.screens.session_config.sections.participants.modes.participant import ParticipantFields
+from tui.screens.participant_editor.models import ParticipantsFormState
 from tui.screens.session_config.sections.resolution.models import JudgeResolutionFormState
+from tui.widgets.forms.field import field
+from tui.widgets.participants_table import ParticipantsTable
 
 
 class JudgeResolutionFields(Container):
@@ -25,20 +28,23 @@ class JudgeResolutionFields(Container):
         id: str | None = None,
     ) -> None:
         super().__init__(id=id)
-        self._initial_state = initial_state
+        self._judge = initial_state.judge
         self._models = models
         self._read_only = read_only
 
     def compose(self) -> ComposeResult:
-        yield ParticipantFields(
-            initial_state=self._initial_state.judge,
-            models=self._models,
-            schema_name="JudgeParticipantCreate",
-            read_only=self._read_only,
-            id="judge-participant-fields",
+        yield field(
+            SCHEMA_FIELDS["JudgeResolutionConfigCreate"]["judge"]["title"],
+            ParticipantsTable(
+                initial_state=ParticipantsFormState(participants=[self._judge]),
+                models=self._models,
+                allow_multiple=False,
+                read_only=self._read_only,
+            ),
+            helper_text=SCHEMA_FIELDS["JudgeResolutionConfigCreate"]["judge"]["description"],
         )
 
     def form_state(self) -> JudgeResolutionFormState:
         return JudgeResolutionFormState(
-            judge=self.query_one("#judge-participant-fields", ParticipantFields).form_state(),
+            judge=self.query_one(ParticipantsTable).form_state().participants[0],
         )

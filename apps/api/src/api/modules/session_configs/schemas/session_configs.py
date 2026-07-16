@@ -11,7 +11,7 @@ from api.modules.session_configs.schemas.configs import (
     TurnSelectionConfigCreate,
     TurnSelectionConfigRead,
 )
-from api.modules.session_configs.schemas.participants import DebaterParticipantCreate, DebaterParticipantRead
+from api.modules.session_configs.schemas.participants import ParticipantCreate, ParticipantRead
 
 
 class ProposalConfigCreate(BaseModel):
@@ -31,7 +31,11 @@ class DebateConfigCreate(BaseModel):
         title="Debate rounds",
         description="Number of debate rounds to run after independent proposals.",
     )
-    debaters: list[DebaterParticipantCreate] = Field(min_length=1)
+    debaters: list[ParticipantCreate] = Field(
+        min_length=1,
+        title="Debaters",
+        description="Agents who write proposals and take turns during the debate.",
+    )
     turn_selection: TurnSelectionConfigCreate = Field(title="Turn selection")
     history: HistoryConfigCreate = Field(title="History")
     tools: list[str] = Field(
@@ -42,7 +46,7 @@ class DebateConfigCreate(BaseModel):
 
 class DebateConfigRead(BaseModel):
     round_count: int
-    debaters: list[DebaterParticipantRead]
+    debaters: list[ParticipantRead]
     turn_selection: TurnSelectionConfigRead
     history: HistoryConfigRead
     tools: list[str]

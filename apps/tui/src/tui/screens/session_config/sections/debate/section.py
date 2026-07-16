@@ -1,3 +1,4 @@
+from api_client.models import AILanguageModelRead
 from api_client.schema_metadata import SCHEMA_FIELDS
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll
@@ -6,14 +7,22 @@ from tui.screens.session_config.sections.debate.history.section import HistorySe
 from tui.screens.session_config.sections.debate.models import DebateFormState
 from tui.screens.session_config.sections.debate.turn_selection.section import TurnSelectionSection
 from tui.widgets.forms.field import field
+from tui.widgets.participants_table import ParticipantsTable
 
 
 class DebateSection(VerticalScroll):
     can_focus = False
 
-    def __init__(self, *, initial_state: DebateFormState, read_only: bool = False) -> None:
+    def __init__(
+        self,
+        *,
+        initial_state: DebateFormState,
+        models: list[AILanguageModelRead],
+        read_only: bool = False,
+    ) -> None:
         super().__init__()
         self._initial_state = initial_state
+        self._models = models
         self._read_only = read_only
 
     def compose(self) -> ComposeResult:
@@ -27,6 +36,16 @@ class DebateSection(VerticalScroll):
             ),
             helper_text=SCHEMA_FIELDS["DebateConfigCreate"]["round_count"]["description"],
         )
+        yield field(
+            SCHEMA_FIELDS["DebateConfigCreate"]["debaters"]["title"],
+            ParticipantsTable(
+                initial_state=self._initial_state.participants,
+                models=self._models,
+                allow_multiple=True,
+                read_only=self._read_only,
+            ),
+            helper_text=SCHEMA_FIELDS["DebateConfigCreate"]["debaters"]["description"],
+        )
         yield HistorySection(
             initial_state=self._initial_state.history,
             read_only=self._read_only,
@@ -39,7 +58,7 @@ class DebateSection(VerticalScroll):
     def form_state(self) -> DebateFormState:
         return DebateFormState(
             round_count=self.query_one("#debate-round-count", Input).value,
-            participants=self._initial_state.participants,
+            participants=self.query_one(ParticipantsTable).form_state(),
             turn_selection=self.query_one(TurnSelectionSection).form_state(),
             history=self.query_one(HistorySection).form_state(),
             tools=self._initial_state.tools,

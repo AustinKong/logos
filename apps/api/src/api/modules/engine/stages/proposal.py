@@ -5,7 +5,7 @@ from api.modules.engine.generation import GenerationRunner
 from api.modules.engine.models import EngineContext, EngineOutputStream
 from api.modules.engine.timeline.messages import TurnMessageMode, ai_messages_from_turns
 from api.modules.engine.timeline.turns import next_participant, turns_from_events
-from api.modules.session_configs.models.configs import ProposalConfig
+from api.modules.session_configs.models.session_configs import ProposalConfig
 from api.modules.sessions.models.events import (
     ProposalCompletedEvent,
     ProposalStartedEvent,
