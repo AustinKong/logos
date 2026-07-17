@@ -20,6 +20,7 @@ from api.modules.sessions.models.events import (
     ReasoningStartedEvent,
     TurnCompletedEvent,
 )
+from api.modules.tools.adapters import ai_tool_definition_from_definition
 from api.modules.tools.base import Tool, ToolExecutionContext
 
 
@@ -37,12 +38,12 @@ class GenerationRunner:
         options: GenerationOptions,
         tools: Sequence[Tool],
     ) -> EngineOutputStream:
-        tools_by_name = {tool.name: tool for tool in tools}
+        tools_by_name = {tool.definition.name: tool for tool in tools}
         response_stream = await self._ai_service.stream_response(
             messages=messages,
             options=GenerationOptions(
                 model=options.model,
-                tools=[tool.definition for tool in tools],
+                tools=[ai_tool_definition_from_definition(tool.definition) for tool in tools],
                 temperature=options.temperature,
                 max_tokens=options.max_tokens,
                 reasoning_effort=options.reasoning_effort,

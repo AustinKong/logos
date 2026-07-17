@@ -5,7 +5,8 @@ from api_client.api.ai.list_ai_language_models import asyncio as list_ai_languag
 from api_client.api.session_configs.get_default_session_config import asyncio as get_default_session_config
 from api_client.api.sessions.create_session import asyncio as create_session_api
 from api_client.api.sessions.get_session import asyncio as get_session
-from api_client.models import AILanguageModelRead, SessionConfigRead, SessionRead
+from api_client.api.tools.list_available_tools import asyncio as list_available_tools_api
+from api_client.models import AILanguageModelRead, SessionConfigRead, SessionRead, ToolRead, ToolScope
 
 from tui.screens.session_config.adapters import session_create_from_form_state
 from tui.screens.session_config.models import SessionConfigFormState
@@ -35,6 +36,13 @@ class SessionConfigController:
             raise RuntimeError("API returned an unexpected AI models response")
 
         return models
+
+    async def list_available_tools(self, *, scope: ToolScope) -> list[ToolRead]:
+        tools = await list_available_tools_api(client=self._client, scope=scope)
+        if not isinstance(tools, list):
+            raise RuntimeError("API returned an unexpected tools response")
+
+        return tools
 
     async def get_session(self, *, session_id: UUID) -> SessionRead:
         session = await get_session(session_id, client=self._client)

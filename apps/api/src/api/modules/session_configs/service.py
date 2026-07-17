@@ -25,15 +25,18 @@ from api.modules.session_configs.models.session_configs import DebateConfig, Pro
 from api.modules.strategies.history.configs import FullHistoryConfig
 from api.modules.strategies.resolution.configs import NoneResolutionConfig, ResolutionConfig
 from api.modules.strategies.turn_selection.configs import RoundRobinTurnSelectionConfig
+from api.modules.tools.models import ToolScope
+from api.modules.tools.service import ToolService
 
 DEFAULT_PROMPT = "Evaluate the best architecture for a terminal-first multi-agent debate workflow."
 MAX_SEED = 2**63 - 1
 
 
 class SessionConfigService:
-    def __init__(self, *, db: SqlAlchemyDb, ai_service: AIService) -> None:
+    def __init__(self, *, db: SqlAlchemyDb, ai_service: AIService, tool_service: ToolService) -> None:
         self._db = db
         self._ai_service = ai_service
+        self._tool_service = tool_service
 
     def get_default_config(self) -> SessionConfig:
         try:
@@ -111,6 +114,9 @@ class SessionConfigService:
         id: UUID | None = None,
         commit: bool = True,
     ) -> SessionConfig:
+        self._tool_service.resolve_tools(proposal_config.tools, scope=ToolScope.PROPOSAL)
+        self._tool_service.resolve_tools(debate_config.tools, scope=ToolScope.DEBATE)
+
         models_by_id = {model.id: model for model in self._ai_service.list_available_language_models()}
         for participant in participants:
             model = models_by_id.get(participant.model)

@@ -13,8 +13,8 @@ from api.modules.strategies.deps import get_strategy_resolver
 from api.modules.strategies.resolver import StrategyResolver
 from api.modules.streaming.deps import get_streaming_service
 from api.modules.streaming.service import StreamingService
-from api.modules.tools.deps import get_tool_resolver
-from api.modules.tools.resolver import ToolResolver
+from api.modules.tools.deps import get_tool_service
+from api.modules.tools.service import ToolService
 
 
 def get_generation_runner(
@@ -26,12 +26,12 @@ def get_generation_runner(
 def get_engine(
     generation_runner: Annotated[GenerationRunner, Depends(get_generation_runner)],
     strategy_resolver: Annotated[StrategyResolver, Depends(get_strategy_resolver)],
-    tool_resolver: Annotated[ToolResolver, Depends(get_tool_resolver)],
+    tool_service: Annotated[ToolService, Depends(get_tool_service)],
 ) -> Engine:
     return Engine(
         generation_runner=generation_runner,
         strategy_resolver=strategy_resolver,
-        tool_resolver=tool_resolver,
+        tool_service=tool_service,
     )
 
 

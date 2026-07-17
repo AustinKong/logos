@@ -7,7 +7,8 @@ from api.modules.engine.stages.resolution import ResolutionStage
 from api.modules.sessions.models.events import SessionCompletedEvent, SessionStartedEvent
 from api.modules.sessions.models.sessions import Session
 from api.modules.strategies.resolver import StrategyResolver
-from api.modules.tools.resolver import ToolResolver
+from api.modules.tools.models import ToolScope
+from api.modules.tools.service import ToolService
 
 
 class Engine:
@@ -16,11 +17,11 @@ class Engine:
         *,
         generation_runner: GenerationRunner,
         strategy_resolver: StrategyResolver,
-        tool_resolver: ToolResolver,
+        tool_service: ToolService,
     ) -> None:
         self._generation_runner = generation_runner
         self._strategy_resolver = strategy_resolver
-        self._tool_resolver = tool_resolver
+        self._tool_service = tool_service
 
     def _build_stages(self, session: Session) -> list[EngineStage]:
         debate_config = session.config.debate_config
@@ -32,14 +33,14 @@ class Engine:
                 config=proposal_config,
                 turn_selection_strategy=turn_selection_strategy,
                 generation_runner=self._generation_runner,
-                tools=self._tool_resolver.get_tools(proposal_config.tools),
+                tools=self._tool_service.resolve_tools(proposal_config.tools, scope=ToolScope.PROPOSAL),
             ),
             DebateStage(
                 config=debate_config,
                 turn_selection_strategy=turn_selection_strategy,
                 history_strategy=self._strategy_resolver.history(session),
                 generation_runner=self._generation_runner,
-                tools=self._tool_resolver.get_tools(debate_config.tools),
+                tools=self._tool_service.resolve_tools(debate_config.tools, scope=ToolScope.DEBATE),
             ),
             ResolutionStage(
                 resolution_strategy=self._strategy_resolver.resolution(session),

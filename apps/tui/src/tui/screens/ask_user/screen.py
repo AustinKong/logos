@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from api_client.models import AskUserAnswerKind, AskUserStartedEventRead
 from textual import work
 from textual.app import ComposeResult
@@ -28,10 +26,9 @@ class AskUserModal(BaseModalScreen[None]):
         Binding("ctrl+q", "app.pop_screen", "Quit", key_display="Ctrl+Q"),
     ]
 
-    def __init__(self, *, controller: AskUserController, session_id: UUID, event: AskUserStartedEventRead) -> None:
+    def __init__(self, *, controller: AskUserController, event: AskUserStartedEventRead) -> None:
         super().__init__()
         self._controller = controller
-        self._session_id = session_id
         self._event = event
         self.modal_title = "Input requested"
 
@@ -75,7 +72,6 @@ class AskUserModal(BaseModalScreen[None]):
         self.content_loading = True
         try:
             await self._controller.answer(
-                session_id=self._session_id,
                 ask_user_id=self._event.ask_user_id,
                 answer_kind=answer_kind,
                 answer=answer,

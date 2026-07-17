@@ -5,7 +5,6 @@ from sqlalchemy.orm import Session as SqlAlchemyDb
 
 from api.modules.ai.service import AIService
 from api.modules.sessions.models.events import AskUserCompletedEvent, AskUserStartedEvent, Event
-from api.modules.sessions.service import SessionService
 from api.modules.tools.ask_user.cache import AskUserCacheRepository
 from api.modules.tools.ask_user.errors import (
     AskUserAlreadyAnsweredError,
@@ -22,12 +21,10 @@ class AskUserService:
         self,
         *,
         db: SqlAlchemyDb,
-        session_service: SessionService,
         ai_service: AIService,
         cache_repository: AskUserCacheRepository,
     ) -> None:
         self._db = db
-        self._session_service = session_service
         self._ai_service = ai_service
         self._cache_repository = cache_repository
 
@@ -70,14 +67,12 @@ class AskUserService:
     async def answer(
         self,
         *,
-        session_id: UUID,
         ask_user_id: UUID,
         answer_kind: AskUserAnswerKind,
         answer: str,
     ) -> AskUserCompletedEvent:
-        self._session_service.get_session(session_id)
-        started_event = self._get_started_event(session_id=session_id, ask_user_id=ask_user_id)
-        ended_event = self._get_ended_event(session_id=session_id, ask_user_id=ask_user_id)
+        started_event = self._get_started_event(ask_user_id=ask_user_id)
+        ended_event = self._get_ended_event(ask_user_id=ask_user_id)
 
         if ended_event is not None:
             raise AskUserAlreadyAnsweredError()
@@ -88,7 +83,7 @@ class AskUserService:
             raise InvalidAskUserAnswerError("Free-text answer must not be empty")
 
         completed_event = AskUserCompletedEvent(
-            session_id=session_id,
+            session_id=started_event.session_id,
             ask_user_id=ask_user_id,
             answer_kind=answer_kind,
             answer=answer,
@@ -123,23 +118,15 @@ class AskUserService:
         except:
             pass
 
-    def _get_started_event(self, *, session_id: UUID, ask_user_id: UUID) -> AskUserStartedEvent:
-        statement = (
-            select(AskUserStartedEvent)
-            .where(AskUserStartedEvent.session_id == session_id)
-            .where(AskUserStartedEvent.ask_user_id == ask_user_id)
-        )
+    def _get_started_event(self, *, ask_user_id: UUID) -> AskUserStartedEvent:
+        statement = select(AskUserStartedEvent).where(AskUserStartedEvent.ask_user_id == ask_user_id)
         started_event = self._db.execute(statement).scalar_one_or_none()
         if started_event is None:
             raise AskUserStartedEventNotFoundError()
         return started_event
 
-    def _get_ended_event(self, *, session_id: UUID, ask_user_id: UUID) -> AskUserCompletedEvent | None:
-        statement = (
-            select(AskUserCompletedEvent)
-            .where(AskUserCompletedEvent.session_id == session_id)
-            .where(AskUserCompletedEvent.ask_user_id == ask_user_id)
-        )
+    def _get_ended_event(self, *, ask_user_id: UUID) -> AskUserCompletedEvent | None:
+        statement = select(AskUserCompletedEvent).where(AskUserCompletedEvent.ask_user_id == ask_user_id)
         return self._db.execute(statement).scalar_one_or_none()
 
     async def _cache_answer(

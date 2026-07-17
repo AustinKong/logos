@@ -1,4 +1,4 @@
-from api_client.models import AILanguageModelRead
+from api_client.models import AILanguageModelRead, ToolRead
 from api_client.schema_metadata import SCHEMA_FIELDS
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll
@@ -8,6 +8,7 @@ from tui.screens.session_config.sections.debate.models import DebateFormState
 from tui.screens.session_config.sections.debate.turn_selection.section import TurnSelectionSection
 from tui.widgets.forms.field import field
 from tui.widgets.participants_table import ParticipantsTable
+from tui.widgets.tools_select import ToolsSelect
 
 
 class DebateSection(VerticalScroll):
@@ -18,11 +19,13 @@ class DebateSection(VerticalScroll):
         *,
         initial_state: DebateFormState,
         models: list[AILanguageModelRead],
+        tools: list[ToolRead],
         read_only: bool = False,
     ) -> None:
         super().__init__()
         self._initial_state = initial_state
         self._models = models
+        self._tools = tools
         self._read_only = read_only
 
     def compose(self) -> ComposeResult:
@@ -46,6 +49,15 @@ class DebateSection(VerticalScroll):
             ),
             helper_text=SCHEMA_FIELDS["DebateConfigCreate"]["debaters"]["description"],
         )
+        yield field(
+            SCHEMA_FIELDS["DebateConfigCreate"]["tools"]["title"],
+            ToolsSelect(
+                tools=self._tools,
+                initial_values=self._initial_state.tools,
+                read_only=self._read_only,
+            ),
+            helper_text=SCHEMA_FIELDS["DebateConfigCreate"]["tools"]["description"],
+        )
         yield HistorySection(
             initial_state=self._initial_state.history,
             read_only=self._read_only,
@@ -61,5 +73,5 @@ class DebateSection(VerticalScroll):
             participants=self.query_one(ParticipantsTable).form_state(),
             turn_selection=self.query_one(TurnSelectionSection).form_state(),
             history=self.query_one(HistorySection).form_state(),
-            tools=self._initial_state.tools,
+            tools=self.query_one(ToolsSelect).form_state(),
         )

@@ -1,4 +1,4 @@
-from api_client.models import AILanguageModelRead
+from api_client.models import AILanguageModelRead, ToolRead
 from textual.app import ComposeResult
 from textual.containers import Container
 from textual.widgets import TabbedContent, TabPane
@@ -45,11 +45,15 @@ class SectionEditor(Container):
         *,
         form_state: SessionConfigFormState,
         models: list[AILanguageModelRead],
+        proposal_tools: list[ToolRead],
+        debate_tools: list[ToolRead],
         read_only: bool = False,
     ) -> None:
         super().__init__(id="session-config")
         self._form_state = form_state
         self._models = models
+        self._proposal_tools = proposal_tools
+        self._debate_tools = debate_tools
         self._read_only = read_only
 
     def compose(self) -> ComposeResult:
@@ -63,6 +67,7 @@ class SectionEditor(Container):
                 "Proposal",
                 ProposalSection(
                     initial_state=self._form_state.proposal,
+                    tools=self._proposal_tools,
                     read_only=self._read_only,
                 ),
                 id=SECTION_TAB_IDS[ConfigSection.PROPOSAL],
@@ -72,6 +77,7 @@ class SectionEditor(Container):
                 DebateSection(
                     initial_state=self._form_state.debate,
                     models=self._models,
+                    tools=self._debate_tools,
                     read_only=self._read_only,
                 ),
                 id=SECTION_TAB_IDS[ConfigSection.DEBATE],

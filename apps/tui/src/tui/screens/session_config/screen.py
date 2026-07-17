@@ -1,6 +1,7 @@
+from asyncio import gather
 from uuid import UUID
 
-from api_client.models import AILanguageModelRead, SessionRead
+from api_client.models import AILanguageModelRead, SessionRead, ToolRead, ToolScope
 from textual import work
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -23,7 +24,6 @@ class SessionConfigModal(BaseModalScreen[SessionRead | None]):
     ]
 
     initial_state = reactive[SessionConfigFormState | None](None, recompose=True)
-    models = reactive[list[AILanguageModelRead]](list)
 
     def __init__(
         self,
@@ -36,13 +36,18 @@ class SessionConfigModal(BaseModalScreen[SessionRead | None]):
         self._controller = controller
         self._session_id = session_id
         self._read_only = session_id is not None
+        self._models: list[AILanguageModelRead] = []
+        self._proposal_tools: list[ToolRead] = []
+        self._debate_tools: list[ToolRead] = []
         self.modal_title = "View Session" if self._read_only else "Create Session"
 
     def compose_content(self) -> ComposeResult:
         if self.initial_state is not None:
             yield SectionEditor(
                 form_state=self.initial_state,
-                models=self.models,
+                models=self._models,
+                proposal_tools=self._proposal_tools,
+                debate_tools=self._debate_tools,
                 read_only=self._read_only,
             )
 
@@ -70,7 +75,11 @@ class SessionConfigModal(BaseModalScreen[SessionRead | None]):
     @work(group="session-config", exclusive=True)
     async def load_config(self) -> None:
         try:
-            models = await self._controller.list_ai_language_models()
+            models, proposal_tools, debate_tools = await gather(
+                self._controller.list_ai_language_models(),
+                self._controller.list_available_tools(scope=ToolScope.PROPOSAL),
+                self._controller.list_available_tools(scope=ToolScope.DEBATE),
+            )
             if self._session_id is not None:
                 session = await self._controller.get_session(session_id=self._session_id)
                 form_state = form_state_from_session_read(session)
@@ -82,7 +91,7 @@ class SessionConfigModal(BaseModalScreen[SessionRead | None]):
             self.content_loading = False
             return
 
-        self.models = models
+        self._models, self._proposal_tools, self._debate_tools = models, proposal_tools, debate_tools
         self.initial_state = form_state
         self.content_loading = False
         self.call_after_refresh(lambda: self.focus_next())

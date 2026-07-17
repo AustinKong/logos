@@ -184,7 +184,6 @@ class SessionChatScreen(BaseScreen):
             Navigate(
                 Route.ASK_USER,
                 AskUserParams(
-                    session_id=self._session_id,
                     event=event,
                     on_close=self._handle_ask_user_modal_closed,
                 ),

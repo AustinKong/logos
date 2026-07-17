@@ -5,5 +5,9 @@ class UnknownToolError(ValidationError):
     pass
 
 
+class ToolUnavailableError(ValidationError):
+    pass
+
+
 class InvalidToolArgumentsError(ValidationError):
     pass

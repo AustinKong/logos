@@ -426,22 +426,12 @@
         }
       }
     },
-    "/sessions/{session_id}/ask-user/{ask_user_id}/answer": {
+    "/tools/ask-user/{ask_user_id}/answer": {
       "post": {
-        "tags": ["ask-user"],
+        "tags": ["tools", "ask-user"],
         "summary": "Answer Ask User",
         "operationId": "answerAskUser",
         "parameters": [
-          {
-            "name": "session_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Session Id"
-            }
-          },
           {
             "name": "ask_user_id",
             "in": "path",
@@ -470,6 +460,49 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AskUserCompletedEventRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tools": {
+      "get": {
+        "tags": ["tools"],
+        "summary": "List Available Tools",
+        "operationId": "listAvailableTools",
+        "parameters": [
+          {
+            "name": "scope",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ToolScope"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ToolRead"
+                  },
+                  "title": "Response Listavailabletools"
                 }
               }
             }
@@ -1876,6 +1909,30 @@
         "type": "object",
         "required": ["window_size"],
         "title": "SlidingWindowHistoryConfigRead"
+      },
+      "ToolRead": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": ["name", "title", "description"],
+        "title": "ToolRead"
+      },
+      "ToolScope": {
+        "type": "string",
+        "enum": ["proposal", "debate"],
+        "title": "ToolScope"
       },
       "TurnCompletedEventRead": {
         "properties": {

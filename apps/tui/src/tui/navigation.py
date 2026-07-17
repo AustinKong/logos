@@ -33,7 +33,6 @@ class SessionChatParams:
 
 @dataclass(frozen=True, slots=True)
 class AskUserParams:
-    session_id: UUID
     event: AskUserStartedEventRead
     on_close: Callable[[None], None]
 
@@ -119,7 +118,6 @@ class Navigator:
         ask_user_controller = AskUserController(client=self._client)
         screen = AskUserModal(
             controller=ask_user_controller,
-            session_id=params.session_id,
             event=params.event,
         )
 

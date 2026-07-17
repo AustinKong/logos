@@ -2,9 +2,10 @@ from dataclasses import dataclass
 from typing import Protocol
 from uuid import UUID
 
-from api.modules.ai.models import AIToolCall, AIToolDefinition
+from api.modules.ai.models import AIToolCall
 from api.modules.session_configs.models.participants import Participant
 from api.modules.sessions.models.events import Event
+from api.modules.tools.models import ToolDefinition
 
 
 @dataclass(frozen=True, slots=True)
@@ -15,12 +16,6 @@ class ToolExecutionContext:
 
 class Tool(Protocol):
     @property
-    def name(self) -> str: ...
-
-    @property
-    def title(self) -> str: ...
-
-    @property
-    def definition(self) -> AIToolDefinition: ...
+    def definition(self) -> ToolDefinition: ...
 
     async def execute(self, *, tool_call: AIToolCall, ctx: ToolExecutionContext) -> list[Event]: ...
