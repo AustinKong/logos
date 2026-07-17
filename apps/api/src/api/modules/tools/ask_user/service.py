@@ -1,6 +1,5 @@
-from uuid import UUID, uuid4
+from uuid import UUID
 
-from sqlalchemy import select
 from sqlalchemy.orm import Session as SqlAlchemyDb
 
 from api.modules.ai.service import AIService
@@ -35,46 +34,37 @@ class AskUserService:
         question: str,
         options: list[str],
     ) -> list[Event]:
-        ask_user_id = uuid4()
+        started_event = AskUserStartedEvent(
+            session_id=session_id,
+            question=question,
+            options=options,
+            cache_entry_id=None,
+        )
         if cached_completed_event := await self._find_cached_completed_event(session_id=session_id, question=question):
             cache_entry_id, completed_event = cached_completed_event
+            started_event.cache_entry_id = cache_entry_id
             return [
-                AskUserStartedEvent(
-                    session_id=session_id,
-                    ask_user_id=ask_user_id,
-                    question=question,
-                    options=options,
-                    cache_entry_id=cache_entry_id,
-                ),
+                started_event,
                 AskUserCompletedEvent(
                     session_id=session_id,
-                    ask_user_id=ask_user_id,
+                    started_event=started_event,
                     answer_kind=completed_event.answer_kind,
                     answer=completed_event.answer,
                 ),
             ]
 
-        return [
-            AskUserStartedEvent(
-                session_id=session_id,
-                ask_user_id=ask_user_id,
-                question=question,
-                options=options,
-                cache_entry_id=None,
-            )
-        ]
+        return [started_event]
 
     async def answer(
         self,
         *,
-        ask_user_id: UUID,
+        started_event_id: UUID,
         answer_kind: AskUserAnswerKind,
         answer: str,
     ) -> AskUserCompletedEvent:
-        started_event = self._get_started_event(ask_user_id=ask_user_id)
-        ended_event = self._get_ended_event(ask_user_id=ask_user_id)
+        started_event = self._get_started_event(started_event_id=started_event_id)
 
-        if ended_event is not None:
+        if started_event.completed_event is not None:
             raise AskUserAlreadyAnsweredError()
 
         if answer_kind is AskUserAnswerKind.OPTION and answer not in started_event.options:
@@ -84,7 +74,7 @@ class AskUserService:
 
         completed_event = AskUserCompletedEvent(
             session_id=started_event.session_id,
-            ask_user_id=ask_user_id,
+            started_event=started_event,
             answer_kind=answer_kind,
             answer=answer,
         )
@@ -118,16 +108,11 @@ class AskUserService:
         except:
             pass
 
-    def _get_started_event(self, *, ask_user_id: UUID) -> AskUserStartedEvent:
-        statement = select(AskUserStartedEvent).where(AskUserStartedEvent.ask_user_id == ask_user_id)
-        started_event = self._db.execute(statement).scalar_one_or_none()
+    def _get_started_event(self, *, started_event_id: UUID) -> AskUserStartedEvent:
+        started_event = self._db.get(AskUserStartedEvent, started_event_id)
         if started_event is None:
             raise AskUserStartedEventNotFoundError()
         return started_event
-
-    def _get_ended_event(self, *, ask_user_id: UUID) -> AskUserCompletedEvent | None:
-        statement = select(AskUserCompletedEvent).where(AskUserCompletedEvent.ask_user_id == ask_user_id)
-        return self._db.execute(statement).scalar_one_or_none()
 
     async def _cache_answer(
         self,

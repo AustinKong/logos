@@ -426,20 +426,20 @@
         }
       }
     },
-    "/tools/ask-user/{ask_user_id}/answer": {
+    "/tools/ask-user/{started_event_id}/answer": {
       "post": {
         "tags": ["tools", "ask-user"],
         "summary": "Answer Ask User",
         "operationId": "answerAskUser",
         "parameters": [
           {
-            "name": "ask_user_id",
+            "name": "started_event_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
               "format": "uuid",
-              "title": "Ask User Id"
+              "title": "Started Event Id"
             }
           }
         ],
@@ -614,10 +614,10 @@
             "const": "ask_user.completed",
             "title": "Type"
           },
-          "ask_user_id": {
+          "started_event_id": {
             "type": "string",
             "format": "uuid",
-            "title": "Ask User Id"
+            "title": "Started Event Id"
           },
           "answer_kind": {
             "$ref": "#/components/schemas/AskUserAnswerKind"
@@ -634,7 +634,7 @@
           "created_at",
           "updated_at",
           "type",
-          "ask_user_id",
+          "started_event_id",
           "answer_kind",
           "answer"
         ],
@@ -667,11 +667,6 @@
             "const": "ask_user.started",
             "title": "Type"
           },
-          "ask_user_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Ask User Id"
-          },
           "question": {
             "type": "string",
             "title": "Question"
@@ -695,7 +690,6 @@
           "created_at",
           "updated_at",
           "type",
-          "ask_user_id",
           "question",
           "options",
           "requires_user_input"
@@ -1078,10 +1072,10 @@
             "const": "message.completed",
             "title": "Type"
           },
-          "message_id": {
+          "started_event_id": {
             "type": "string",
             "format": "uuid",
-            "title": "Message Id"
+            "title": "Started Event Id"
           },
           "content": {
             "type": "string",
@@ -1095,7 +1089,7 @@
           "created_at",
           "updated_at",
           "type",
-          "message_id",
+          "started_event_id",
           "content"
         ],
         "title": "MessageCompletedEventRead"
@@ -1126,22 +1120,10 @@
             "type": "string",
             "const": "message.started",
             "title": "Type"
-          },
-          "message_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Message Id"
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "session_id",
-          "created_at",
-          "updated_at",
-          "type",
-          "message_id"
-        ],
+        "required": ["id", "session_id", "created_at", "updated_at", "type"],
         "title": "MessageStartedEventRead"
       },
       "NoneResolutionConfigCreate": {
@@ -1401,10 +1383,10 @@
             "const": "reasoning.completed",
             "title": "Type"
           },
-          "reasoning_id": {
+          "started_event_id": {
             "type": "string",
             "format": "uuid",
-            "title": "Reasoning Id"
+            "title": "Started Event Id"
           },
           "content": {
             "type": "string",
@@ -1418,7 +1400,7 @@
           "created_at",
           "updated_at",
           "type",
-          "reasoning_id",
+          "started_event_id",
           "content"
         ],
         "title": "ReasoningCompletedEventRead"
@@ -1454,22 +1436,10 @@
             "type": "string",
             "const": "reasoning.started",
             "title": "Type"
-          },
-          "reasoning_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Reasoning Id"
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "session_id",
-          "created_at",
-          "updated_at",
-          "type",
-          "reasoning_id"
-        ],
+        "required": ["id", "session_id", "created_at", "updated_at", "type"],
         "title": "ReasoningStartedEventRead"
       },
       "ResolutionCompletedEventRead": {

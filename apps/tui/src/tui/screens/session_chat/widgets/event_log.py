@@ -60,12 +60,12 @@ class EventLog(VerticalScroll):
                     await self._active_turn.add(
                         Message(),
                         created_at=event.created_at,
-                        stream_id=event.message_id,
+                        stream_id=event.id,
                     )
             case MessageCompletedEventRead():
                 if self._active_turn is not None:
                     self._active_turn.set_content(
-                        event.message_id,
+                        event.started_event_id,
                         event.content,
                         created_at=event.created_at,
                     )
@@ -74,12 +74,12 @@ class EventLog(VerticalScroll):
                     await self._active_turn.add(
                         Reasoning(),
                         created_at=event.created_at,
-                        stream_id=event.reasoning_id,
+                        stream_id=event.id,
                     )
             case ReasoningCompletedEventRead():
                 if self._active_turn is not None:
                     self._active_turn.set_content(
-                        event.reasoning_id,
+                        event.started_event_id,
                         event.content,
                         created_at=event.created_at,
                     )
@@ -106,5 +106,5 @@ class EventLog(VerticalScroll):
             return
 
         # TODO: Only forcefully scroll end if user is already at the bottom of the log. Otherwise, don't scroll down and let them read the log
-        self._active_turn.append_content(token.correlation_id, token.content)
+        self._active_turn.append_content(token.stream_id, token.content)
         self.scroll_end(animate=True)

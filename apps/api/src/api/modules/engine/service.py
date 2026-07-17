@@ -47,7 +47,7 @@ class EngineService:
                 await self._streaming_service.publish(SESSION_EVENT_STREAM, output.session_id, output)
                 await self._close_streams_for_event(output)
             else:
-                await self._streaming_service.publish(TOKEN_STREAM, output.correlation_id, output)
+                await self._streaming_service.publish(TOKEN_STREAM, output.stream_id, output)
 
             yield output
 
@@ -55,10 +55,8 @@ class EngineService:
         match event:
             case SessionStartedEvent():
                 await self._streaming_service.open(SESSION_EVENT_STREAM, event.session_id)
-            case MessageStartedEvent():
-                await self._streaming_service.open(TOKEN_STREAM, event.message_id)
-            case ReasoningStartedEvent():
-                await self._streaming_service.open(TOKEN_STREAM, event.reasoning_id)
+            case MessageStartedEvent() | ReasoningStartedEvent():
+                await self._streaming_service.open(TOKEN_STREAM, event.id)
             case _:
                 return
 
@@ -66,10 +64,8 @@ class EngineService:
         match event:
             case SessionCompletedEvent():
                 await self._streaming_service.close(SESSION_EVENT_STREAM, event.session_id)
-            case MessageCompletedEvent():
-                await self._streaming_service.close(TOKEN_STREAM, event.message_id)
-            case ReasoningCompletedEvent():
-                await self._streaming_service.close(TOKEN_STREAM, event.reasoning_id)
+            case MessageCompletedEvent() | ReasoningCompletedEvent():
+                await self._streaming_service.close(TOKEN_STREAM, event.started_event_id)
             case _:
                 return
 
@@ -88,8 +84,10 @@ class EngineService:
                 return
 
     def _has_blocking_events_open(self, events: list[Event]) -> bool:
-        started_ask_user_ids = {event.ask_user_id for event in events if isinstance(event, AskUserStartedEvent)}
-        completed_ask_user_ids = {event.ask_user_id for event in events if isinstance(event, AskUserCompletedEvent)}
+        started_ask_user_ids = {event.id for event in events if isinstance(event, AskUserStartedEvent)}
+        completed_ask_user_ids = {
+            event.started_event_id for event in events if isinstance(event, AskUserCompletedEvent)
+        }
         if bool(started_ask_user_ids - completed_ask_user_ids):
             return True
 

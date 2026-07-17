@@ -83,7 +83,9 @@ class SessionChatScreen(BaseScreen):
                 if isinstance(event, AskUserStartedEventRead) and event.requires_user_input:
                     open_ask_user_events.append(event)
                 elif isinstance(event, AskUserCompletedEventRead):
-                    open_ask_user_events.pop(0)
+                    open_ask_user_events = [
+                        started for started in open_ask_user_events if started.id != event.started_event_id
+                    ]
 
                 if isinstance(event, SessionCompletedEventRead):
                     completed = True
@@ -118,23 +120,21 @@ class SessionChatScreen(BaseScreen):
                 match event:
                     case MessageStartedEventRead():
                         self.run_worker(
-                            self.stream_tokens(stream_id=event.message_id),
-                            group=f"session-token-stream:{event.message_id}",
+                            self.stream_tokens(stream_id=event.id),
+                            group=f"session-token-stream:{event.id}",
                             exclusive=True,
                         )
                     case ReasoningStartedEventRead():
                         self.run_worker(
-                            self.stream_tokens(stream_id=event.reasoning_id),
-                            group=f"session-token-stream:{event.reasoning_id}",
+                            self.stream_tokens(stream_id=event.id),
+                            group=f"session-token-stream:{event.id}",
                             exclusive=True,
                         )
                     case AskUserStartedEventRead() if event.requires_user_input:
                         self._enqueue_ask_user(event)
                     case AskUserCompletedEventRead():
                         self._pending_ask_user_events = [
-                            pending
-                            for pending in self._pending_ask_user_events
-                            if pending.ask_user_id != event.ask_user_id
+                            pending for pending in self._pending_ask_user_events if pending.id != event.started_event_id
                         ]
                     case SessionCompletedEventRead():
                         self.chat_input_shown = False
@@ -165,10 +165,10 @@ class SessionChatScreen(BaseScreen):
             self.notify(str(exc), title="Token stream failed", severity="error")
 
     def _enqueue_ask_user(self, event: AskUserStartedEventRead) -> None:
-        if self._active_ask_user_event is not None and self._active_ask_user_event.ask_user_id == event.ask_user_id:
+        if self._active_ask_user_event is not None and self._active_ask_user_event.id == event.id:
             return
 
-        if any(pending.ask_user_id == event.ask_user_id for pending in self._pending_ask_user_events):
+        if any(pending.id == event.id for pending in self._pending_ask_user_events):
             return
 
         self._pending_ask_user_events.append(event)

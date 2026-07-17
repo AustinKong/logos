@@ -14,7 +14,7 @@ import {
 export type { EventRead } from "./generated";
 
 export interface TokenRead {
-  correlation_id: string;
+  stream_id: string;
   content: string;
 }
 

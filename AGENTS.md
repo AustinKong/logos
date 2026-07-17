@@ -170,6 +170,8 @@ When domain entities have genuinely different required configuration by subtype,
 
 For event timelines, start with a base event table containing `session_id`, `type`, and timestamps. Keep simple lifecycle events as rows in the base table. Add joined-table event subclasses only when an event needs distinct persisted fields.
 
+For paired events, store a unique `started_event_id` foreign key on the completed event and expose a bidirectional one-to-one ORM relationship. When a started event opens a token stream, use that started event's `id` as the `stream_id`; this gives the stream and its lifecycle events one shared identity without a separate correlation ID. Assign the started event ID explicitly before emitting it because the stream opens before the event is persisted.
+
 For API contract changes, regenerate clients with `npm run gen`. For database schema changes, prompt the user to generate database migrations with Alembic.
 
 If the user asks you to generate one for them, do it with the command:

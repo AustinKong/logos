@@ -12,12 +12,12 @@ class AskUserController:
     async def answer(
         self,
         *,
-        ask_user_id: UUID,
+        started_event_id: UUID,
         answer_kind: AskUserAnswerKind,
         answer: str,
     ) -> AskUserCompletedEventRead:
         response = await answer_ask_user(
-            ask_user_id,
+            started_event_id,
             client=self._client,
             body=AskUserAnswerRequest(answer_kind=answer_kind, answer=answer),
         )

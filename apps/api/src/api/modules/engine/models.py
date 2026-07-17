@@ -8,7 +8,7 @@ from api.modules.sessions.models.events import Event
 
 @dataclass(frozen=True, slots=True)
 class Token:
-    correlation_id: UUID
+    stream_id: UUID
     content: str
 
 

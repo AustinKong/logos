@@ -113,7 +113,6 @@ class LiteLLMProvider:
                     # Tool calls are streamed as chunks, assemble them before parsing
                     if delta.tool_calls:
                         tool_call_chunks.extend(delta.tool_calls)
-                        continue
 
                     if reasoning_content := _get_reasoning_content(delta):
                         yield AIReasoningDelta(content=reasoning_content)

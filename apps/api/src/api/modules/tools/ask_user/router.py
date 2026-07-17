@@ -15,16 +15,16 @@ from api.modules.tools.ask_user.service import AskUserService
 router = APIRouter(prefix="/ask-user", tags=["ask-user"])
 
 
-@router.post("/{ask_user_id}/answer", operation_id="answerAskUser", response_model=AskUserCompletedEventRead)
+@router.post("/{started_event_id}/answer", operation_id="answerAskUser", response_model=AskUserCompletedEventRead)
 async def answer_ask_user(
-    ask_user_id: UUID,
+    started_event_id: UUID,
     payload: AskUserAnswerRequest,
     background_tasks: BackgroundTasks,
     ask_user_service: Annotated[AskUserService, Depends(get_ask_user_service)],
     streaming_service: Annotated[StreamingService, Depends(get_streaming_service)],
 ) -> AskUserCompletedEventRead:
     event = await ask_user_service.answer(
-        ask_user_id=ask_user_id,
+        started_event_id=started_event_id,
         answer_kind=payload.answer_kind,
         answer=payload.answer,
     )

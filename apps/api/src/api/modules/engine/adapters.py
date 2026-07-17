@@ -3,4 +3,4 @@ from api.modules.engine.schemas import TokenRead
 
 
 def token_read_from_token(token: Token) -> TokenRead:
-    return TokenRead(correlation_id=token.correlation_id, content=token.content)
+    return TokenRead(stream_id=token.stream_id, content=token.content)

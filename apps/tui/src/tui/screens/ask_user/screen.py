@@ -72,7 +72,7 @@ class AskUserModal(BaseModalScreen[None]):
         self.content_loading = True
         try:
             await self._controller.answer(
-                ask_user_id=self._event.ask_user_id,
+                started_event_id=self._event.id,
                 answer_kind=answer_kind,
                 answer=answer,
             )

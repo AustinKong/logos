@@ -12,7 +12,7 @@ from ...client import AuthenticatedClient, Client
 
 @_attrs_define
 class TokenRead:
-    correlation_id: UUID
+    stream_id: UUID
     content: str
 
 
@@ -34,7 +34,7 @@ def _get_kwargs(session_id: UUID, *, stream_id: UUID) -> dict[str, Any]:
 def _token_from_data(data: str) -> TokenRead:
     token_data = json.loads(data)
     return TokenRead(
-        correlation_id=UUID(token_data["correlation_id"]),
+        stream_id=UUID(token_data["stream_id"]),
         content=token_data["content"],
     )
 

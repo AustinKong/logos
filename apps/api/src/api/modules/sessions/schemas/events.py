@@ -61,29 +61,26 @@ class ResolutionCompletedEventRead(EventReadBase):
 
 class MessageStartedEventRead(EventReadBase):
     type: Literal[EventType.MESSAGE_STARTED]
-    message_id: UUID
 
 
 class MessageCompletedEventRead(EventReadBase):
     type: Literal[EventType.MESSAGE_COMPLETED]
-    message_id: UUID
+    started_event_id: UUID
     content: str
 
 
 class ReasoningStartedEventRead(EventReadBase):
     type: Literal[EventType.REASONING_STARTED]
-    reasoning_id: UUID
 
 
 class ReasoningCompletedEventRead(EventReadBase):
     type: Literal[EventType.REASONING_COMPLETED]
-    reasoning_id: UUID
+    started_event_id: UUID
     content: str
 
 
 class AskUserStartedEventRead(EventReadBase):
     type: Literal[EventType.ASK_USER_STARTED]
-    ask_user_id: UUID
     question: str
     options: list[str]
     requires_user_input: bool
@@ -91,7 +88,7 @@ class AskUserStartedEventRead(EventReadBase):
 
 class AskUserCompletedEventRead(EventReadBase):
     type: Literal[EventType.ASK_USER_COMPLETED]
-    ask_user_id: UUID
+    started_event_id: UUID
     answer_kind: AskUserAnswerKind
     answer: str
 

@@ -7,7 +7,6 @@ from api.modules.ai.models import AIMessage, MessageRole
 from api.modules.engine.timeline.turns import Turn
 from api.modules.sessions.models.events import (
     AskUserCompletedEvent,
-    AskUserStartedEvent,
     MessageCompletedEvent,
     ReasoningCompletedEvent,
 )
@@ -51,9 +50,6 @@ def ai_message_from_turn(
     include_internal_events_from: InternalEventSources,
 ) -> list[AIMessage]:
     messages: list[AIMessage] = []
-    ask_user_events_by_id = {
-        event.ask_user_id: event for event in turn.events if isinstance(event, AskUserStartedEvent)
-    }
     includes_internal_events = _includes_internal_events(
         turn,
         include_internal_events_from=include_internal_events_from,
@@ -87,27 +83,26 @@ def ai_message_from_turn(
                 else:
                     messages.append(AIMessage(role=MessageRole.ASSISTANT, content=event.content))
             case AskUserCompletedEvent() if includes_internal_events:
-                if started_event := ask_user_events_by_id.get(event.ask_user_id):
-                    if mode is TurnMessageMode.HISTORY:
-                        messages.append(
+                if mode is TurnMessageMode.HISTORY:
+                    messages.append(
+                        AIMessage(
+                            role=MessageRole.USER,
+                            content=(
+                                f"{turn.started.sender.name} asked the user: {event.started_event.question}\n"
+                                f"User answered: {event.answer}"
+                            ),
+                        )
+                    )
+                else:
+                    messages.extend(
+                        (
                             AIMessage(
-                                role=MessageRole.USER,
-                                content=(
-                                    f"{turn.started.sender.name} asked the user: {started_event.question}\n"
-                                    f"User answered: {event.answer}"
-                                ),
-                            )
+                                role=MessageRole.ASSISTANT,
+                                content=f"Ask the user: {event.started_event.question}",
+                            ),
+                            AIMessage(role=MessageRole.USER, content=event.answer),
                         )
-                    else:
-                        messages.extend(
-                            (
-                                AIMessage(
-                                    role=MessageRole.ASSISTANT,
-                                    content=f"Ask the user: {started_event.question}",
-                                ),
-                                AIMessage(role=MessageRole.USER, content=event.answer),
-                            )
-                        )
+                    )
             case _:
                 pass
 

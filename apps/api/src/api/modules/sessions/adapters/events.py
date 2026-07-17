@@ -61,7 +61,6 @@ def event_read_from_event(event: Event) -> EventRead:
             return AskUserStartedEventRead(
                 **fields,
                 type=EventType.ASK_USER_STARTED,
-                ask_user_id=event.ask_user_id,
                 question=event.question,
                 options=event.options,
                 requires_user_input=event.cache_entry_id is None,
@@ -72,26 +71,24 @@ def event_read_from_event(event: Event) -> EventRead:
             return MessageStartedEventRead(
                 **fields,
                 type=EventType.MESSAGE_STARTED,
-                message_id=event.message_id,
             )
         case MessageCompletedEvent():
             return MessageCompletedEventRead(
                 **fields,
                 type=EventType.MESSAGE_COMPLETED,
-                message_id=event.message_id,
+                started_event_id=event.started_event_id,
                 content=event.content,
             )
         case ReasoningStartedEvent():
             return ReasoningStartedEventRead(
                 **fields,
                 type=EventType.REASONING_STARTED,
-                reasoning_id=event.reasoning_id,
             )
         case ReasoningCompletedEvent():
             return ReasoningCompletedEventRead(
                 **fields,
                 type=EventType.REASONING_COMPLETED,
-                reasoning_id=event.reasoning_id,
+                started_event_id=event.started_event_id,
                 content=event.content,
             )
         case ProposalStartedEvent():
@@ -153,7 +150,7 @@ def ask_user_completed_event_read_from_event(event: AskUserCompletedEvent) -> As
     return AskUserCompletedEventRead(
         **_event_fields(event),
         type=EventType.ASK_USER_COMPLETED,
-        ask_user_id=event.ask_user_id,
+        started_event_id=event.started_event_id,
         answer_kind=event.answer_kind,
         answer=event.answer,
     )

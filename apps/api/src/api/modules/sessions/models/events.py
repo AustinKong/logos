@@ -116,7 +116,11 @@ class MessageStartedEvent(Event):
     __tablename__ = "message_started_events"
 
     id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), primary_key=True)
-    message_id: Mapped[UUID] = mapped_column(index=True, unique=True)
+    completed_event: Mapped[MessageCompletedEvent | None] = relationship(
+        back_populates="started_event",
+        foreign_keys="MessageCompletedEvent.started_event_id",
+        uselist=False,
+    )
 
     __mapper_args__ = {
         "polymorphic_identity": EventType.MESSAGE_STARTED,
@@ -127,8 +131,16 @@ class MessageCompletedEvent(Event):
     __tablename__ = "message_completed_events"
 
     id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), primary_key=True)
-    message_id: Mapped[UUID] = mapped_column(index=True, unique=True)
+    started_event_id: Mapped[UUID] = mapped_column(
+        ForeignKey("message_started_events.id"),
+        unique=True,
+    )
     content: Mapped[str] = mapped_column(Text)
+
+    started_event: Mapped[MessageStartedEvent] = relationship(
+        back_populates="completed_event",
+        foreign_keys=[started_event_id],
+    )
 
     __mapper_args__ = {
         "polymorphic_identity": EventType.MESSAGE_COMPLETED,
@@ -139,7 +151,11 @@ class ReasoningStartedEvent(Event):
     __tablename__ = "reasoning_started_events"
 
     id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), primary_key=True)
-    reasoning_id: Mapped[UUID] = mapped_column(index=True, unique=True)
+    completed_event: Mapped[ReasoningCompletedEvent | None] = relationship(
+        back_populates="started_event",
+        foreign_keys="ReasoningCompletedEvent.started_event_id",
+        uselist=False,
+    )
 
     __mapper_args__ = {
         "polymorphic_identity": EventType.REASONING_STARTED,
@@ -150,8 +166,16 @@ class ReasoningCompletedEvent(Event):
     __tablename__ = "reasoning_completed_events"
 
     id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), primary_key=True)
-    reasoning_id: Mapped[UUID] = mapped_column(index=True, unique=True)
+    started_event_id: Mapped[UUID] = mapped_column(
+        ForeignKey("reasoning_started_events.id"),
+        unique=True,
+    )
     content: Mapped[str] = mapped_column(Text)
+
+    started_event: Mapped[ReasoningStartedEvent] = relationship(
+        back_populates="completed_event",
+        foreign_keys=[started_event_id],
+    )
 
     __mapper_args__ = {
         "polymorphic_identity": EventType.REASONING_COMPLETED,
@@ -184,10 +208,15 @@ class AskUserStartedEvent(Event):
     __tablename__ = "ask_user_started_events"
 
     id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), primary_key=True)
-    ask_user_id: Mapped[UUID] = mapped_column(index=True, unique=True)
     question: Mapped[str] = mapped_column(Text)
     options: Mapped[list[str]] = mapped_column(JSON)
     cache_entry_id: Mapped[UUID | None] = mapped_column(Uuid, index=True)
+
+    completed_event: Mapped[AskUserCompletedEvent | None] = relationship(
+        back_populates="started_event",
+        foreign_keys="AskUserCompletedEvent.started_event_id",
+        uselist=False,
+    )
 
     __mapper_args__ = {
         "polymorphic_identity": EventType.ASK_USER_STARTED,
@@ -198,7 +227,10 @@ class AskUserCompletedEvent(Event):
     __tablename__ = "ask_user_completed_events"
 
     id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), primary_key=True)
-    ask_user_id: Mapped[UUID] = mapped_column(index=True, unique=True)
+    started_event_id: Mapped[UUID] = mapped_column(
+        ForeignKey("ask_user_started_events.id"),
+        unique=True,
+    )
     answer_kind: Mapped[AskUserAnswerKind] = mapped_column(
         SQLAlchemyEnum(
             AskUserAnswerKind,
@@ -208,6 +240,11 @@ class AskUserCompletedEvent(Event):
         index=True,
     )
     answer: Mapped[str] = mapped_column(Text)
+
+    started_event: Mapped[AskUserStartedEvent] = relationship(
+        back_populates="completed_event",
+        foreign_keys=[started_event_id],
+    )
 
     __mapper_args__ = {
         "polymorphic_identity": EventType.ASK_USER_COMPLETED,
