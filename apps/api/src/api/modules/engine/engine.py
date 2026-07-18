@@ -44,6 +44,7 @@ class Engine:
             ),
             ResolutionStage(
                 resolution_strategy=self._strategy_resolver.resolution(session),
+                generation_runner=self._generation_runner,
             ),
         ]
 

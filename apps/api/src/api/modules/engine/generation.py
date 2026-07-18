@@ -19,19 +19,18 @@ from api.modules.sessions.models.events import (
     MessageStartedEvent,
     ReasoningCompletedEvent,
     ReasoningStartedEvent,
-    TurnCompletedEvent,
 )
 from api.modules.tools.adapters import ai_tool_definition_from_definition
 from api.modules.tools.base import Tool, ToolExecutionContext
 
 
+# TODO: Ponder why this isn't just a function like adjudication.py, we don't DI into this class anyways?
 class GenerationRunner:
     def __init__(self, *, ai_service: AIService) -> None:
         self._ai_service = ai_service
 
-    # TODO: May need to split into run_response based on judge/jury requirements.
-    # This fn right now auto appends TurnCompletedEvent which doesn't work with judge/jury
-    async def run_turn(
+    # Does not yield TurnStartedEvent or TurnCompletedEvent, turn start/end is contextually different based on caller.
+    async def run_response(
         self,
         *,
         session_id: UUID,
@@ -125,7 +124,3 @@ class GenerationRunner:
                 ctx=ToolExecutionContext(session_id=session_id, sender=sender),
             ):
                 yield event
-
-        # A tool call keeps the turn open so the agent can consume its result.
-        if message_started and not tool_calls:
-            yield TurnCompletedEvent(session_id=session_id)

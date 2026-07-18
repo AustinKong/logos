@@ -21,9 +21,18 @@ class Turn(Vertical):
         margin-bottom: 1;
     }
 
+    Turn .turn-header {
+        width: 100%;
+        height: auto;
+    }
+
     Turn .turn-sender {
         width: 1fr;
         text-style: bold;
+    }
+
+    Turn .turn-time {
+        width: auto;
     }
     """
 

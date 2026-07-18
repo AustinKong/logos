@@ -13,8 +13,13 @@ type HealthState =
 type ResolutionModeValue = (typeof ResolutionMode)[keyof typeof ResolutionMode];
 const resolutionModeOptions = [
   {
+    label: schemaFields.JuryResolutionConfigCreate.mode.title,
+    value: ResolutionMode.jury,
+    description: schemaFields.JuryResolutionConfigCreate.mode.description,
+  },
+  {
     label: schemaFields.JudgeResolutionConfigCreate.mode.title,
-    value: ResolutionMode.judge_llm,
+    value: ResolutionMode.judge,
     description: schemaFields.JudgeResolutionConfigCreate.mode.description,
   },
   {

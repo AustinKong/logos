@@ -885,6 +885,9 @@
             "$ref": "#/components/schemas/ResolutionCompletedEventRead"
           },
           {
+            "$ref": "#/components/schemas/ResolutionVoteEventRead"
+          },
+          {
             "$ref": "#/components/schemas/MessageStartedEventRead"
           },
           {
@@ -918,6 +921,7 @@
             "reasoning.started": "#/components/schemas/ReasoningStartedEventRead",
             "resolution.completed": "#/components/schemas/ResolutionCompletedEventRead",
             "resolution.started": "#/components/schemas/ResolutionStartedEventRead",
+            "resolution.vote": "#/components/schemas/ResolutionVoteEventRead",
             "session.completed": "#/components/schemas/SessionCompletedEventRead",
             "session.started": "#/components/schemas/SessionStartedEventRead",
             "turn.completed": "#/components/schemas/TurnCompletedEventRead",
@@ -1013,10 +1017,10 @@
         "properties": {
           "mode": {
             "type": "string",
-            "const": "judge_llm",
-            "title": "Judge LLM",
+            "const": "judge",
+            "title": "Judge",
             "description": "Use an AI judge to select the final resolution.",
-            "default": "judge_llm"
+            "default": "judge"
           },
           "judge": {
             "$ref": "#/components/schemas/ParticipantCreate",
@@ -1032,10 +1036,10 @@
         "properties": {
           "mode": {
             "type": "string",
-            "const": "judge_llm",
-            "title": "Judge LLM",
+            "const": "judge",
+            "title": "Judge",
             "description": "Use an AI judge to select the final resolution.",
-            "default": "judge_llm"
+            "default": "judge"
           },
           "judge": {
             "$ref": "#/components/schemas/ParticipantRead"
@@ -1044,6 +1048,50 @@
         "type": "object",
         "required": ["judge"],
         "title": "JudgeResolutionConfigRead"
+      },
+      "JuryResolutionConfigCreate": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "const": "jury",
+            "title": "Jury",
+            "description": "Use a panel of AI jurors to vote on the final resolution.",
+            "default": "jury"
+          },
+          "jurors": {
+            "items": {
+              "$ref": "#/components/schemas/ParticipantCreate"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Jurors",
+            "description": "Agents that independently review the debate and vote on its resolution."
+          }
+        },
+        "type": "object",
+        "required": ["jurors"],
+        "title": "JuryResolutionConfigCreate"
+      },
+      "JuryResolutionConfigRead": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "const": "jury",
+            "title": "Jury",
+            "description": "Use a panel of AI jurors to vote on the final resolution.",
+            "default": "jury"
+          },
+          "jurors": {
+            "items": {
+              "$ref": "#/components/schemas/ParticipantRead"
+            },
+            "type": "array",
+            "title": "Jurors"
+          }
+        },
+        "type": "object",
+        "required": ["jurors"],
+        "title": "JuryResolutionConfigRead"
       },
       "MessageCompletedEventRead": {
         "properties": {
@@ -1491,13 +1539,17 @@
             "$ref": "#/components/schemas/JudgeResolutionConfigCreate"
           },
           {
+            "$ref": "#/components/schemas/JuryResolutionConfigCreate"
+          },
+          {
             "$ref": "#/components/schemas/NoneResolutionConfigCreate"
           }
         ],
         "discriminator": {
           "propertyName": "mode",
           "mapping": {
-            "judge_llm": "#/components/schemas/JudgeResolutionConfigCreate",
+            "judge": "#/components/schemas/JudgeResolutionConfigCreate",
+            "jury": "#/components/schemas/JuryResolutionConfigCreate",
             "none": "#/components/schemas/NoneResolutionConfigCreate"
           }
         }
@@ -1508,13 +1560,17 @@
             "$ref": "#/components/schemas/JudgeResolutionConfigRead"
           },
           {
+            "$ref": "#/components/schemas/JuryResolutionConfigRead"
+          },
+          {
             "$ref": "#/components/schemas/NoneResolutionConfigRead"
           }
         ],
         "discriminator": {
           "propertyName": "mode",
           "mapping": {
-            "judge_llm": "#/components/schemas/JudgeResolutionConfigRead",
+            "judge": "#/components/schemas/JudgeResolutionConfigRead",
+            "jury": "#/components/schemas/JuryResolutionConfigRead",
             "none": "#/components/schemas/NoneResolutionConfigRead"
           }
         }
@@ -1550,6 +1606,48 @@
         "type": "object",
         "required": ["id", "session_id", "created_at", "updated_at", "type"],
         "title": "ResolutionStartedEventRead"
+      },
+      "ResolutionVoteEventRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "type": {
+            "type": "string",
+            "const": "resolution.vote",
+            "title": "Type"
+          },
+          "selected_participant": {
+            "$ref": "#/components/schemas/ParticipantRead"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "session_id",
+          "created_at",
+          "updated_at",
+          "type",
+          "selected_participant"
+        ],
+        "title": "ResolutionVoteEventRead"
       },
       "RoundRobinTurnSelectionConfigCreate": {
         "properties": {

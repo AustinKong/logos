@@ -5,7 +5,7 @@ from api.modules.sessions.adapters.configs import (
     proposal_config_read_from_config,
     resolution_config_read_from_config,
 )
-from api.modules.strategies.resolution.configs import JudgeResolutionConfig
+from api.modules.strategies.resolution.configs import JudgeResolutionConfig, JuryResolutionConfig
 
 
 def session_config_read_from_config(config: SessionConfig) -> SessionConfigRead:
@@ -21,5 +21,6 @@ def session_config_read_from_config(config: SessionConfig) -> SessionConfigRead:
         resolution=resolution_config_read_from_config(
             resolution_config,
             config.judge_participant if isinstance(resolution_config, JudgeResolutionConfig) else None,
+            config.juror_participants if isinstance(resolution_config, JuryResolutionConfig) else [],
         ),
     )

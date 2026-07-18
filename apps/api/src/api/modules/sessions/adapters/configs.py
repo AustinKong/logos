@@ -7,6 +7,7 @@ from api.modules.session_configs.adapters.participants import (
 from api.modules.session_configs.models.participants import (
     DebaterParticipant,
     JudgeParticipant,
+    JurorParticipant,
     ParticipantData,
     ParticipantType,
 )
@@ -18,6 +19,8 @@ from api.modules.session_configs.schemas.configs import (
     HistoryConfigRead,
     JudgeResolutionConfigCreate,
     JudgeResolutionConfigRead,
+    JuryResolutionConfigCreate,
+    JuryResolutionConfigRead,
     NoneResolutionConfigCreate,
     NoneResolutionConfigRead,
     ResolutionConfigCreate,
@@ -40,7 +43,9 @@ from api.modules.session_configs.schemas.session_configs import (
 from api.modules.strategies.history.configs import FullHistoryConfig, HistoryConfig, SlidingWindowHistoryConfig
 from api.modules.strategies.resolution.configs import (
     JudgeResolutionConfig,
+    JuryResolutionConfig,
     NoneResolutionConfig,
+    ResolutionConfig,
 )
 from api.modules.strategies.turn_selection.configs import (
     RoundRobinTurnSelectionConfig,
@@ -89,12 +94,14 @@ def debate_config_from_create(debate_create: DebateConfigCreate) -> DebateConfig
 
 def resolution_config_from_create(
     resolution_create: ResolutionConfigCreate,
-) -> JudgeResolutionConfig | NoneResolutionConfig:
+) -> ResolutionConfig:
     match resolution_create:
         case JudgeResolutionConfigCreate():
             return JudgeResolutionConfig(
                 mode=resolution_create.mode,
             )
+        case JuryResolutionConfigCreate():
+            return JuryResolutionConfig(mode=resolution_create.mode)
         case NoneResolutionConfigCreate():
             return NoneResolutionConfig(mode=resolution_create.mode)
         case _ as never:
@@ -105,6 +112,11 @@ def participant_data_from_resolution_create(resolution_create: ResolutionConfigC
     match resolution_create:
         case JudgeResolutionConfigCreate():
             return [participant_data_from_create(resolution_create.judge, participant_type=ParticipantType.JUDGE)]
+        case JuryResolutionConfigCreate():
+            return [
+                participant_data_from_create(juror, participant_type=ParticipantType.JUROR)
+                for juror in resolution_create.jurors
+            ]
         case NoneResolutionConfigCreate():
             return []
         case _ as never:
@@ -161,8 +173,9 @@ def debate_config_read_from_config(
 
 
 def resolution_config_read_from_config(
-    resolution_config: JudgeResolutionConfig | NoneResolutionConfig,
+    resolution_config: ResolutionConfig,
     judge: JudgeParticipant | None,
+    jurors: list[JurorParticipant],
 ) -> ResolutionConfigRead:
     match resolution_config:
         case JudgeResolutionConfig():
@@ -171,6 +184,11 @@ def resolution_config_read_from_config(
             return JudgeResolutionConfigRead(
                 mode=resolution_config.mode,
                 judge=participant_read_from_participant(judge),
+            )
+        case JuryResolutionConfig():
+            return JuryResolutionConfigRead(
+                mode=resolution_config.mode,
+                jurors=[participant_read_from_participant(juror) for juror in jurors],
             )
         case NoneResolutionConfig():
             return NoneResolutionConfigRead(mode=resolution_config.mode)

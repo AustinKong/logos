@@ -78,9 +78,9 @@ class SlidingWindowHistoryConfigRead(SlidingWindowHistoryConfigBase):
 
 
 class JudgeResolutionConfigBase(BaseModel):
-    mode: Literal[ResolutionMode.JUDGE_LLM] = Field(
-        ResolutionMode.JUDGE_LLM,
-        title="Judge LLM",
+    mode: Literal[ResolutionMode.JUDGE] = Field(
+        ResolutionMode.JUDGE,
+        title="Judge",
         description="Use an AI judge to select the final resolution.",
     )
 
@@ -94,6 +94,26 @@ class JudgeResolutionConfigCreate(JudgeResolutionConfigBase):
 
 class JudgeResolutionConfigRead(JudgeResolutionConfigBase):
     judge: ParticipantRead
+
+
+class JuryResolutionConfigBase(BaseModel):
+    mode: Literal[ResolutionMode.JURY] = Field(
+        ResolutionMode.JURY,
+        title="Jury",
+        description="Use a panel of AI jurors to vote on the final resolution.",
+    )
+
+
+class JuryResolutionConfigCreate(JuryResolutionConfigBase):
+    jurors: list[ParticipantCreate] = Field(
+        min_length=1,
+        title="Jurors",
+        description="Agents that independently review the debate and vote on its resolution.",
+    )
+
+
+class JuryResolutionConfigRead(JuryResolutionConfigBase):
+    jurors: list[ParticipantRead]
 
 
 class NoneResolutionConfigBase(BaseModel):
@@ -113,12 +133,12 @@ class NoneResolutionConfigRead(NoneResolutionConfigBase):
 
 
 type ResolutionConfigCreate = Annotated[
-    JudgeResolutionConfigCreate | NoneResolutionConfigCreate,
+    JudgeResolutionConfigCreate | JuryResolutionConfigCreate | NoneResolutionConfigCreate,
     Field(discriminator="mode"),
 ]
 
 type ResolutionConfigRead = Annotated[
-    JudgeResolutionConfigRead | NoneResolutionConfigRead,
+    JudgeResolutionConfigRead | JuryResolutionConfigRead | NoneResolutionConfigRead,
     Field(discriminator="mode"),
 ]
 

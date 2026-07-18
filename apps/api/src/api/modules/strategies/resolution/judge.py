@@ -1,64 +1,41 @@
-from api.modules.ai.errors import AIProviderError
-from api.modules.ai.models import AIMessage, AIMessageResponseAction, GenerationOptions, MessageRole
-from api.modules.ai.service import AIService
+from api.modules.engine.generation import GenerationRunner
 from api.modules.engine.models import EngineContext, EngineOutputStream
-from api.modules.engine.timeline.messages import InternalEventVisibility, TurnMessageMode, ai_messages_from_turns
-from api.modules.engine.timeline.turns import turns_from_events
 from api.modules.session_configs.models.participants import JudgeParticipant
-from api.modules.sessions.models.events import ResolutionCompletedEvent
-from api.modules.strategies.resolution.configs import JudgeResolutionConfig
+from api.modules.sessions.models.events import ResolutionCompletedEvent, ResolutionVoteEvent
+from api.modules.strategies.resolution.adjudication import adjudication_messages, run_adjudication
 
 JUDGE_SYSTEM_PROMPT = (
     "You are a neutral judge resolving a structured debate. "
     "Decide the strongest answer to the session prompt using only the transcript."
 )
-JUDGE_USER_PROMPT = (
-    "Session prompt:\n{session_prompt}\n\nWrite a verdict. Include the decision first, then the main reason."
-)
 
 
+# TODO: Consider a way to optimize this instead of double generation. Avoid asking for verdict as a tool parameter because we need streaming.
 class JudgeResolutionStrategy:
-    def __init__(
-        self,
-        *,
-        ai_service: AIService,
-        config: JudgeResolutionConfig,
-        judge: JudgeParticipant,
-    ) -> None:
-        self._ai_service = ai_service
-        self._config = config
+    def __init__(self, *, judge: JudgeParticipant) -> None:
         self._judge = judge
 
-    async def resolve(self, ctx: EngineContext) -> EngineOutputStream:
-        completed_turns, _ = turns_from_events(ctx.events)
-
-        response = await self._ai_service.generate_response(
-            messages=[
-                AIMessage(role=MessageRole.SYSTEM, content=f"{JUDGE_SYSTEM_PROMPT}\n\n{self._judge.system_prompt}"),
-                AIMessage(
-                    role=MessageRole.USER,
-                    content=JUDGE_USER_PROMPT.format(session_prompt=ctx.prompt),
-                ),
-                *ai_messages_from_turns(
-                    completed_turns,
-                    mode=TurnMessageMode.HISTORY,
-                    include_internal_events_from=InternalEventVisibility.NONE,
-                ),
-            ],
-            options=GenerationOptions(
-                model=self._judge.model,
-                reasoning_effort=self._judge.reasoning_effort,
-                verbosity=self._judge.verbosity,
-                temperature=self._judge.temperature,
+    async def resolve(self, ctx: EngineContext, *, generation_runner: GenerationRunner) -> EngineOutputStream:
+        vote: ResolutionVoteEvent | None = None
+        async for output in run_adjudication(
+            ctx=ctx,
+            adjudicator=self._judge,
+            messages=adjudication_messages(
+                ctx=ctx,
+                adjudicator=self._judge,
+                system_prompt=JUDGE_SYSTEM_PROMPT,
             ),
-        )
+            generation_runner=generation_runner,
+        ):
+            if isinstance(output, ResolutionVoteEvent):
+                vote = output
+            yield output
 
-        if not isinstance(response.action, AIMessageResponseAction):
-            raise AIProviderError("AI provider returned an unsupported response action")
+        assert vote is not None
 
-        decision = response.action.content
+        winner = next(participant for participant in ctx.debaters if participant.id == vote.selected_participant_id)
 
         yield ResolutionCompletedEvent(
             session_id=ctx.session_id,
-            decision=decision,
+            decision=f"Selected {winner.name}.",
         )

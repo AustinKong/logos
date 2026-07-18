@@ -16,6 +16,7 @@ from api.modules.sessions.models.events import (
     ReasoningStartedEvent,
     ResolutionCompletedEvent,
     ResolutionStartedEvent,
+    ResolutionVoteEvent,
     SessionCompletedEvent,
     SessionStartedEvent,
     TurnCompletedEvent,
@@ -35,6 +36,7 @@ from api.modules.sessions.schemas.events import (
     ReasoningStartedEventRead,
     ResolutionCompletedEventRead,
     ResolutionStartedEventRead,
+    ResolutionVoteEventRead,
     SessionCompletedEventRead,
     SessionStartedEventRead,
     TurnCompletedEventRead,
@@ -122,6 +124,12 @@ def event_read_from_event(event: Event) -> EventRead:
                 **fields,
                 type=EventType.RESOLUTION_COMPLETED,
                 decision=event.decision,
+            )
+        case ResolutionVoteEvent():
+            return ResolutionVoteEventRead(
+                **fields,
+                type=EventType.RESOLUTION_VOTE,
+                selected_participant=participant_read_from_participant(event.selected_participant),
             )
         case SessionCompletedEvent():
             return SessionCompletedEventRead(

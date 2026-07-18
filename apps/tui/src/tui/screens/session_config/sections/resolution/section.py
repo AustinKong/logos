@@ -8,19 +8,27 @@ from textual.widgets import ContentSwitcher, Select
 
 from tui.screens.session_config.sections.resolution.models import (
     JudgeResolutionFormState,
+    JuryResolutionFormState,
     NoneResolutionFormState,
     ResolutionFormState,
     judge_participant_form_state,
+    juror_participant_form_state,
 )
 from tui.screens.session_config.sections.resolution.modes.judge import JudgeResolutionFields
+from tui.screens.session_config.sections.resolution.modes.jury import JuryResolutionFields
 from tui.screens.session_config.sections.state import state_or_default
 from tui.shared.textual import on
 from tui.widgets.forms.select_field import SelectField, SelectOption
 
 RESOLUTION_MODE_OPTIONS = [
     SelectOption(
+        SCHEMA_FIELDS["JuryResolutionConfigCreate"]["mode"]["title"],
+        ResolutionMode.JURY,
+        SCHEMA_FIELDS["JuryResolutionConfigCreate"]["mode"]["description"],
+    ),
+    SelectOption(
         SCHEMA_FIELDS["JudgeResolutionConfigCreate"]["mode"]["title"],
-        ResolutionMode.JUDGE_LLM,
+        ResolutionMode.JUDGE,
         SCHEMA_FIELDS["JudgeResolutionConfigCreate"]["mode"]["description"],
     ),
     SelectOption(
@@ -30,7 +38,8 @@ RESOLUTION_MODE_OPTIONS = [
     ),
 ]
 RESOLUTION_MODE_CONTENT_IDS = {
-    ResolutionMode.JUDGE_LLM: "judge-resolution-fields",
+    ResolutionMode.JUDGE: "judge-resolution-fields",
+    ResolutionMode.JURY: "jury-resolution-fields",
     ResolutionMode.NONE: "none-resolution-fields",
 }
 
@@ -76,7 +85,17 @@ class ResolutionSection(VerticalScroll):
                 ),
                 models=self._models,
                 read_only=self._read_only,
-                id=RESOLUTION_MODE_CONTENT_IDS[ResolutionMode.JUDGE_LLM],
+                id=RESOLUTION_MODE_CONTENT_IDS[ResolutionMode.JUDGE],
+            ),
+            JuryResolutionFields(
+                initial_state=state_or_default(
+                    self._initial_state,
+                    JuryResolutionFormState,
+                    JuryResolutionFormState(jurors=[juror_participant_form_state(number) for number in range(1, 4)]),
+                ),
+                models=self._models,
+                read_only=self._read_only,
+                id=RESOLUTION_MODE_CONTENT_IDS[ResolutionMode.JURY],
             ),
             initial=RESOLUTION_MODE_CONTENT_IDS[self._initial_state.mode],
             id="resolution-fields",
@@ -93,10 +112,15 @@ class ResolutionSection(VerticalScroll):
         match ResolutionMode(mode_select.value):
             case ResolutionMode.NONE:
                 return NoneResolutionFormState()
-            case ResolutionMode.JUDGE_LLM:
+            case ResolutionMode.JUDGE:
                 return self.query_one(
-                    f"#{RESOLUTION_MODE_CONTENT_IDS[ResolutionMode.JUDGE_LLM]}",
+                    f"#{RESOLUTION_MODE_CONTENT_IDS[ResolutionMode.JUDGE]}",
                     JudgeResolutionFields,
+                ).form_state()
+            case ResolutionMode.JURY:
+                return self.query_one(
+                    f"#{RESOLUTION_MODE_CONTENT_IDS[ResolutionMode.JURY]}",
+                    JuryResolutionFields,
                 ).form_state()
             case _ as never:
                 assert_never(never)

@@ -5,12 +5,17 @@ from pydantic import BaseModel, Field, TypeAdapter
 
 
 class ResolutionMode(StrEnum):
-    JUDGE_LLM = "judge_llm"
+    JUDGE = "judge"
+    JURY = "jury"
     NONE = "none"
 
 
 class JudgeResolutionConfig(BaseModel):
-    mode: Literal[ResolutionMode.JUDGE_LLM] = ResolutionMode.JUDGE_LLM
+    mode: Literal[ResolutionMode.JUDGE] = ResolutionMode.JUDGE
+
+
+class JuryResolutionConfig(BaseModel):
+    mode: Literal[ResolutionMode.JURY] = ResolutionMode.JURY
 
 
 class NoneResolutionConfig(BaseModel):
@@ -18,7 +23,7 @@ class NoneResolutionConfig(BaseModel):
 
 
 type ResolutionConfig = Annotated[
-    JudgeResolutionConfig | NoneResolutionConfig,
+    JudgeResolutionConfig | JuryResolutionConfig | NoneResolutionConfig,
     Field(discriminator="mode"),
 ]
 

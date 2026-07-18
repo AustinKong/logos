@@ -59,6 +59,11 @@ class ResolutionCompletedEventRead(EventReadBase):
     decision: str
 
 
+class ResolutionVoteEventRead(EventReadBase):
+    type: Literal[EventType.RESOLUTION_VOTE]
+    selected_participant: ParticipantRead
+
+
 class MessageStartedEventRead(EventReadBase):
     type: Literal[EventType.MESSAGE_STARTED]
 
@@ -104,6 +109,7 @@ type EventRead = Annotated[
     | DebateRoundCompletedEventRead
     | ResolutionStartedEventRead
     | ResolutionCompletedEventRead
+    | ResolutionVoteEventRead
     | MessageStartedEventRead
     | MessageCompletedEventRead
     | ReasoningStartedEventRead

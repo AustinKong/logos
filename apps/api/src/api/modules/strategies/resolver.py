@@ -1,6 +1,5 @@
 from typing import assert_never
 
-from api.modules.ai.service import AIService
 from api.modules.sessions.models.sessions import Session
 from api.modules.strategies.history.base import HistoryStrategy
 from api.modules.strategies.history.configs import HistoryMode
@@ -9,9 +8,11 @@ from api.modules.strategies.history.sliding_window import SlidingWindowHistorySt
 from api.modules.strategies.resolution.base import ResolutionStrategy
 from api.modules.strategies.resolution.configs import (
     JudgeResolutionConfig,
+    JuryResolutionConfig,
     NoneResolutionConfig,
 )
 from api.modules.strategies.resolution.judge import JudgeResolutionStrategy
+from api.modules.strategies.resolution.jury import JuryResolutionStrategy
 from api.modules.strategies.resolution.none import NoneResolutionStrategy
 from api.modules.strategies.turn_selection.base import TurnSelectionStrategy
 from api.modules.strategies.turn_selection.configs import (
@@ -23,9 +24,6 @@ from api.modules.strategies.turn_selection.shuffled import ShuffledTurnSelection
 
 
 class StrategyResolver:
-    def __init__(self, *, ai_service: AIService) -> None:
-        self._ai_service = ai_service
-
     def turn_selection(self, session: Session) -> TurnSelectionStrategy:
         config = session.config.debate_config.turn_selection_config
         match config:
@@ -51,11 +49,13 @@ class StrategyResolver:
         match config:
             case JudgeResolutionConfig():
                 return JudgeResolutionStrategy(
-                    ai_service=self._ai_service,
-                    config=config,
                     judge=session.config.judge_participant,
                 )
+            case JuryResolutionConfig():
+                return JuryResolutionStrategy(
+                    jurors=session.config.juror_participants,
+                )
             case NoneResolutionConfig():
-                return NoneResolutionStrategy(config=config)
+                return NoneResolutionStrategy()
             case _ as never:
                 assert_never(never)

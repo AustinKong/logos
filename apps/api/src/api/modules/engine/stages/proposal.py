@@ -7,8 +7,11 @@ from api.modules.engine.timeline.messages import TurnMessageMode, ai_messages_fr
 from api.modules.engine.timeline.turns import next_participant, turns_from_events
 from api.modules.session_configs.models.session_configs import ProposalConfig
 from api.modules.sessions.models.events import (
+    AskUserStartedEvent,
+    MessageCompletedEvent,
     ProposalCompletedEvent,
     ProposalStartedEvent,
+    TurnCompletedEvent,
     TurnStartedEvent,
 )
 from api.modules.strategies.turn_selection.base import TurnSelectionStrategy
@@ -69,7 +72,8 @@ class ProposalStage:
         if participant is None:
             raise ValueError("Open agent turn has no debater participant")
 
-        async for output in self._generation_runner.run_turn(
+        turn_completed = False
+        async for output in self._generation_runner.run_response(
             session_id=ctx.session_id,
             sender=participant,
             messages=[
@@ -89,4 +93,11 @@ class ProposalStage:
             ],
             tools=self._tools,
         ):
+            if isinstance(output, MessageCompletedEvent):
+                turn_completed = True
+            elif isinstance(output, AskUserStartedEvent):
+                turn_completed = False
             yield output
+
+        if turn_completed:
+            yield TurnCompletedEvent(session_id=ctx.session_id)

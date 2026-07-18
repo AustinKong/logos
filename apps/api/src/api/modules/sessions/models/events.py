@@ -30,6 +30,7 @@ class EventType(StrEnum):
     RESOLUTION_COMPLETED = "resolution.completed"
     ASK_USER_STARTED = "ask_user.started"
     ASK_USER_COMPLETED = "ask_user.completed"
+    RESOLUTION_VOTE = "resolution.vote"
 
 
 # Simple events stay in the base events table to avoid unnecessary new tables.
@@ -201,6 +202,22 @@ class ResolutionCompletedEvent(Event):
 
     __mapper_args__ = {
         "polymorphic_identity": EventType.RESOLUTION_COMPLETED,
+    }
+
+
+class ResolutionVoteEvent(Event):
+    __tablename__ = "resolution_vote_events"
+
+    id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), primary_key=True)
+    selected_participant_id: Mapped[UUID] = mapped_column(ForeignKey("participants.id"), index=True)
+
+    selected_participant: Mapped[Participant] = relationship(
+        foreign_keys=[selected_participant_id],
+        lazy="joined",
+    )
+
+    __mapper_args__ = {
+        "polymorphic_identity": EventType.RESOLUTION_VOTE,
     }
 
 
