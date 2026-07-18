@@ -20,7 +20,7 @@ ASK_USER_TOOL_DEFINITION = ToolDefinition(
             "options": {
                 "type": "array",
                 "items": {"type": "string", "minLength": 1},
-                "description": "Plain-text multiple-choice options to show to the user.",
+                "description": "Plain-text options without labels or prefixes such as A), B), 1., or 2.",
             },
         },
         "required": ["question", "options"],

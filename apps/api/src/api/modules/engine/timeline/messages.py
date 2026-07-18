@@ -98,9 +98,9 @@ def ai_message_from_turn(
                         (
                             AIMessage(
                                 role=MessageRole.ASSISTANT,
-                                content=f"Ask the user: {event.started_event.question}",
+                                content=f"Asked the user: {event.started_event.question}",
                             ),
-                            AIMessage(role=MessageRole.USER, content=event.answer),
+                            AIMessage(role=MessageRole.USER, content=f"User answered: {event.answer}"),
                         )
                     )
             case _:

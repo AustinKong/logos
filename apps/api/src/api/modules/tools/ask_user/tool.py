@@ -1,3 +1,5 @@
+import re
+
 from pydantic import BaseModel, Field, ValidationError
 
 from api.modules.ai.models import AIToolCall
@@ -7,6 +9,9 @@ from api.modules.tools.ask_user.service import AskUserService
 from api.modules.tools.base import ToolExecutionContext
 from api.modules.tools.errors import InvalidToolArgumentsError
 from api.modules.tools.models import ToolDefinition
+
+# Strip option labels like "A)", "B.", "1.", "2)".
+OPTION_LABEL_PATTERN = re.compile(r"^\s*(?:[A-Za-z]|\d+)[.)]\s+")
 
 
 # TODO: If its possible to define parameters as ask user tool input and conver to the json needed
@@ -36,5 +41,5 @@ class AskUserTool:
         return await self._ask_user_service.start(
             session_id=ctx.session_id,
             question=tool_input.question,
-            options=tool_input.options,
+            options=[OPTION_LABEL_PATTERN.sub("", option) for option in tool_input.options],
         )

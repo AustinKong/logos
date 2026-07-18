@@ -33,7 +33,6 @@ class ParticipantsTable(DataTable[str]):
         self._models = models
         self._allow_multiple = allow_multiple
         self._read_only = read_only
-        self._selected_participant_key = initial_state.participants[0].key
 
     def on_mount(self) -> None:
         self.cursor_type = "row"
@@ -58,10 +57,6 @@ class ParticipantsTable(DataTable[str]):
             on_close=lambda updated: self._update_participant(participant.key, updated),
         )
 
-    @on(DataTable.RowHighlighted)
-    def handle_row_highlighted(self, event: DataTable.RowHighlighted) -> None:
-        self._selected_participant_key = str(event.row_key.value)
-
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if action == "remove_participant" and self.row_count <= 1:
             return False
@@ -77,7 +72,7 @@ class ParticipantsTable(DataTable[str]):
         )
 
     def action_remove_participant(self) -> None:
-        participant_key = self._selected_participant_key
+        participant_key = self._participants.participants[self.cursor_row].key
         self._participants = ParticipantsFormState(
             participants=[
                 participant for participant in self._participants.participants if participant.key != participant_key

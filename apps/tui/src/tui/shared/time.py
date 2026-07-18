@@ -2,8 +2,8 @@ from datetime import datetime
 
 
 def format_datetime(value: datetime) -> str:
-    return value.strftime("%Y-%m-%d %H:%M")
+    return value.astimezone().strftime("%Y-%m-%d %H:%M")
 
 
 def format_time(value: datetime) -> str:
-    return value.strftime("%H:%M")
+    return value.astimezone().strftime("%H:%M")
