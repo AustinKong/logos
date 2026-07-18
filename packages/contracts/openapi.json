@@ -2095,7 +2095,7 @@
             "const": "turn.started",
             "title": "Type"
           },
-          "sender": {
+          "participant": {
             "$ref": "#/components/schemas/ParticipantRead"
           }
         },
@@ -2106,7 +2106,7 @@
           "created_at",
           "updated_at",
           "type",
-          "sender"
+          "participant"
         ],
         "title": "TurnStartedEventRead"
       },

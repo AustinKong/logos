@@ -26,7 +26,7 @@ class Turn(Vertical):
         height: auto;
     }
 
-    Turn .turn-sender {
+    Turn .turn-participant {
         width: 1fr;
         text-style: bold;
     }
@@ -44,12 +44,12 @@ class Turn(Vertical):
         self._streamable_widgets: dict[UUID, StreamableWidget] = {}
 
     def compose(self) -> ComposeResult:
-        sender = Static(self._event.sender.name, classes="turn-sender")
+        participant = Static(self._event.participant.name, classes="turn-participant")
         accent = self.app.theme_variables["accent"]
-        sender.styles.color = color_from_id(self._event.sender.id, accent)
+        participant.styles.color = color_from_id(self._event.participant.id, accent)
 
         self._time_widget = Static(format_time(self._latest_at), classes="turn-time muted")
-        yield Horizontal(sender, self._time_widget, classes="turn-header")
+        yield Horizontal(participant, self._time_widget, classes="turn-header")
 
     async def add(self, widget: Widget, *, created_at: datetime, stream_id: UUID | None = None) -> None:
         await self.mount(widget)

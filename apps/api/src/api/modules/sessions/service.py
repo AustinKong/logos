@@ -123,22 +123,22 @@ def _format_session_export(session: Session, events: list[Event]) -> str:
         "## Transcript",
         "",
     ]
-    turn_sender: str | None = None
+    turn_participant_name: str | None = None
 
     for event in events:
         match event:
             case TurnStartedEvent():
-                turn_sender = event.sender.name
+                turn_participant_name = event.participant.name
             case TurnCompletedEvent():
-                turn_sender = None
+                turn_participant_name = None
             case AskUserStartedEvent():
-                lines.extend([f"### {turn_sender or 'Unknown'} asks user", "", event.question, ""])
+                lines.extend([f"### {turn_participant_name or 'Unknown'} asks user", "", event.question, ""])
             case AskUserCompletedEvent():
                 lines.extend(["Answer:", "", event.answer, ""])
             case MessageCompletedEvent():
-                lines.extend([f"### {turn_sender or 'Unknown'}", "", event.content, ""])
+                lines.extend([f"### {turn_participant_name or 'Unknown'}", "", event.content, ""])
             case ReasoningCompletedEvent():
-                lines.extend([f"### {turn_sender or 'Unknown'} reasoning", "", event.content, ""])
+                lines.extend([f"### {turn_participant_name or 'Unknown'} reasoning", "", event.content, ""])
             case SessionStartedEvent():
                 lines.extend(["Session started.", ""])
             case SessionCompletedEvent():

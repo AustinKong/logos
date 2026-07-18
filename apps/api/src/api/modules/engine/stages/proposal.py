@@ -62,11 +62,11 @@ class ProposalStage:
                 yield ProposalCompletedEvent(session_id=ctx.session_id)
                 return
 
-            yield TurnStartedEvent(session_id=ctx.session_id, sender_id=participant.id)
+            yield TurnStartedEvent(session_id=ctx.session_id, participant_id=participant.id)
             return
 
         participant = next(
-            (participant for participant in ctx.debaters if participant.id == open_turn.started.sender.id),
+            (participant for participant in ctx.debaters if participant.id == open_turn.started.participant.id),
             None,
         )
         if participant is None:

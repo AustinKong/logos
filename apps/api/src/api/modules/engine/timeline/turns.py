@@ -45,5 +45,5 @@ def next_participant(
     completed_turns: Sequence[Turn],
 ) -> Participant | None:
     """Given an ordered list of participants and a list of completed turns, returns the next participant who has not yet taken a turn."""
-    completed_participant_ids = {turn.started.sender_id for turn in completed_turns}
+    completed_participant_ids = {turn.started.participant_id for turn in completed_turns}
     return next((participant for participant in participants if participant.id not in completed_participant_ids), None)

@@ -52,7 +52,7 @@ def event_read_from_event(event: Event) -> EventRead:
             return TurnStartedEventRead(
                 **fields,
                 type=EventType.TURN_STARTED,
-                sender=participant_read_from_participant(event.sender),
+                participant=participant_read_from_participant(event.participant),
             )
         case TurnCompletedEvent():
             return TurnCompletedEventRead(

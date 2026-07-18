@@ -62,7 +62,7 @@ def ai_message_from_turn(
                     messages.append(
                         AIMessage(
                             role=MessageRole.USER,
-                            content=f"{turn.started.sender.name} reasoning:\n{event.content}",
+                            content=f"{turn.started.participant.name} reasoning:\n{event.content}",
                         )
                     )
                 else:
@@ -77,7 +77,7 @@ def ai_message_from_turn(
                     messages.append(
                         AIMessage(
                             role=MessageRole.USER,
-                            content=f"{turn.started.sender.name}: {event.content}",
+                            content=f"{turn.started.participant.name}: {event.content}",
                         )
                     )
                 else:
@@ -88,7 +88,7 @@ def ai_message_from_turn(
                         AIMessage(
                             role=MessageRole.USER,
                             content=(
-                                f"{turn.started.sender.name} asked the user: {event.started_event.question}\n"
+                                f"{turn.started.participant.name} asked the user: {event.started_event.question}\n"
                                 f"User answered: {event.answer}"
                             ),
                         )
@@ -115,7 +115,7 @@ def _includes_internal_events(
     include_internal_events_from: InternalEventSources,
 ) -> bool:
     if not isinstance(include_internal_events_from, InternalEventVisibility):
-        return turn.started.sender_id in include_internal_events_from
+        return turn.started.participant_id in include_internal_events_from
 
     match include_internal_events_from:
         case InternalEventVisibility.ALL:

@@ -53,7 +53,7 @@ async def run_adjudication(
     messages: Sequence[AIMessage],
     generation_runner: GenerationRunner,
 ) -> EngineOutputStream:
-    yield TurnStartedEvent(session_id=ctx.session_id, sender_id=adjudicator.id)
+    yield TurnStartedEvent(session_id=ctx.session_id, participant_id=adjudicator.id)
 
     verdict: str | None = None
     async for output in generation_runner.run_response(

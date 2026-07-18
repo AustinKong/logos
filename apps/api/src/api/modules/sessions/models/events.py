@@ -73,10 +73,9 @@ class TurnStartedEvent(Event):
     __tablename__ = "turn_started_events"
 
     id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), primary_key=True)
-    # TODO: Rename to a better name than "sender". turn participant might not even send anything
-    sender_id: Mapped[UUID] = mapped_column(ForeignKey("participants.id"), index=True)
+    participant_id: Mapped[UUID] = mapped_column(ForeignKey("participants.id"), index=True)
 
-    sender: Mapped[Participant] = relationship(Participant, foreign_keys=[sender_id], lazy="joined")
+    participant: Mapped[Participant] = relationship(Participant, foreign_keys=[participant_id], lazy="joined")
 
     __mapper_args__ = {
         "polymorphic_identity": EventType.TURN_STARTED,

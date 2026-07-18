@@ -26,7 +26,7 @@ class SessionCompletedEventRead(EventReadBase):
 
 class TurnStartedEventRead(EventReadBase):
     type: Literal[EventType.TURN_STARTED]
-    sender: ParticipantRead
+    participant: ParticipantRead
 
 
 class TurnCompletedEventRead(EventReadBase):
