@@ -16,14 +16,6 @@ class EventReadBase(BaseModel):
     updated_at: datetime
 
 
-class SessionStartedEventRead(EventReadBase):
-    type: Literal[EventType.SESSION_STARTED]
-
-
-class SessionCompletedEventRead(EventReadBase):
-    type: Literal[EventType.SESSION_COMPLETED]
-
-
 class TurnStartedEventRead(EventReadBase):
     type: Literal[EventType.TURN_STARTED]
     participant: ParticipantRead
@@ -99,9 +91,7 @@ class AskUserCompletedEventRead(EventReadBase):
 
 
 type EventRead = Annotated[
-    SessionStartedEventRead
-    | SessionCompletedEventRead
-    | TurnStartedEventRead
+    TurnStartedEventRead
     | TurnCompletedEventRead
     | ProposalStartedEventRead
     | ProposalCompletedEventRead

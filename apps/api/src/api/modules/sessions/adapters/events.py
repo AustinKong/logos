@@ -17,8 +17,6 @@ from api.modules.sessions.models.events import (
     ResolutionCompletedEvent,
     ResolutionStartedEvent,
     ResolutionVoteEvent,
-    SessionCompletedEvent,
-    SessionStartedEvent,
     TurnCompletedEvent,
     TurnStartedEvent,
 )
@@ -37,8 +35,6 @@ from api.modules.sessions.schemas.events import (
     ResolutionCompletedEventRead,
     ResolutionStartedEventRead,
     ResolutionVoteEventRead,
-    SessionCompletedEventRead,
-    SessionStartedEventRead,
     TurnCompletedEventRead,
     TurnStartedEventRead,
 )
@@ -131,17 +127,6 @@ def event_read_from_event(event: Event) -> EventRead:
                 type=EventType.RESOLUTION_VOTE,
                 selected_participant=participant_read_from_participant(event.selected_participant),
             )
-        case SessionCompletedEvent():
-            return SessionCompletedEventRead(
-                **fields,
-                type=EventType.SESSION_COMPLETED,
-            )
-        case SessionStartedEvent():
-            return SessionStartedEventRead(
-                **fields,
-                type=EventType.SESSION_STARTED,
-            )
-
     raise ValueError(f"Unsupported event type: {event.type}")
 
 

@@ -5,7 +5,6 @@ from api_client.models import (
     AskUserStartedEventRead,
     MessageStartedEventRead,
     ReasoningStartedEventRead,
-    SessionCompletedEventRead,
     SessionRead,
 )
 from httpx import HTTPStatusError
@@ -73,7 +72,6 @@ class SessionChatScreen(BaseScreen):
             self._session = await self._loader.get_session(session_id=self._session_id)
             events = await self._loader.get_events(session_id=self._session.id)
             latest_event_id: UUID | None = None
-            completed = False
             open_ask_user_events: list[AskUserStartedEventRead] = []
 
             for event in events:
@@ -87,14 +85,10 @@ class SessionChatScreen(BaseScreen):
                         started for started in open_ask_user_events if started.id != event.started_event_id
                     ]
 
-                if isinstance(event, SessionCompletedEventRead):
-                    completed = True
-
             for event in open_ask_user_events:
                 self._enqueue_ask_user(event)
 
-            if not completed:
-                self.stream_events(after_event_id=latest_event_id)
+            self.stream_events(after_event_id=latest_event_id)
         except Exception as exc:
             self.notify(str(exc), title="Failed to load session", severity="error")
 
@@ -136,9 +130,6 @@ class SessionChatScreen(BaseScreen):
                         self._pending_ask_user_events = [
                             pending for pending in self._pending_ask_user_events if pending.id != event.started_event_id
                         ]
-                    case SessionCompletedEventRead():
-                        self.chat_input_shown = False
-                        return
         except HTTPStatusError as exc:
             if exc.response.status_code == 404:
                 return

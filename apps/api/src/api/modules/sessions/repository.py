@@ -1,12 +1,12 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import and_, case, distinct, func, select
+from sqlalchemy import and_, distinct, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.modules.session_configs.models.participants import Participant, ParticipantType
 from api.modules.session_configs.models.session_configs import SessionConfig
-from api.modules.sessions.models.events import Event, EventType
+from api.modules.sessions.models.events import Event
 from api.modules.sessions.models.sessions import Session, SessionStatus, SessionSummary
 
 
@@ -15,8 +15,6 @@ class SessionRepository:
         self._db = db
 
     async def list_session_summaries(self) -> list[SessionSummary]:
-        has_started = func.max(case((Event.type == EventType.SESSION_STARTED, 1), else_=0))
-        has_completed = func.max(case((Event.type == EventType.SESSION_COMPLETED, 1), else_=0))
         statement = (
             select(
                 Session.id,
@@ -24,8 +22,7 @@ class SessionRepository:
                 Session.created_at,
                 Session.updated_at,
                 func.count(distinct(Participant.id)),
-                has_started,
-                has_completed,
+                func.count(distinct(Event.id)),
             )
             .join(SessionConfig, SessionConfig.id == Session.config_id)
             .outerjoin(
@@ -47,7 +44,7 @@ class SessionRepository:
                 created_at=row.created_at,
                 updated_at=row.updated_at,
                 participant_count=row[4],
-                status=SessionStatus.from_flags(has_started=bool(row[5]), has_completed=bool(row[6])),
+                status=SessionStatus.from_has_events(has_events=bool(row[5])),
             )
             for row in result
         ]

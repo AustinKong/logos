@@ -20,8 +20,6 @@ from ...models.reasoning_completed_event_read import ReasoningCompletedEventRead
 from ...models.reasoning_started_event_read import ReasoningStartedEventRead
 from ...models.resolution_completed_event_read import ResolutionCompletedEventRead
 from ...models.resolution_started_event_read import ResolutionStartedEventRead
-from ...models.session_completed_event_read import SessionCompletedEventRead
-from ...models.session_started_event_read import SessionStartedEventRead
 from ...models.turn_completed_event_read import TurnCompletedEventRead
 from ...models.turn_started_event_read import TurnStartedEventRead
 
@@ -48,10 +46,6 @@ def _event_from_data(data: str) -> EventRead:
     event_type = event_data.get("type")
 
     match event_type:
-        case "session.started":
-            return SessionStartedEventRead.from_dict(event_data)
-        case "session.completed":
-            return SessionCompletedEventRead.from_dict(event_data)
         case "turn.started":
             return TurnStartedEventRead.from_dict(event_data)
         case "turn.completed":

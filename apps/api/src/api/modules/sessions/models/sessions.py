@@ -16,17 +16,12 @@ from api.modules.sessions.models.events import Event
 
 class SessionStatus(StrEnum):
     DRAFT = "draft"
-    RUNNING = "running"
-    COMPLETED = "completed"
+    ACTIVE = "active"
 
+    # TODO: Pretty arbitrary right now, since the session is always started on creation.
     @classmethod
-    def from_flags(cls, *, has_started: bool, has_completed: bool) -> SessionStatus:
-        if has_completed:
-            return SessionStatus.COMPLETED
-        if has_started:
-            return SessionStatus.RUNNING
-
-        return SessionStatus.DRAFT
+    def from_has_events(cls, *, has_events: bool) -> SessionStatus:
+        return SessionStatus.ACTIVE if has_events else SessionStatus.DRAFT
 
 
 @dataclass(frozen=True, slots=True)

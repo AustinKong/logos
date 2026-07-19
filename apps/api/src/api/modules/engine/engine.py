@@ -4,7 +4,6 @@ from api.modules.engine.stages.base import EngineStage
 from api.modules.engine.stages.debate import DebateStage
 from api.modules.engine.stages.proposal import ProposalStage
 from api.modules.engine.stages.resolution import ResolutionStage
-from api.modules.sessions.models.events import SessionCompletedEvent, SessionStartedEvent
 from api.modules.sessions.models.sessions import Session
 from api.modules.strategies.resolver import StrategyResolver
 from api.modules.tools.models import ToolScope
@@ -49,13 +48,6 @@ class Engine:
         ]
 
     async def step(self, session: Session, ctx: EngineContext) -> EngineOutputStream:
-        if not any(isinstance(event, SessionStartedEvent) for event in ctx.events):
-            yield SessionStartedEvent(session_id=ctx.session_id)
-            return
-
-        if any(isinstance(event, SessionCompletedEvent) for event in ctx.events):
-            return
-
         for stage in self._build_stages(session):
             has_output = False
             async for output in stage.run(ctx):

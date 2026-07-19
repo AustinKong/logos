@@ -19,7 +19,6 @@ from api.modules.sessions.adapters.sessions import (
     session_summary_read_from_summary,
 )
 from api.modules.sessions.deps import get_session_service
-from api.modules.sessions.models.events import SessionCompletedEvent
 from api.modules.sessions.schemas.events import EventRead
 from api.modules.sessions.schemas.sessions import (
     SessionCreate,
@@ -40,6 +39,7 @@ async def create_session(
     payload: SessionCreate,
     background_tasks: BackgroundTasks,
     service: Annotated[SessionService, Depends(get_session_service)],
+    streaming_service: Annotated[StreamingService, Depends(get_streaming_service)],
 ) -> SessionRead:
     config = payload.config
     session = await service.create_session(
@@ -53,6 +53,7 @@ async def create_session(
         ],
         resolution_config=resolution_config_from_create(config.resolution),
     )
+    await streaming_service.open(SESSION_EVENT_STREAM, session.id)
     background_tasks.add_task(run_session_until_blocked_background, session.id)
     return session_read_from_session(session)
 
@@ -114,8 +115,6 @@ async def stream_session_events(
                 yield {
                     "data": event_read_from_event(event).model_dump_json(),
                 }
-                if isinstance(event, SessionCompletedEvent):
-                    return
 
     return ServerSentEventResponse(events())
 

@@ -26,10 +26,6 @@ const overrides = [
 
 const sourceEnumOverrides = [
   {
-    name: "ParticipantType",
-    source: "apps/api/src/api/modules/session_configs/models/participants.py",
-  },
-  {
     name: "HistoryMode",
     source: "apps/api/src/api/modules/strategies/history/configs.py",
   },

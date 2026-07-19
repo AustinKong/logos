@@ -14,8 +14,6 @@ from api.modules.tools.ask_user.models import AskUserAnswerKind
 
 
 class EventType(StrEnum):
-    SESSION_STARTED = "session.started"
-    SESSION_COMPLETED = "session.completed"
     TURN_STARTED = "turn.started"
     TURN_COMPLETED = "turn.completed"
     MESSAGE_STARTED = "message.started"
@@ -54,18 +52,6 @@ class Event(UUIDMixin, TimestampMixin, Base):
     __mapper_args__ = {
         "polymorphic_on": type,
         "with_polymorphic": "*",
-    }
-
-
-class SessionStartedEvent(Event):
-    __mapper_args__ = {
-        "polymorphic_identity": EventType.SESSION_STARTED,
-    }
-
-
-class SessionCompletedEvent(Event):
-    __mapper_args__ = {
-        "polymorphic_identity": EventType.SESSION_COMPLETED,
     }
 
 

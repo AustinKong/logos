@@ -23,8 +23,6 @@ from api.modules.sessions.models.events import (
     ReasoningCompletedEvent,
     ResolutionCompletedEvent,
     ResolutionStartedEvent,
-    SessionCompletedEvent,
-    SessionStartedEvent,
     TurnCompletedEvent,
     TurnStartedEvent,
 )
@@ -140,10 +138,6 @@ def _format_session_export(session: Session, events: list[Event]) -> str:
                 lines.extend([f"### {turn_participant_name or 'Unknown'}", "", event.content, ""])
             case ReasoningCompletedEvent():
                 lines.extend([f"### {turn_participant_name or 'Unknown'} reasoning", "", event.content, ""])
-            case SessionStartedEvent():
-                lines.extend(["Session started.", ""])
-            case SessionCompletedEvent():
-                lines.extend(["Session completed.", ""])
             case ProposalStartedEvent():
                 lines.extend(["## Proposal", ""])
             case ProposalCompletedEvent():

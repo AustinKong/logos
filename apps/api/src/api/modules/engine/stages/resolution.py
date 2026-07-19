@@ -3,7 +3,6 @@ from api.modules.engine.models import EngineContext, EngineOutputStream
 from api.modules.sessions.models.events import (
     ResolutionCompletedEvent,
     ResolutionStartedEvent,
-    SessionCompletedEvent,
 )
 from api.modules.strategies.resolution.base import ResolutionStrategy
 
@@ -20,7 +19,6 @@ class ResolutionStage:
 
     async def run(self, ctx: EngineContext) -> EngineOutputStream:
         if any(isinstance(event, ResolutionCompletedEvent) for event in ctx.events):
-            yield SessionCompletedEvent(session_id=ctx.session_id)
             return
 
         if not any(isinstance(event, ResolutionStartedEvent) for event in ctx.events):
@@ -32,5 +30,3 @@ class ResolutionStage:
             generation_runner=self._generation_runner,
         ):
             yield output
-
-        yield SessionCompletedEvent(session_id=ctx.session_id)

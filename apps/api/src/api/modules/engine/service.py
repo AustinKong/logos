@@ -10,8 +10,6 @@ from api.modules.sessions.models.events import (
     MessageStartedEvent,
     ReasoningCompletedEvent,
     ReasoningStartedEvent,
-    SessionCompletedEvent,
-    SessionStartedEvent,
 )
 from api.modules.sessions.service import SessionService
 from api.modules.streaming.deps import SESSION_EVENT_STREAM, TOKEN_STREAM
@@ -53,8 +51,6 @@ class EngineService:
 
     async def _open_streams_for_event(self, event: Event) -> None:
         match event:
-            case SessionStartedEvent():
-                await self._streaming_service.open(SESSION_EVENT_STREAM, event.session_id)
             case MessageStartedEvent() | ReasoningStartedEvent():
                 await self._streaming_service.open(TOKEN_STREAM, event.id)
             case _:
@@ -62,8 +58,6 @@ class EngineService:
 
     async def _close_streams_for_event(self, event: Event) -> None:
         match event:
-            case SessionCompletedEvent():
-                await self._streaming_service.close(SESSION_EVENT_STREAM, event.session_id)
             case MessageCompletedEvent() | ReasoningCompletedEvent():
                 await self._streaming_service.close(TOKEN_STREAM, event.started_event_id)
             case _:
@@ -77,8 +71,6 @@ class EngineService:
             has_output = False
             async for output in self.step(session_id):
                 has_output = True
-                if isinstance(output, SessionCompletedEvent):
-                    return
 
             if not has_output:
                 return

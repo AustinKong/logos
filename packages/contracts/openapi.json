@@ -855,12 +855,6 @@
       "EventRead": {
         "oneOf": [
           {
-            "$ref": "#/components/schemas/SessionStartedEventRead"
-          },
-          {
-            "$ref": "#/components/schemas/SessionCompletedEventRead"
-          },
-          {
             "$ref": "#/components/schemas/TurnStartedEventRead"
           },
           {
@@ -922,8 +916,6 @@
             "resolution.completed": "#/components/schemas/ResolutionCompletedEventRead",
             "resolution.started": "#/components/schemas/ResolutionStartedEventRead",
             "resolution.vote": "#/components/schemas/ResolutionVoteEventRead",
-            "session.completed": "#/components/schemas/SessionCompletedEventRead",
-            "session.started": "#/components/schemas/SessionStartedEventRead",
             "turn.completed": "#/components/schemas/TurnCompletedEventRead",
             "turn.started": "#/components/schemas/TurnStartedEventRead"
           }
@@ -1675,38 +1667,6 @@
         "type": "object",
         "title": "RoundRobinTurnSelectionConfigRead"
       },
-      "SessionCompletedEventRead": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
-          },
-          "session_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Session Id"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated At"
-          },
-          "type": {
-            "type": "string",
-            "const": "session.completed",
-            "title": "Type"
-          }
-        },
-        "type": "object",
-        "required": ["id", "session_id", "created_at", "updated_at", "type"],
-        "title": "SessionCompletedEventRead"
-      },
       "SessionConfigCreate": {
         "properties": {
           "prompt": {
@@ -1835,41 +1795,9 @@
         "required": ["id", "created_at", "updated_at", "config"],
         "title": "SessionRead"
       },
-      "SessionStartedEventRead": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
-          },
-          "session_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Session Id"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated At"
-          },
-          "type": {
-            "type": "string",
-            "const": "session.started",
-            "title": "Type"
-          }
-        },
-        "type": "object",
-        "required": ["id", "session_id", "created_at", "updated_at", "type"],
-        "title": "SessionStartedEventRead"
-      },
       "SessionStatus": {
         "type": "string",
-        "enum": ["draft", "running", "completed"],
+        "enum": ["draft", "active"],
         "title": "SessionStatus"
       },
       "SessionSummaryRead": {
