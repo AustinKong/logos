@@ -30,8 +30,8 @@ class EngineService:
         self._engine = engine
 
     async def step(self, session_id: UUID) -> EngineOutputStream:
-        session = self._session_service.get_session(session_id)
-        events = self._session_service.list_events(session_id)
+        session = await self._session_service.get_session(session_id)
+        events = await self._session_service.list_events(session_id)
         ctx = EngineContext(
             session_id=session.id,
             prompt=session.config.prompt,
@@ -43,7 +43,7 @@ class EngineService:
         async for output in self._engine.step(session, ctx):
             if isinstance(output, Event):
                 await self._open_streams_for_event(output)
-                self._session_service.append_events(session_id, [output])
+                await self._session_service.append_events(session_id, [output])
                 await self._streaming_service.publish(SESSION_EVENT_STREAM, output.session_id, output)
                 await self._close_streams_for_event(output)
             else:
@@ -71,7 +71,7 @@ class EngineService:
 
     async def run_until_blocked(self, session_id: UUID) -> None:
         while True:
-            if self._has_blocking_events_open(self._session_service.list_events(session_id)):
+            if self._has_blocking_events_open(await self._session_service.list_events(session_id)):
                 return
 
             has_output = False

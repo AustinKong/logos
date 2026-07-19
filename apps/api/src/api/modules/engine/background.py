@@ -20,7 +20,7 @@ from api.vector.database import get_vector_db
 
 
 async def run_session_until_blocked_background(session_id: UUID) -> None:
-    with db_context() as db:
+    async with db_context() as db:
         settings = get_settings()
         ai_service = AIService(provider_resolver=AIProviderResolver(settings=settings), settings=settings)
         ask_user_cache_repository = AskUserCacheRepository(vector_db=get_vector_db())

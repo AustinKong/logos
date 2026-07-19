@@ -1,6 +1,8 @@
 from uuid import UUID
 
-from sqlalchemy.orm import Session as SqlAlchemyDb
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from api.modules.ai.service import AIService
 from api.modules.sessions.models.events import AskUserCompletedEvent, AskUserStartedEvent, Event
@@ -19,7 +21,7 @@ class AskUserService:
     def __init__(
         self,
         *,
-        db: SqlAlchemyDb,
+        db: AsyncSession,
         ai_service: AIService,
         cache_repository: AskUserCacheRepository,
     ) -> None:
@@ -62,7 +64,7 @@ class AskUserService:
         answer_kind: AskUserAnswerKind,
         answer: str,
     ) -> AskUserCompletedEvent:
-        started_event = self._get_started_event(started_event_id=started_event_id)
+        started_event = await self._get_started_event(started_event_id=started_event_id)
 
         if started_event.completed_event is not None:
             raise AskUserAlreadyAnsweredError()
@@ -79,7 +81,7 @@ class AskUserService:
             answer=answer,
         )
         self._db.add(completed_event)
-        self._db.commit()
+        await self._db.commit()
         await self._cache_answer(started_event=started_event, completed_event=completed_event)
         return completed_event
 
@@ -100,7 +102,7 @@ class AskUserService:
             if cache_entry is None:
                 return None
 
-            completed_event = self._db.get(AskUserCompletedEvent, cache_entry.source_completed_event_id)
+            completed_event = await self._db.get(AskUserCompletedEvent, cache_entry.source_completed_event_id)
             if completed_event is None:
                 return None
 
@@ -108,8 +110,14 @@ class AskUserService:
         except:
             pass
 
-    def _get_started_event(self, *, started_event_id: UUID) -> AskUserStartedEvent:
-        started_event = self._db.get(AskUserStartedEvent, started_event_id)
+    async def _get_started_event(self, *, started_event_id: UUID) -> AskUserStartedEvent:
+        statement = (
+            select(AskUserStartedEvent)
+            .where(AskUserStartedEvent.id == started_event_id)
+            .options(selectinload(AskUserStartedEvent.completed_event))
+        )
+        result = await self._db.execute(statement)
+        started_event = result.scalar_one_or_none()
         if started_event is None:
             raise AskUserStartedEventNotFoundError()
         return started_event

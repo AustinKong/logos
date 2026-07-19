@@ -3,7 +3,7 @@ from typing import assert_never
 from uuid import UUID
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session as SqlAlchemyDb
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from api.modules.ai.models import ReasoningEffort, Verbosity
@@ -33,18 +33,18 @@ MAX_SEED = 2**63 - 1
 
 
 class SessionConfigService:
-    def __init__(self, *, db: SqlAlchemyDb, ai_service: AIService, tool_service: ToolService) -> None:
+    def __init__(self, *, db: AsyncSession, ai_service: AIService, tool_service: ToolService) -> None:
         self._db = db
         self._ai_service = ai_service
         self._tool_service = tool_service
 
-    def get_default_config(self) -> SessionConfig:
+    async def get_default_config(self) -> SessionConfig:
         try:
             # TODO: What happens if the default config listed model becomes unavailable?
-            config = self.get_config(DEFAULT_SESSION_CONFIG_ID)
+            config = await self.get_config(DEFAULT_SESSION_CONFIG_ID)
         except SessionConfigNotFoundError:
             default_model = self._ai_service.list_available_language_models()[0].id
-            config = self.create_config(
+            config = await self.create_config(
                 id=DEFAULT_SESSION_CONFIG_ID,
                 prompt=DEFAULT_PROMPT,
                 seed=None,
@@ -89,20 +89,21 @@ class SessionConfigService:
 
         return config
 
-    def get_config(self, config_id: UUID) -> SessionConfig:
+    async def get_config(self, config_id: UUID) -> SessionConfig:
         statement = (
             select(SessionConfig)
             .where(SessionConfig.id == config_id)
             .options(selectinload(SessionConfig._participants))
         )
-        config = self._db.execute(statement).scalar_one_or_none()
+        result = await self._db.execute(statement)
+        config = result.scalar_one_or_none()
 
         if config is None:
             raise SessionConfigNotFoundError()
 
         return config
 
-    def create_config(
+    async def create_config(
         self,
         *,
         prompt: str,
@@ -139,7 +140,7 @@ class SessionConfigService:
             config.id = id
 
         self._db.add(config)
-        self._db.flush()
+        await self._db.flush()
 
         for participant in participants:
             participant_class = None
@@ -167,8 +168,8 @@ class SessionConfigService:
             )
 
         if commit:
-            self._db.commit()
-            return self.get_config(config.id)
+            await self._db.commit()
+            return await self.get_config(config.id)
 
-        self._db.flush()
+        await self._db.flush()
         return config

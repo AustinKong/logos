@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     app_name: str = "Logos API"
     environment: str = "development"
     # TODO: Move this to DatabaseSettings
-    database_url: str = "sqlite:///./logos.db"
+    database_url: str = "sqlite+aiosqlite:///./logos.db"
     ai: AISettings = Field(default_factory=AISettings)
     vector: VectorSettings = Field(default_factory=VectorSettings)
 

@@ -70,7 +70,7 @@ To change the database URL, copy the API env template and edit `DATABASE_URL`:
 cp apps/api/.env.example apps/api/.env
 ```
 
-For PostgreSQL or another server database, add the matching SQLAlchemy driver first.
+Database URLs must use an async SQLAlchemy driver. PostgreSQL requires adding `asyncpg` and using a `postgresql+asyncpg://...` URL.
 
 Create a migration after changing ORM models:
 

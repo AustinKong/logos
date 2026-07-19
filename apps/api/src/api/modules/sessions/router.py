@@ -36,13 +36,13 @@ router = APIRouter(prefix="/sessions", tags=["sessions"])
 
 
 @router.post("", operation_id="createSession", response_model=SessionRead, status_code=201)
-def create_session(
+async def create_session(
     payload: SessionCreate,
     background_tasks: BackgroundTasks,
     service: Annotated[SessionService, Depends(get_session_service)],
 ) -> SessionRead:
     config = payload.config
-    session = service.create_session(
+    session = await service.create_session(
         prompt=config.prompt,
         seed=config.seed,
         proposal_config=proposal_config_from_create(config.proposal),
@@ -58,36 +58,36 @@ def create_session(
 
 
 @router.get("", operation_id="listSessions", response_model=list[SessionSummaryRead])
-def list_sessions(
+async def list_sessions(
     service: Annotated[SessionService, Depends(get_session_service)],
 ) -> list[SessionSummaryRead]:
-    return [session_summary_read_from_summary(summary) for summary in service.list_session_summaries()]
+    return [session_summary_read_from_summary(summary) for summary in await service.list_session_summaries()]
 
 
 @router.get("/{session_id}", operation_id="getSession", response_model=SessionRead)
-def get_session(
+async def get_session(
     session_id: UUID,
     service: Annotated[SessionService, Depends(get_session_service)],
 ) -> SessionRead:
-    session = service.get_session(session_id)
+    session = await service.get_session(session_id)
     return session_read_from_session(session)
 
 
 @router.post("/{session_id}/export", operation_id="exportSession", response_model=SessionExportResponse)
-def export_session(
+async def export_session(
     session_id: UUID,
     service: Annotated[SessionService, Depends(get_session_service)],
 ) -> SessionExportResponse:
-    export_path = service.export_session(session_id)
+    export_path = await service.export_session(session_id)
     return SessionExportResponse(path=str(export_path))
 
 
 @router.get("/{session_id}/events", operation_id="listSessionEvents", response_model=list[EventRead])
-def list_session_events(
+async def list_session_events(
     session_id: UUID,
     service: Annotated[SessionService, Depends(get_session_service)],
 ) -> list[EventRead]:
-    return [event_read_from_event(event) for event in service.list_events(session_id)]
+    return [event_read_from_event(event) for event in await service.list_events(session_id)]
 
 
 @router.get("/{session_id}/events/stream", operation_id="streamSessionEvents", response_class=ServerSentEventResponse)
@@ -98,7 +98,7 @@ async def stream_session_events(
     streaming_service: Annotated[StreamingService, Depends(get_streaming_service)],
     after_event_id: UUID | None = None,
 ) -> EventSourceResponse:
-    session_service.get_session(session_id)
+    await session_service.get_session(session_id)
     event_stream = await streaming_service.subscribe(
         SESSION_EVENT_STREAM,
         session_id,
@@ -128,7 +128,7 @@ async def stream_session_tokens(
     session_service: Annotated[SessionService, Depends(get_session_service)],
     streaming_service: Annotated[StreamingService, Depends(get_streaming_service)],
 ) -> EventSourceResponse:
-    session_service.get_session(session_id)
+    await session_service.get_session(session_id)
     token_stream = await streaming_service.subscribe(TOKEN_STREAM, stream_id)
 
     async def tokens():

@@ -1,29 +1,26 @@
-from collections.abc import Iterator
-from contextlib import contextmanager
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
-from sqlalchemy import Engine, create_engine
-from sqlalchemy.orm import Session as SqlAlchemyDb
-from sqlalchemy.orm import sessionmaker as sqlalchemy_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
 from api.settings import get_settings
 
 
-def create_db_engine(database_url: str) -> Engine:
-    connect_args = {"check_same_thread": False} if database_url.startswith("sqlite") else {}
-    return create_engine(database_url, connect_args=connect_args, pool_pre_ping=True)
+def create_db_engine(database_url: str) -> AsyncEngine:
+    return create_async_engine(database_url, pool_pre_ping=True)
 
 
 engine = create_db_engine(get_settings().database_url)
-DBLocal = sqlalchemy_sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False)
+DBLocal = async_sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 
 
 # For non-Fast API contexts such as background tasks
-@contextmanager
-def db_context() -> Iterator[SqlAlchemyDb]:
-    with DBLocal() as db:
+@asynccontextmanager
+async def db_context() -> AsyncIterator[AsyncSession]:
+    async with DBLocal() as db:
         yield db
 
 
-def get_db() -> Iterator[SqlAlchemyDb]:
-    with DBLocal() as db:
+async def get_db() -> AsyncIterator[AsyncSession]:
+    async with DBLocal() as db:
         yield db
